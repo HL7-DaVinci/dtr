@@ -1,7 +1,7 @@
         // get the URL parameters received from the authorization server
         var state = getUrlParameter("state");  // session key
         var code = getUrlParameter("code");    // authorization code
-        
+
         // load the app parameters stored in the session
         var params = JSON.parse(sessionStorage[state]);  // load app session
         var tokenUri = params.tokenUri;
@@ -9,6 +9,7 @@
         var secret = params.secret;
         var serviceUri = params.serviceUri;
         var redirectUri = params.redirectUri;
+        var patientId = params.patientId;
         
         // Prep the token exchange call parameters
         var data = {
@@ -33,14 +34,13 @@
         $.ajax(options).done(function(res){
             // should get back the access token and the patient ID
             var accessToken = res.access_token;
-            var patientId = res.patient;
                     
             // and now we can use these to construct standard FHIR
             // REST calls to obtain patient resources with the
             // SMART on FHIR-specific authorization header...
             // Let's, for example, grab the patient resource and
             // print the patient name on the screen
-            var url = serviceUri + "/Patient/" + patientId;
+            var url = serviceUri + patientId;
             $.ajax({
                 url: url,
                 type: "GET",
@@ -49,7 +49,8 @@
                     "Authorization": "Bearer " + accessToken
                 },
             }).done(function(pt){
-                var name = pt.name[0].given.join(" ") +" "+ pt.name[0].family.join(" ");
+                console.log(pt);
+                var name = pt.name[0].given.join(" ") +" "+ pt.name[0].family;
                 document.body.innerHTML += "<h3>Patient: " + name + "</h3>";
             });
         });
