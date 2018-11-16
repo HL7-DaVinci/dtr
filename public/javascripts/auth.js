@@ -2,13 +2,15 @@
 
 // FHIR.oauth2.authorize({
 //     "client": {
-//         "client_id": "my_web_app",
-//         "scope":  "patient/*.read"
-//     }
+//         "client_id": "app-login",
+//         "scope":  "patient/*.read",
+//     },
+//     "server": getUrlParameter("iss"),
+    
 // });
 
  // Change this to the ID of the client that you registered with the SMART on FHIR authorization server.
- var clientId = "16cbfe7c-6c56-4876-944f-534f9306bf8b";
+ var clientId = "app-login";
         
  // For demonstration purposes, if you registered a confidential client
  // you can enter its secret here. The demo app will pretend it's a confidential
@@ -17,8 +19,9 @@
  var secret = null;    // set me, if confidential
  
  // These parameters will be received at launch time in the URL
- var serviceUri = 'http://launch.smarthealthit.org/v/r2/fhir';
+ var serviceUri = getUrlParameter("iss");
  var launchContextId = getUrlParameter("launch");
+ var patientId = getUrlParameter("patientId");
 
  // The scopes that the app will request from the authorization server
  // encoded in a space-separated string:
@@ -44,30 +47,31 @@
  // Let's request the conformance statement from the SMART on FHIR API server and
  // find out the endpoint URLs for the authorization server
  $.get(conformanceUri, function(r){
+    var authUri,
+    tokenUri;
+    var smartExtension = r.rest[0].security.extension.filter(function (e) {
+    return (e.url === "http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris");
+    });
 
-     var authUri,
-         tokenUri;
-     
-     var smartExtension = r.rest[0].security.extension.filter(function (e) {
-        return (e.url === "http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris");
-     });
-
-     smartExtension[0].extension.forEach(function(arg, index, array){
-       if (arg.url === "authorize") {
-         authUri = arg.valueUri;
-       } else if (arg.url === "token") {
-         tokenUri = arg.valueUri;
-       }
-     });
-     
+    smartExtension[0].extension.forEach(function(arg, index, array){
+    if (arg.url === "authorize") {
+        authUri = arg.valueUri;
+    } else if (arg.url === "token") {
+        tokenUri = arg.valueUri;
+    }
+    });
+    console.log(authUri);
+    console.log(tokenUri);
      // retain a couple parameters in the session for later use
      sessionStorage[state] = JSON.stringify({
          clientId: clientId,
          secret: secret,
          serviceUri: serviceUri,
          redirectUri: redirectUri,
-         tokenUri: tokenUri
+         patientId: patientId,
+         tokenUri: tokenUri,
      });
+
 
      // finally, redirect the browser to the authorizatin server and pass the needed
      // parameters for the authorization request in the URL
@@ -79,6 +83,7 @@
          "aud=" + encodeURIComponent(serviceUri) + "&" +
          "launch=" + launchContextId + "&" +
          "state=" + state;
+    
   }, "json");
  
  // Convenience function for parsing of URL parameters
