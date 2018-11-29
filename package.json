@@ -1,16 +1,41 @@
 {
-  "name": "app",
-  "version": "0.0.0",
+  "name": "dtr",
+  "version": "0.0.1",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "buildRunDev": "webpack --config ./webpack.config.dev.js && node ./bin/www",
+    "buildRun": "webpack --config ./webpack.config.prod.js && node ./bin/www",
+    "buildDev": "webpack --config ./webpack.config.dev.js --progress --colors",
+    "build": "webpack --config ./webpack.config.prod.js --progress --colors",
+    "start": "node ./bin/www",
+    "lint": "node ./node_modules/.bin/eslint --ext .js ./"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.1.6",
+    "@babel/preset-env": "^7.1.6",
+    "babel-loader": "^8.0.4",
+    "babel-minify-webpack-plugin": "^0.3.1",
+    "compression-webpack-plugin": "^2.0.0",
+    "eslint": "^5.9.0",
+    "eslint-config-prettier": "^3.3.0",
+    "ignore-loader": "^0.1.2",
+    "webpack": "^4.25.1",
+    "webpack-cli": "^3.1.2",
+    "webpack-merge": "^4.1.4"
   },
   "dependencies": {
-    "cookie-parser": "~1.4.3",
-    "debug": "~2.6.9",
+    "core-js": "^2.5.7",
+    "cql-exec-fhir": "^1.0.1",
+    "cql-execution": "~1.2.2",
     "express": "~4.16.0",
-    "http-errors": "~1.6.2",
-    "morgan": "~1.9.0",
-    "pug": "2.0.0-beta11"
-  }
+    "fhirclient": "^0.1.12",
+    "regenerator-runtime": "^0.12.1",
+    "whatwg-fetch": "^3.0.0"
+  },
+  "browserslist": [
+    "last 4 firefox versions",
+    "last 4 chrome versions",
+    "ie >= 9",
+    "last 2 edge versions"
+  ]
 }
