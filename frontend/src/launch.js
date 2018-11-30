@@ -1,7 +1,7 @@
 import urlUtils from "./util/url";
 
 // Change this to the ID of the client that you registered with the SMART on FHIR authorization server.
-var clientId = "public";
+var clientId = "app-login";
 
 // For demonstration purposes, if you registered a confidential client
 // you can enter its secret here. The demo app will pretend it's a confidential
@@ -42,11 +42,17 @@ conformanceGet.onload = function() {
     try {
       conformanceStatement = JSON.parse(conformanceGet.responseText);
     } catch (e) {
-      alert("Unable to parse conformance statement.");
+      errorMsg = "Unable to parse conformance statement.";
+      document.body.innerText = errorMsg;
+      console.error(errorMsg);
+      return;
     }
     redirect(conformanceStatement);
   } else {
-    alert("Conformance statement request failed. Returned status: " + conformanceGet.status);
+    errorMsg = "Conformance statement request failed. Returned status: " + conformanceGet.status;
+    document.body.innerText = errorMsg;
+    console.error(errorMsg);
+    return;
   }
 };
 conformanceGet.send();

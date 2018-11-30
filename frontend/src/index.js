@@ -42,7 +42,9 @@ fetch(tokenUri, {
   .then(function(auth_response) {
     const patientId = patientIdfromAppParams || auth_response.patient;
     if (patientId == null) {
-      alert("Failed to get a patientId from the app params or the authorization response.");
+      errorMsg = "Failed to get a patientId from the app params or the authorization response.";
+      document.body.innerText = errorMsg;
+      console.error(errorMsg);
       return;
     }
     var smart = FHIR.client({
@@ -63,11 +65,11 @@ function go(smart) {
     valueSetDB,
     function(results) {
       console.log("RESULTS", results);
-      document.body.innerHTML = "RESULTS<pre>" + JSON.stringify(results, null, 2) + "/<pre>";
+      document.body.innerHTML = "RESULTS<pre>" + JSON.stringify(results, null, 2) + "</pre>";
     },
     function(error) {
       console.error("ERROR", error);
-      document.body.innerHTML = "ERROR<pre>" + JSON.stringify(error, null, 2) + "/<pre>";
+      document.body.innerHTML = "ERROR<pre>" + JSON.stringify(error, null, 2) + "</pre>";
     }
   );
 }
