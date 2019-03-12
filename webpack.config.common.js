@@ -7,8 +7,10 @@ module.exports = {
   },
   output: {
     filename: "[name].bundle.js",
-    path: path.resolve(__dirname, "frontend/dist")
+    path: path.resolve(__dirname, "frontend/dist"),
+    publicPath: "/dist/",
   },
+  resolve: { extensions: ["*", ".js", ".jsx"] },
   module: {
     rules: [
       {
@@ -18,7 +20,7 @@ module.exports = {
         use: { loader: "ignore-loader" }
       },
       {
-        test: /\.m?js$/,
+        test: /\.(mjs|js|jsx)$/,
         exclude: /node_modules/,
         use: {
           loader: "babel-loader",
@@ -33,6 +35,10 @@ module.exports = {
             ]
           }
         }
+      },
+      {
+        test: /\.css$/,
+        use: ["style-loader", "css-loader"]
       }
     ]
   },

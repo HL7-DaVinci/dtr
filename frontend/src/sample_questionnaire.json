@@ -1,0 +1,153 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "q1",
+  "title": "Home Oxygen Therapy Order Template",
+  "status": "draft",
+  "subjectType": [
+    "Patient"
+  ],
+  "date": "2019-03-11",
+  "publisher": "Da Vinci DTR",
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/cqf-library",
+      "valueCanonical": "todo/Library/home-oxygen-logic"
+    }
+  ],
+  "contained": [
+    {
+      "resourceType": "ValueSet",
+      "id": "gender",
+      "identifier": [
+        {
+          "system": "todo",
+          "value": "todo"
+        }
+      ],
+      "name": "Gender",
+      "status": "draft",
+      "description": "Gender",
+      "compose": {
+        "include": [
+          {
+            "system": "todo",
+            "concept": [
+              {
+                "code": "M",
+                "display": "Male"
+              },
+              {
+                "code": "F",
+                "display": "Female"
+              },
+              {
+                "code": "Other",
+                "display": "Other"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "linkId": "1",
+      "text": "Patient Information",
+      "type": "group",
+      "item": [
+        {
+          "linkId": "1.1",
+          "text": "Last Name",
+          "type": "string",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/cqf-expression",
+              "valueExpression": {
+                "language": "text/cql",
+                "expression": "PatientLastName"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "1.2",
+          "text": "First Name",
+          "type": "string",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/cqf-expression",
+              "valueExpression": {
+                "language": "text/cql",
+                "expression": "PatientFirstName"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "1.3",
+          "text": "Middle Initial",
+          "type": "string",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/cqf-expression",
+              "valueExpression": {
+                "language": "text/cql",
+                "expression": "PatientMiddleInitial"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "1.4",
+          "text": "Date Of Birth",
+          "type": "date",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/cqf-expression",
+              "valueExpression": {
+                "language": "text/cql",
+                "expression": "PatientDateOfBirth"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "1.5",
+          "text": "Gender",
+          "type": "choice",
+          "required": true,
+          "answerValueSet": "#gender",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/cqf-expression",
+              "valueExpression": {
+                "language": "text/cql",
+                "expression": "PatientGender"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "1.6",
+          "text": "Medicare ID",
+          "type": "string",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/cqf-expression",
+              "valueExpression": {
+                "language": "text/cql",
+                "expression": "PatientMedicareId"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
