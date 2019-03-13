@@ -59,7 +59,7 @@ fetch(tokenUri, {
   });
 
 function go(smart) {
-  const elmExecutor = buildElmExecutor(smart, "dstu2");
+  const elmExecutor = buildElmExecutor(smart, "dstu3");
   elmExecutor(
     demoElm,
     valueSetDB,

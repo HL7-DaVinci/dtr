@@ -9,6 +9,10 @@ function buildElmExecutor(smart, fhirVersion) {
   if (fhirVersion == "dstu2") {
     const patientSource = cqlfhir.PatientSource.FHIRv102();
     return collectResourcesAndExecuteElm.bind(null, smart, patientSource);
+  }else if(fhirVersion == "dstu3") {
+      console.log("using dstu3");
+    const patientSource = cqlfhir.PatientSource.FHIRv300();
+    return collectResourcesAndExecuteElm.bind(null, smart, patientSource);
   }
 }
 
