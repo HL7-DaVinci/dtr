@@ -76,6 +76,19 @@
           "text": "First Name",
           "type": "string",
           "required": true,
+          "enableBehavior": "any",
+          "enableWhen":[
+              {
+                  "question":"1.1",
+                  "operator":"=",
+                  "answerString":"henlo"
+              },
+              {
+                "question":"1.3",
+                "operator":"=",
+                "answerBoolean":"S"
+            }
+          ],
           "extension": [
             {
               "url": "http://hl7.org/fhir/StructureDefinition/cqf-expression",
@@ -148,6 +161,154 @@
           ]
         }
       ]
-    }
+    },
+    {
+        "linkId": "2",
+        "text": "Lab Tests",
+        "type": "group",
+        "item": [
+          {
+            "linkId": "2.1",
+            "text": "O2 Saturation",
+            "type": "decimal",
+            "required": true,
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/cqf-expression",
+                "valueExpression": {
+                  "language": "text/cql",
+                  "expression": "PatientO2Saturation"
+                }
+              }
+            ]
+          },
+          {
+            "linkId": "2.2",
+            "text": "Recieved X-ray",
+            "type": "boolean",
+            "required": true,
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/cqf-expression",
+                "valueExpression": {
+                  "language": "text/cql",
+                  "expression": "RecievedXRay"
+                }
+              }
+            ]
+          },
+          {
+            "linkId": "2.3",
+            "text": "Mile Time",
+            "type": "time",
+            "required": true,
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/cqf-expression",
+                "valueExpression": {
+                  "language": "text/cql",
+                  "expression": "MileTime"
+                }
+              }
+            ]
+          },
+          {
+            "linkId": "2.4",
+            "text": "Website",
+            "type": "url",
+            "required": true,
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/cqf-expression",
+                "valueExpression": {
+                  "language": "text/cql",
+                  "expression": "Website"
+                }
+              }
+            ]
+          },
+          {
+            "linkId": "2.5",
+            "text": "Favorite Color",
+            "type": "choice",
+            "required": true,
+            "answerOption":[
+                {
+                    "valueString":"blue",
+                    "initialSelected":false
+                },
+                {
+                    "valueString":"red",
+                    "initialSelected":true
+                },
+                {
+                    "valueString":"green"
+                }
+            ],
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/cqf-expression",
+                "valueExpression": {
+                  "language": "text/cql",
+                  "expression": "Color"
+                }
+              }
+            ]
+          },
+          {
+            "linkId": "2.6",
+            "text": "Vitals",
+            "type": "group",
+            "required": true,
+            "item": [
+                {
+                    "linkId": "2.6.1",
+                    "text": "Heartbeat",
+                    "type": "string",
+                    "required": true,
+                    "extension": [
+                      {
+                        "url": "http://hl7.org/fhir/StructureDefinition/cqf-expression",
+                        "valueExpression": {
+                          "language": "text/cql",
+                          "expression": "HeartBeat"
+                        }
+                      }
+                    ]
+                },
+                {
+                    "linkId": "2.6.2",
+                    "text": "Blood Pressure",
+                    "type": "string",
+                    "required": true,
+                    "extension": [
+                      {
+                        "url": "http://hl7.org/fhir/StructureDefinition/cqf-expression",
+                        "valueExpression": {
+                          "language": "text/cql",
+                          "expression": "BloodPressure"
+                        }
+                      }
+                    ]
+                },
+                {
+                    "linkId": "2.6.3",
+                    "text": "He is havin a good time?",
+                    "type": "string",
+                    "required": true,
+                    "extension": [
+                      {
+                        "url": "http://hl7.org/fhir/StructureDefinition/cqf-expression",
+                        "valueExpression": {
+                          "language": "text/cql",
+                          "expression": "Fun"
+                        }
+                      }
+                    ]
+                }
+            ]
+          }
+        ]
+      }
   ]
 }
