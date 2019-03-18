@@ -1,17 +1,16 @@
 import React, { Component } from "react";
-import { hot } from "react-hot-loader";
 import Button from 'react-bootstrap/Button';
 import "./App.css";
-
+import QuestionnaireForm from "./components/QuestionnaireForm/QuestionnaireForm";
+import sample from './sample_questionnaire.json';
 class App extends Component {
   render() {
     return (
       <div className="App">
-        <Button variant="primary">Primary</Button>
-        <h1> Hello, World! </h1>
+        <QuestionnaireForm qform = {sample} />
       </div>
     );
   }
 }
 
-export default hot(module)(App);
+export default App;

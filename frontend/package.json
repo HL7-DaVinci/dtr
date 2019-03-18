@@ -1,0 +1,13 @@
+{
+    "name": "dtr",
+    "version": "0.0.1",
+    "private": true,
+    "scripts": {
+      "build": "react-scripts build",
+      "start": "react-scripts start"
+    },
+    "dependencies": {
+      "react-scripts": "^2.1.8"
+    }
+  }
+  
