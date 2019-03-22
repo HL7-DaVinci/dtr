@@ -1,0 +1,42 @@
+.input-block {
+      border: 1px solid black;
+      background-color: black;
+      color:white;
+      width:150px;
+
+  }
+
+.open-choice .dropdown-input {
+    width:auto;
+    height:auto;
+}
+  .open-choice .dropdown-input:after {
+    position: absolute;
+    pointer-events:none;
+    content: "";
+    top: 11px;
+    left: 135px;
+    width: 0;
+    height: 0;
+    border: 3px solid transparent;
+    border-color: #FFF transparent transparent transparent;
+  }
+
+
+  .open-choice .option-block {
+      background-color:black;
+      width: 150px;
+      overflow: hidden;
+  }
+
+  .open-choice .dropdown-block div, .open-choice .top-block {
+    color: white;
+    padding:0px 5px;
+    border: 1px solid transparent;
+    border-color: rgba(255, 255, 255, 0.2) transparent transparent transparent;
+    cursor: pointer;
+  }
+
+  .open-choice {
+      margin-left: 15px;
+  }

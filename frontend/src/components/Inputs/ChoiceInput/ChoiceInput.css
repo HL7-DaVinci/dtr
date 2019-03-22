@@ -2,12 +2,19 @@
     margin-left: 5px;
 }
 
-.selected{
-    background-color:black;
 
-}
 
 .radio-button{
     height:20px;
+    border:2px solid;
+    border-color: gray;
+}
+
+.selected{
+    background-color:black;
+    border-color:black;
+
+}
+.radio-button:hover{
     border:2px solid black;
 }

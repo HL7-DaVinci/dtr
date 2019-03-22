@@ -78,10 +78,11 @@ export default class ChoiceInput extends Component {
     }
 
     setValue(value) {
-        console.log(value);
+        if(this.state.value === value) {
+            value = null;
+        }
         this.setState({value});
         this.props.updateCallback(this.props.item.linkId, value)
-
     }
 
     render() {

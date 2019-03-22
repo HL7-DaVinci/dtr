@@ -35,7 +35,8 @@ export default class TextInput extends Component {
         return (
             <div className="text-input">
                 <p className="header-input">{this.props.item.text}</p>
-                <input type="text" value = {this.state.value} onChange={this.onInputChange}></input>
+                <div className="text-input-label">{this.props.inputTypeDisplay}</div>
+                <input className="text-input-box" type={this.props.inputType} value = {this.state.value} onChange={this.onInputChange}></input>
             </div>
         );
     }

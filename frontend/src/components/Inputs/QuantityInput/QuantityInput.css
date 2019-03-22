@@ -1,0 +1,45 @@
+.quantity-input{
+    display:inline-block;
+    height:25px;
+    padding-left:5px;
+    border:0;
+
+    border-width:2px 1px 1px 1px;
+    border-style: solid;
+    border-color:black;
+}
+
+.quantity-input{
+
+}
+
+.quantity{
+    padding-bottom:1px;
+}
+.quantity-input.value{
+    width:140px;
+    border-left:0px;
+}
+
+.quantity-input.comparator{
+    position: relative;
+    font-family: Arial;
+    width:40px;
+}
+
+.quantity-input.unit{
+    width:50px;
+}
+
+.quantity-input-dropdown{
+    width:45px;
+}
+
+.quantity-input.code {
+    width:50px;
+    margin-top:5px;
+}
+
+.quantity-input.system {
+    width:175px;
+}

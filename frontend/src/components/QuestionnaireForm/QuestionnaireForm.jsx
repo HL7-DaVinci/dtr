@@ -6,7 +6,10 @@ import './QuestionnaireForm.css';
 import Section from '../Section/Section';
 import TextInput from '../Inputs/TextInput/TextInput';
 import ChoiceInput from '../Inputs/ChoiceInput/ChoiceInput';
+import BooleanInput from '../Inputs/BooleanInput/BooleanInput';
+import QuantityInput from '../Inputs/QuantityInput/QuantityInput';
 import {findValueByPrefix} from '../../util/util.js';
+import OpenChoice from '../Inputs/OpenChoiceInput/OpenChoice';
 
 
 export default class QuestionnaireForm extends Component {
@@ -131,6 +134,8 @@ export default class QuestionnaireForm extends Component {
                                 item = {item}
                                 updateCallback = {this.updateQuestionValue}
                                 retrieveCallback = {this.retrieveValue}
+                                inputType = "text"
+                                inputTypeDisplay = "text"
                             />
                 case "choice":
                     return <ChoiceInput
@@ -140,6 +145,98 @@ export default class QuestionnaireForm extends Component {
                                 retrieveCallback = {this.retrieveValue}
                                 containedResources = {this.state.containedResources}
                             />
+                case "boolean":
+                    return <BooleanInput
+                                key = {item.linkId}
+                                item = {item}
+                                updateCallback = {this.updateQuestionValue}
+                                retrieveCallback = {this.retrieveValue}
+                            />
+                case "decimal":
+                    return <TextInput
+                                key = {item.linkId}
+                                item = {item}
+                                updateCallback = {this.updateQuestionValue}
+                                retrieveCallback = {this.retrieveValue}
+                                inputType = "number"
+                                inputTypeDisplay = "decimal"
+                            />
+
+                case "url":
+                    return <TextInput
+                                key = {item.linkId}
+                                item = {item}
+                                updateCallback = {this.updateQuestionValue}
+                                retrieveCallback = {this.retrieveValue}
+                                inputType = "url"
+                                inputTypeDisplay = "url"
+                            />
+                case "date":
+                    return <TextInput
+                                key = {item.linkId}
+                                item = {item}
+                                updateCallback = {this.updateQuestionValue}
+                                retrieveCallback = {this.retrieveValue}
+                                inputType = "date"
+                                inputTypeDisplay = "date"
+                            />
+                case "time":
+                    return <TextInput
+                                key = {item.linkId}
+                                item = {item}
+                                updateCallback = {this.updateQuestionValue}
+                                retrieveCallback = {this.retrieveValue}
+                                inputType = "time"
+                                inputTypeDisplay = "time"
+                            />
+                case "dateTime":
+                    return <TextInput
+                                key = {item.linkId}
+                                item = {item}
+                                updateCallback = {this.updateQuestionValue}
+                                retrieveCallback = {this.retrieveValue}
+                                inputType = "datetime-local"
+                                inputTypeDisplay = "datetime"
+                            />
+
+                case "attachment":
+                    return <TextInput
+                                key = {item.linkId}
+                                item = {item}
+                                updateCallback = {this.updateQuestionValue}
+                                retrieveCallback = {this.retrieveValue}
+                                inputType = "file"
+                                inputTypeDisplay = "attachment"
+                            />
+
+                case "integer":
+                return <TextInput
+                            key = {item.linkId}
+                            item = {item}
+                            updateCallback = {this.updateQuestionValue}
+                            retrieveCallback = {this.retrieveValue}
+                            inputType = "number"
+                            inputTypeDisplay = "integer"
+                        />
+
+                case "quantity":
+                return <QuantityInput
+                            key = {item.linkId}
+                            item = {item}
+                            updateCallback = {this.updateQuestionValue}
+                            retrieveCallback = {this.retrieveValue}
+                            inputTypeDisplay = "quantity"
+                        />
+
+                case "open-choice":
+                return <OpenChoice
+                            key = {item.linkId}
+                            item = {item}
+                            updateCallback = {this.updateQuestionValue}
+                            retrieveCallback = {this.retrieveValue}
+                            inputTypeDisplay = "open-choice"
+                            options ={[1,2,3,4,5,6,7,"adsfijaoeijgaoweijgoaidsjgapdsfoijadpiajgoahpodshadpoghadspoguh apsodhasdpogh aposdh apsodfuha wopeugh paowsuehg paoh "]}
+                        />
             }
         }
     }
@@ -148,7 +245,7 @@ export default class QuestionnaireForm extends Component {
         return (
             <div>
                 <h2>{this.props.qform.title}</h2>
-                <div>
+                <div className="wrapper">
                     {
                         this.state.items.map((item) => {
                             return this.renderComponent(item, 0);
