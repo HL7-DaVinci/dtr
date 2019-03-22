@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import './ChoiceInput.css';
 import '../../ComponentStyles.css';
 
-import {findValueByPrefix} from '../../../util/util.js';
+import {getListOfChoices} from '../../../util/util.js';
 
 
 export default class ChoiceInput extends Component {
@@ -15,7 +15,7 @@ export default class ChoiceInput extends Component {
             choices:[]
         };
 
-    this.getListOfChoices = this.getListOfChoices.bind(this);
+        this.setChoice = this.setChoice.bind(this);
     }
 
     componentDidMount() {
@@ -25,58 +25,19 @@ export default class ChoiceInput extends Component {
             this.setState({value: value});
         }
 
-        const returnAnswer = this.getListOfChoices();
+        const returnAnswer = getListOfChoices(this.props, this.setChoice);
         if(returnAnswer) {
             this.setValue(returnAnswer);
         }
 
     }
 
-    getListOfChoices(){
-        // parse out the list of choices from the answerOption
-        const answer = findValueByPrefix(this.props.item,"answer")
-        let returnAnswer = null;
-        if(typeof answer === "string") {
-            // answerValueSet
-            if(answer.startsWith("#")) { 
-                // contained resource reference
-                const resource = this.props.containedResources[answer.substr(1,answer.length)];
-                const values = resource.compose.include;
-                values.map((element)=>{
-                    element.concept.map((concept)=>{
-                        const pair = {
-                            "code": concept.code,
-                            "display": concept.display,
-                            "selected": false
-                        }
-                        this.setState(previousState => ({
-                            choices: [...previousState.choices, pair]
-                        }));
-                    });
 
-                })             
-            }
-
-        }else{
-            // list of answer options
-            answer.map((concept)=>{
-                // TODO: The value could be a code/date/time/reference, need to account for that.
-                const value = findValueByPrefix(concept,"value");
-                const pair = {
-                    "code": value,
-                    "display": value,
-                    "selected": !!concept.initialSelected
-                }
-                this.setState(previousState => ({
-                    choices: [...previousState.choices, pair]
-                }));
-
-                returnAnswer = concept.initialSelected?value:returnAnswer;
-            });
-        }
-        return returnAnswer;
+    setChoice(pair) {
+        this.setState(previousState => ({
+            choices: [...previousState.choices, pair]
+        }));
     }
-
     setValue(value) {
         if(this.state.value === value) {
             value = null;

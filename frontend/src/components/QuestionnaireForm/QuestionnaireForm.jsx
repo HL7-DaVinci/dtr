@@ -235,8 +235,8 @@ export default class QuestionnaireForm extends Component {
                             updateCallback = {this.updateQuestionValue}
                             retrieveCallback = {this.retrieveValue}
                             inputTypeDisplay = "open-choice"
-                            options ={[1,2,3,4,5,6,7,"adsfijaoeijgaoweijgoaidsjgapdsfoijadpiajgoahpodshadpoghadspoguh apsodhasdpogh aposdh apsodfuha wopeugh paowsuehg paoh "]}
-                        />
+                            containedResources = {this.state.containedResources}
+                            />
             }
         }
     }

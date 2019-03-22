@@ -149,6 +149,22 @@
           "linkId": "1.6",
           "text": "Medicare ID",
           "type": "open-choice",
+          "answerOption":[
+            {
+                "valueString":"12397",
+                "initialSelected":false
+            },
+            {
+                "valueString":"375691",
+                "initialSelected":true
+            },
+            {
+                "valueString":"785018"
+            },
+            {
+                "valueDecimal": 4
+            }
+        ],
           "required": true,
           "extension": [
             {
