@@ -81,7 +81,7 @@
               {
                   "question":"1.1",
                   "operator":"=",
-                  "answerString":"henlo"
+                  "answerString":"5"
               },
               {
                 "question":"1.3",
@@ -148,7 +148,7 @@
         {
           "linkId": "1.6",
           "text": "Medicare ID",
-          "type": "string",
+          "type": "open-choice",
           "required": true,
           "extension": [
             {
@@ -264,7 +264,7 @@
                 {
                     "linkId": "2.6.1",
                     "text": "Heartbeat",
-                    "type": "string",
+                    "type": "quantity",
                     "required": true,
                     "extension": [
                       {
@@ -279,7 +279,7 @@
                 {
                     "linkId": "2.6.2",
                     "text": "Blood Pressure",
-                    "type": "string",
+                    "type": "attachment",
                     "required": true,
                     "extension": [
                       {
@@ -294,7 +294,7 @@
                 {
                     "linkId": "2.6.3",
                     "text": "He is havin a good time?",
-                    "type": "string",
+                    "type": "dateTime",
                     "required": true,
                     "extension": [
                       {
