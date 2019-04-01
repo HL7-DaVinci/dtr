@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import Button from 'react-bootstrap/Button';
 import "./App.css";
 import QuestionnaireForm from "./components/QuestionnaireForm/QuestionnaireForm";
 import sample from './sample_questionnaire.json';
