@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 
 import './DropdownInput.css';
 import '../../ComponentStyles.css';
@@ -17,7 +16,7 @@ export default class DropdownInput extends Component {
     }
 
     componentDidMount() {
-        this.setState({value: this.props.options[0]})
+        this.setState({value: this.props.options[0]});
     }
 
     onInputChange(event) {
@@ -36,6 +35,11 @@ export default class DropdownInput extends Component {
             default:
                 return <>{val}</>
         }
+    }
+
+    updateState(e){
+        this.setState({value:e});
+        this.setState({open:false})
     }
 
     render() {
@@ -57,16 +61,17 @@ export default class DropdownInput extends Component {
                 </div>
                 <div className={"dropdown-block option-block " + (this.state.open?'':"hide-block")}>
                     {this.props.options.map((e)=>{
-                    if(e!==this.state.value){
-                        return (
-                            <div key={e} className="unselected-option" onClick={()=>{
-                                this.setState({value:e});
-                                this.setState({open:false})
-                            }}>
-                                {this.formatArea(e)}
-                            </div>
-                        )
-                    }
+                        if(e!==this.state.value){
+                            return (
+                                <div key={e} className="unselected-option" onClick={()=>{
+                                    this.setState({value:e});
+                                    this.setState({open:false})
+                                    this.props.callback(this.props.name, {"target":{"value":e}})
+                                }}>
+                                    {this.formatArea(e)}
+                                </div>
+                            )
+                        }
 
                     })}
                 </div>

@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 
 import './BooleanInput.css';
 import '../../ComponentStyles.css';
@@ -22,6 +21,8 @@ export default class BooleanInput extends Component {
         if(value) {
             this.setState({value: value});
         }
+        this.props.updateCallback(this.props.item.linkId,  {"type":"boolean","text":this.props.item.text, "valueType":"valueBoolean"}, "itemTypes")
+
     }
 
     setValue(value) {
@@ -29,13 +30,12 @@ export default class BooleanInput extends Component {
             value = null;
         }
         this.setState({value});
-        this.props.updateCallback(this.props.item.linkId, value)
+        this.props.updateCallback(this.props.item.linkId, value, "values")
     }
 
     render() {
         return (
             <div className="text-input">
-                <p className="header-input">{this.props.item.text}</p>
                 <div className="toggle">
                     <div>
                         <button

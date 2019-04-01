@@ -25,3 +25,14 @@
 input:focus {
     outline:none;
 }
+
+textarea:focus {
+    outline:none;
+}
+
+textarea{
+    min-height:60px;
+}
+.text-input-area{
+    height:80px;
+}

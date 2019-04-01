@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 
 import './ChoiceInput.css';
 import '../../ComponentStyles.css';
@@ -11,7 +10,7 @@ export default class ChoiceInput extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            value: null,
+            values: [],
             choices:[]
         };
 
@@ -30,6 +29,9 @@ export default class ChoiceInput extends Component {
             this.setValue(returnAnswer);
         }
 
+        this.props.updateCallback(this.props.item.linkId,  {"type":"choice", "text":this.props.item.text, "valueType":"valueCoding"}, "itemTypes")
+
+
     }
 
 
@@ -37,32 +39,46 @@ export default class ChoiceInput extends Component {
         this.setState(previousState => ({
             choices: [...previousState.choices, pair]
         }));
+
     }
     setValue(value) {
-        if(this.state.value === value) {
-            value = null;
+
+        const newArray = this.state.values.filter((e)=>{
+            return e.code !== value.code;
+        })
+        if(newArray.length===this.state.values.length) {
+            // no changes
+            if(newArray.length===1 && !this.props.item.repeats) {
+                newArray.pop();
+            }
+            newArray.push(value);
         }
-        this.setState({value});
-        this.props.updateCallback(this.props.item.linkId, value)
+
+        this.setState({values: newArray});
+        this.props.updateCallback(this.props.item.linkId, newArray, "values")
+
     }
 
     render() {
         return (
+            
             <div className="text-input">
-                <p className="header-input">{this.props.item.text}</p>
                 <div>
+                    
                     {this.state.choices.map((element)=>{
                         return (
                             <div key={element.display}>
                                 <button 
-                                    className={"radio-button btn "+(element.code===this.state.value?"selected":null)}
+                                    className={"radio-button btn "+(this.state.values.some(e => e.code === element.code)?"selected":null)}
                                     onClick={()=>{
-                                        this.setValue(element.code)
+                                        this.setValue(element)
                                     }}
                                 >
                                     
                                 </button>
-                                <span className="text-radio">{element.display}</span>
+                                <span className="text-radio tooltip-x">{element.display}
+                                    <span className="tooltiptext-x">{element.code}</span>
+                                </span>
                             </div>
                         )
                     })}

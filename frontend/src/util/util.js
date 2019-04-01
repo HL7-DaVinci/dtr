@@ -18,12 +18,11 @@ function getListOfChoices(props, setChoice){
             // contained resource reference
             const resource = props.containedResources[answer.substr(1,answer.length)];
             const values = resource.compose.include;
-            values.map((element)=>{
-                element.concept.map((concept)=>{
+            values.forEach((element)=>{
+                element.concept.forEach((concept)=>{
                     const pair = {
                         "code": concept.code,
                         "display": concept.display,
-                        "selected": false
                     }
                     setChoice(pair);
                 });
@@ -33,17 +32,25 @@ function getListOfChoices(props, setChoice){
 
     }else{
         // list of answer options
-        answer.map((concept)=>{
+        answer.forEach((concept)=>{
             // TODO: The value could be a code/date/time/reference, need to account for that.
             const value = findValueByPrefix(concept,"value");
             const pair = {
-                "code": value,
-                "display": value,
-                "selected": !!concept.initialSelected
+            };
+            // "code": value.code,
+            // "display": value.display,
+            // "system": value.system,
+            // "version": value.version,
+            Object.keys(value).forEach((e) => {
+                pair[e] = value[e]
+            });
+
+            if(pair.display === undefined && pair.code){
+                pair.display = pair.code;
             }
             setChoice(pair);
 
-            returnAnswer = concept.initialSelected?value:returnAnswer;
+            returnAnswer = concept.initialSelected?pair:returnAnswer;
         });
     }
     return returnAnswer;

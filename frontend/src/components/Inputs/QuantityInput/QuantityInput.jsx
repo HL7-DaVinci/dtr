@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 
 import './QuantityInput.css';
 import '../../ComponentStyles.css';
@@ -17,7 +16,7 @@ export default class QuantityInput extends Component {
         super(props);
         this.state = {
             value: "",
-            comparator:"",
+            comparator:"=",
             unit: "",
             system:"",
             code:""
@@ -36,6 +35,8 @@ export default class QuantityInput extends Component {
             this.setState({value: value});
         }
 
+        this.props.updateQuestionValue(this.props.item.linkId,  {"type":"quantity","text":this.props.item.text,"valueType":"valueQuantity"}, "itemTypes")
+
 
     }
 
@@ -43,11 +44,13 @@ export default class QuantityInput extends Component {
         const obj = object.target.value;
         this.setState(prevState => ({
             [elementName]: obj
-        }))
+        }));
+
+        this.props.updateCallback(this.props.item.linkId, elementName,obj,"values")
+
     }
     onInputChange(event) {
         // update the parent state
-        this.props.updateCallback(this.props.item.linkId, event.target.value)
         // update local state
         this.setState({value: event.target.value})
     }
@@ -56,10 +59,9 @@ export default class QuantityInput extends Component {
         return (
             
             <div className="text-input">
-                <p className="header-input">{this.props.item.text}</p>
                 <div className="text-input-label quantity">{this.props.inputTypeDisplay}</div>
                 <div className="quantity-border">
-                    <DropdownInput options={options}></DropdownInput>
+                    <DropdownInput name="comparator" options={options} callback={this.updateState}></DropdownInput>
                     <input className="quantity-input value" placeholder="value" value = {this.state.value} onChange={(e)=>{this.updateState("value",e)}}></input>
                     <input className="quantity-input unit"  placeholder="unit" value = {this.state.unit} onChange={(e)=>{this.updateState("unit",e)}}></input>
                 </div>

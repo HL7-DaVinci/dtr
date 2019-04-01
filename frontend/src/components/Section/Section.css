@@ -1,4 +1,30 @@
-.section{
+.section {
     margin-left: 15px;
     margin-right: 15%;
+}
+
+.header-input {
+    text-align:left;
+    margin-bottom:5px;
+    margin-left:15px;
+    margin-top:15px;
+    min-width:100px;
+    font-weight:bold;
+}
+
+.info-block {
+    /* 14 + 14 + 8 */
+    font-family: 'Courier New', Courier, monospace;
+    font-size:12px;
+    color: #ddd;
+    margin-right:0px;
+}
+
+.required-asterisk {
+    font-size:14px;
+    color:red;
+}
+
+.read-only {
+    filter: contrast(50%);
 }
