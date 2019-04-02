@@ -9,14 +9,14 @@ function findValueByPrefix(object, prefix) {
 }
 
 function getListOfChoices(props, setChoice){
-    // parse out the list of choices from the answerOption
-    const answer = findValueByPrefix(props.item,"answer")
+    // parse out the list of choices from 'option'
     let returnAnswer = null;
-    if(typeof answer === "string") {
+    const answerOptionsReference = (props.item.options || {}).reference
+    if(typeof answerOptionsReference === "string") {
         // answerValueSet
-        if(answer.startsWith("#")) { 
+        if(answerOptionsReference.startsWith("#")) {
             // contained resource reference
-            const resource = props.containedResources[answer.substr(1,answer.length)];
+            const resource = props.containedResources[answerOptionsReference.substr(1,answerOptionsReference.length)];
             const values = resource.compose.include;
             values.forEach((element)=>{
                 element.concept.forEach((concept)=>{
@@ -26,13 +26,13 @@ function getListOfChoices(props, setChoice){
                     }
                     setChoice(pair);
                 });
-
-            })             
+            })
         }
 
     }else{
-        // list of answer options
-        answer.forEach((concept)=>{
+        const answerOption = props.item.option // in r4 this is item.answerOption, but we support stu3 only
+        // list of answerOption options
+        answerOption.forEach((concept)=>{
             // TODO: The value could be a code/date/time/reference, need to account for that.
             const value = findValueByPrefix(concept,"value");
             const pair = {
