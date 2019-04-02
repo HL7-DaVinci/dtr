@@ -305,6 +305,7 @@ export default class QuestionnaireForm extends Component {
                 "text": itemType.text,
                 "answer": []
             }
+            console.log(this.state.values[item]);
             // TODO: Figure out what to do when a value is missing
             switch (itemType.valueType) {
                 case "valueAttachment":
@@ -321,7 +322,15 @@ export default class QuestionnaireForm extends Component {
                     const answer = this.state.values[item];
                     if (Array.isArray(answer)) {
                         answer.forEach((e) => {
-                            answerItem.answer.push({ [itemType.valueType]: e });
+                            // possible for an array to contain multiple types
+                            let finalType;
+                            if(e.valueTypeFinal){
+                                finalType=e.valueTypeFinal;
+                                delete e.valueTypeFinal;
+                            }else{
+                                finalType = itemType.valueType;
+                            }
+                            answerItem.answer.push({ [finalType]: e });
                         })
                     } else {
                         answerItem.answer.push({ [itemType.valueType]: answer });

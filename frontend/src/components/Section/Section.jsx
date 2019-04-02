@@ -38,6 +38,7 @@ export default class Section extends Component {
                             </span>
                             {_item.text}
                             {_item.required?<span className="required-asterisk">&nbsp;*</span>:null}
+                            {_item.repeats?<span className="glyph">&#8634;</span>:null}
                         </p>
                         {component}
                         </div>

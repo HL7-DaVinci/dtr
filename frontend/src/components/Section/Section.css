@@ -28,3 +28,10 @@
 .read-only {
     filter: contrast(50%);
 }
+
+.glyph {
+    position:relative;
+    font-size:8px;
+    top:-5px;
+    left:3px;
+}

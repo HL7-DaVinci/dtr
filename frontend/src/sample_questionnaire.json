@@ -171,8 +171,7 @@
                 "valueCoding":{
                     "system":"http://fakesystem.org",
                     "version":"v1.0",
-                    "code":"4",
-                    "display":"Skadingle"
+                    "code":"4"
                 }
             },
             {
@@ -231,8 +230,7 @@
                   "valueCoding":{
                       "system":"http://fakesystem.org",
                       "version":"v1.0",
-                      "code":"110110001",
-                      "display":"slip-a-dip"
+                      "code":"110110001"
                   }
               }
           ],
