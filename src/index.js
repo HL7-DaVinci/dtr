@@ -1,14 +1,35 @@
 import "whatwg-fetch"; // a window.fetch polyfill
 import "fhirclient"; // sets window.FHIR
-import demoElm from "./cql/Demo.json";
-import buildElmExecutor from "./elmExecutor/buildElmExecutor";
 import urlUtils from "./util/url";
 
 import React from "react";
 import ReactDOM from "react-dom";
 import App from "./App.js";
 
-ReactDOM.render(<App />, document.getElementById("root"));
+
+// hardcoded appContext, needs to by retrieved from OAuth 2.0 access token response
+const appContext = {
+  template: "urn:hl7:davinci:crd:home-oxygen-questionnaire",
+  request: "http://localhost:8080/fhir/DeviceRequest/devreq013/"
+}
+
+// hardcoded smart, should be set up with context stuff
+var smart = FHIR.client({
+  serviceUrl: "http://localhost:8080/fhir",
+  patientId: "pat013"
+});
+
+const FHIR_URI_PREFIX = "http://localhost:8090/fetchFhirUri/";
+
+ReactDOM.render(
+  <App
+    FHIR_URI_PREFIX={FHIR_URI_PREFIX}
+    questionnaireUri={appContext.template}
+    smart={smart}
+    deviceRequestUri={appContext.request}
+  />,
+  document.getElementById("root")
+);
 
 // const valueSetDB = {};
 

@@ -70,44 +70,46 @@ function processError(smart, callback) {
   };
 }
 
-function buildPopulatedResourceBundle(smart, neededResources, resolve, reject) {
-  console.log("waiting for patient");
-  smart.patient.read().then(
-    pt => {
-      console.log("got pt", pt);
-      const entryResources = [pt];
-      const readResources = (neededResources, callback) => {
-        const r = neededResources.pop();
-        if (r == null) {
-          callback();
-        } else if (r === "Patient") {
-          readResources(neededResources, callback);
-        } else {
-          doSearch(smart, r, (results, error) => {
-            if (results) {
-              entryResources.push(...results);
-            }
-            if (error) {
-              console.error(error);
-            }
+function buildPopulatedResourceBundle(smart, neededResources) {
+  return new Promise(function(resolve, reject){
+    console.log("waiting for patient");
+    smart.patient.read().then(
+      pt => {
+        console.log("got pt", pt);
+        const entryResources = [pt];
+        const readResources = (neededResources, callback) => {
+          const r = neededResources.pop();
+          if (r == null) {
+            callback();
+          } else if (r === "Patient") {
             readResources(neededResources, callback);
-          });
-        }
-      };
-
-      readResources(neededResources.slice(), () => {
-        const bundle = {
-          resourceType: "Bundle",
-          entry: entryResources.map(r => ({ resource: r }))
+          } else {
+            doSearch(smart, r, (results, error) => {
+              if (results) {
+                entryResources.push(...results);
+              }
+              if (error) {
+                console.error(error);
+              }
+              readResources(neededResources, callback);
+            });
+          }
         };
-        resolve(bundle);
-      });
-    },
-    error => {
-      console.log("error: ", error);
-      reject(error);
-    }
-  );
+
+        readResources(neededResources.slice(), () => {
+          const bundle = {
+            resourceType: "Bundle",
+            entry: entryResources.map(r => ({ resource: r }))
+          };
+          resolve(bundle);
+        });
+      },
+      error => {
+        console.log("error: ", error);
+        reject(error);
+      }
+    );
+  });
 }
 
 export default buildPopulatedResourceBundle;
