@@ -3,6 +3,8 @@
 }
 
 .text-input-box{
+    width:75%;
+    max-width: 450px;
     border-width:1px 2px 2px 5px;
     border-style:solid;
     border-color:black;

@@ -8,7 +8,7 @@ export default class OpenChoice extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            values: [{display:"top"}],
+            values: [],
             open: false,
             choices:[],
             display:""
@@ -16,6 +16,8 @@ export default class OpenChoice extends Component {
 
     this.onInputChange = this.onInputChange.bind(this);
     this.setChoice = this.setChoice.bind(this);
+    this.ref = React.createRef();
+
     }
 
     componentWillMount() {
@@ -31,7 +33,11 @@ export default class OpenChoice extends Component {
     }
 
     componentDidMount() {
-        this.props.updateCallback(this.props.item.linkId,  {"type":this.props.inputTypeDisplay,"text":this.props.item.text,"valueType":"valueCoding"}, "itemTypes")
+        this.props.updateCallback(this.props.item.linkId,  
+            {"type":this.props.inputTypeDisplay,
+            "text":this.props.item.text,
+            "valueType":"valueCoding",
+            "ref":this.ref}, "itemTypes")
     }
     onInputChange(event) {
         this.setState({display: event.target.value})
@@ -40,9 +46,17 @@ export default class OpenChoice extends Component {
         }
         this.props.updateCallback(this.props.item.linkId, event.target.value,"values")
         if (this.state.choices.findIndex(p => p.code == event.target.value) === -1 && !this.props.item.repeats) {
-            this.props.updateCallback(this.props.item.linkId,  {"type":this.props.inputTypeDisplay,"text":this.props.item.text,"valueType":"valueString"}, "itemTypes")
+            this.props.updateCallback(this.props.item.linkId,  
+                {"type":this.props.inputTypeDisplay,
+                "text":this.props.item.text,
+                "valueType":"valueString",
+                "ref":this.ref}, "itemTypes")
         }else{
-            this.props.updateCallback(this.props.item.linkId,  {"type":this.props.inputTypeDisplay,"text":this.props.item.text,"valueType":"valueCoding"}, "itemTypes")
+            this.props.updateCallback(this.props.item.linkId,  
+                {"type":this.props.inputTypeDisplay,
+                "text":this.props.item.text,
+                "valueType":"valueCoding",
+                "ref":this.ref}, "itemTypes")
         }
     }
 
@@ -78,7 +92,7 @@ export default class OpenChoice extends Component {
     }
     render() {
         return (
-            <div className="open-choice">
+            <div className="open-choice" ref={this.ref}>
                 <div className="text-input-label">{this.props.item.type}</div>
                 <div className="dropdown">
                     <div className={"dropdown-input " + (this.props.item.repeats?"repeated-choice":"")}
@@ -110,6 +124,7 @@ export default class OpenChoice extends Component {
                                             return e.display!==value.display;
                                         })
                                         this.setState({values:newArray});
+                                        this.props.updateCallback(this.props.item.linkId, newArray,"values");
                                     }}
                                     onMouseDown={(event)=>{event.preventDefault()}}
                                 >
@@ -144,7 +159,11 @@ export default class OpenChoice extends Component {
                                                 this.setState({"values":[e]});
                                                 this.setState({"display":e.display});
                                                 this.props.updateCallback(this.props.item.linkId, [e],"values");
-                                                this.props.updateCallback(this.props.item.linkId,  {"type":this.props.inputTypeDisplay,"text":this.props.item.text,"valueType":"valueCoding"}, "itemTypes");
+                                                this.props.updateCallback(this.props.item.linkId,  
+                                                    {"type":this.props.inputTypeDisplay,
+                                                    "text":this.props.item.text,
+                                                    "valueType":"valueCoding",
+                                                    "ref":this.ref}, "itemTypes");
                                             }
                                             
                                         }}

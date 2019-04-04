@@ -12,7 +12,7 @@ export default class BooleanInput extends Component {
         this.state = {
             value: null
         };
-
+        this.ref = React.createRef();
     }
 
     componentDidMount() {
@@ -21,7 +21,11 @@ export default class BooleanInput extends Component {
         if(value) {
             this.setState({value: value});
         }
-        this.props.updateCallback(this.props.item.linkId,  {"type":"boolean","text":this.props.item.text, "valueType":"valueBoolean"}, "itemTypes")
+        this.props.updateCallback(this.props.item.linkId,  
+            {"type":"boolean",
+            "text":this.props.item.text, 
+            "valueType":"valueBoolean",
+            "ref":this.ref}, "itemTypes")
 
     }
 
@@ -35,7 +39,7 @@ export default class BooleanInput extends Component {
 
     render() {
         return (
-            <div className="text-input">
+            <div className="text-input" ref={this.ref}>
                 <div className="toggle">
                     <div>
                         <button

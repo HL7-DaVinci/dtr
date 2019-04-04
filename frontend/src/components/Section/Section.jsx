@@ -20,7 +20,8 @@ export default class Section extends Component {
     render() {
         return (
             <div className="section">
-                <h3>{this.props.item.text}</h3>
+                <h3 className="section-header"
+                    style={{marginLeft:-15 - (15*this.props.level)}}>{this.props.item.text}</h3>
                 {this.props.item.item.map((_item)=>{
                     const component = this.props.componentRenderer(_item, this.props.level+1);
                     return component?_item.type!=="group"?(
@@ -49,6 +50,7 @@ export default class Section extends Component {
 
                     ):<div key={_item.linkId}>{component}</div>:null
                 })}
+                <br /><hr></hr>
             </div>
         );
     }

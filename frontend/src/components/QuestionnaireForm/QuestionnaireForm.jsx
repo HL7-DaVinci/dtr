@@ -305,7 +305,6 @@ export default class QuestionnaireForm extends Component {
                 "text": itemType.text,
                 "answer": []
             }
-            console.log(this.state.values[item]);
             // TODO: Figure out what to do when a value is missing
             switch (itemType.valueType) {
                 case "valueAttachment":
@@ -343,9 +342,27 @@ export default class QuestionnaireForm extends Component {
     }
 
     render() {
+        console.log(this.state.values);
         return (
             <div>
-                <h2>{this.props.qform.title}</h2>
+                <h2 className="document-header">{this.props.qform.title}</h2>
+                <div className="sidenav">
+                    {Object.keys(this.state.itemTypes).map((e)=>{
+                        const value = this.state.values[e];
+
+                        return <div 
+                        key={e}
+                        className={"sidenav-box " + (value!==undefined&&value!==""&&(Array.isArray(value)?value.length>0:true)?"sidenav-active":"")}
+                        onClick={()=>{
+                            console.log(this.state.itemTypes[e].ref.current.offsetTop);
+                            window.scrollTo(0, this.state.itemTypes[e].ref.current.previousSibling.offsetTop) 
+                        }}
+                        >
+                            {e}
+                        </div>
+                    })}
+                    <div className="sidenav-box "></div>
+                </div>
                 <div className="wrapper">
                     {
                         this.state.items.map((item) => {
@@ -353,7 +370,7 @@ export default class QuestionnaireForm extends Component {
                         })
                     }
                 </div>
-                <button onClick={this.outputResponse}>Submit</button>
+                <button className="btn submit-button" onClick={this.outputResponse}>Submit</button>
             </div>
         );
     }

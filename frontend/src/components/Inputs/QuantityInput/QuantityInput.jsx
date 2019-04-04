@@ -24,7 +24,7 @@ export default class QuantityInput extends Component {
 
     this.onInputChange = this.onInputChange.bind(this);
     this.updateState = this.updateState.bind(this);
-
+    this.ref = React.createRef();
 
     }
 
@@ -35,7 +35,11 @@ export default class QuantityInput extends Component {
             this.setState({value: value});
         }
 
-        this.props.updateQuestionValue(this.props.item.linkId,  {"type":"quantity","text":this.props.item.text,"valueType":"valueQuantity"}, "itemTypes")
+        this.props.updateQuestionValue(this.props.item.linkId,  
+            {"type":"quantity",
+            "text":this.props.item.text,
+            "valueType":"valueQuantity",
+            "ref":this.ref}, "itemTypes")
 
 
     }
@@ -58,7 +62,7 @@ export default class QuantityInput extends Component {
     render() {
         return (
             
-            <div className="text-input">
+            <div className="text-input" ref={this.ref}>
                 <div className="text-input-label quantity">{this.props.inputTypeDisplay}</div>
                 <div className="quantity-border">
                     <DropdownInput name="comparator" options={options} callback={this.updateState}></DropdownInput>

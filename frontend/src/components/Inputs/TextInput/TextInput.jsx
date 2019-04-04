@@ -12,6 +12,7 @@ export default class TextInput extends Component {
         };
 
     this.onInputChange = this.onInputChange.bind(this);
+    this.myRef = React.createRef();
     }
 
     componentDidMount() {
@@ -27,7 +28,8 @@ export default class TextInput extends Component {
         this.props.updateCallback(this.props.item.linkId, 
             {"type":this.props.inputTypeDisplay,
             "text":this.props.item.text,
-            "valueType": this.props.valueType}
+            "valueType": this.props.valueType,
+            "ref":this.myRef}
             , "itemTypes")
 
     }
@@ -41,7 +43,7 @@ export default class TextInput extends Component {
 
     render() {
         return (
-            <div className="text-input">
+            <div className="text-input" ref={this.myRef}>
                 <div className="text-input-label">{this.props.inputTypeDisplay}</div>
                 {this.state.area?
                     <textarea 

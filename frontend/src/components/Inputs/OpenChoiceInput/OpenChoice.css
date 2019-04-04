@@ -9,11 +9,9 @@
 
 .repeated-choice {
     padding-right:2px;
-    width: 250px !important;
-
 }
 .open-choice .dropdown-input {
-    width:150px;
+    width:450px;
     height:auto;
     overflow:hidden;
 }
@@ -32,7 +30,7 @@
 
   .open-choice .option-block {
       background-color:black;
-      width: 150px;
+      width: 450px;
       overflow: hidden;
   }
 
@@ -57,7 +55,7 @@
     display:inline-block;
     border: 1px solid #ddd;
     padding:1px 5px;
-    max-width:245px;
+    max-width:430px;
     background-color:#888;
     margin-left:2px;
     border-radius:2px;

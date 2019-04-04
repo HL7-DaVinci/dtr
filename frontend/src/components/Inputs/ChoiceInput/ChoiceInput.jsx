@@ -15,6 +15,7 @@ export default class ChoiceInput extends Component {
         };
 
         this.setChoice = this.setChoice.bind(this);
+        this.ref = React.createRef();
     }
 
     componentDidMount() {
@@ -29,7 +30,11 @@ export default class ChoiceInput extends Component {
             this.setValue(returnAnswer);
         }
 
-        this.props.updateCallback(this.props.item.linkId,  {"type":"choice", "text":this.props.item.text, "valueType":"valueCoding"}, "itemTypes")
+        this.props.updateCallback(this.props.item.linkId,  
+            {"type":"choice", 
+            "text":this.props.item.text, 
+            "valueType":"valueCoding",
+            "ref":this.ref}, "itemTypes")
 
 
     }
@@ -62,7 +67,7 @@ export default class ChoiceInput extends Component {
     render() {
         return (
             
-            <div className="text-input">
+            <div className="text-input" ref={this.ref}>
                 <div>
                     
                     {this.state.choices.map((element)=>{
