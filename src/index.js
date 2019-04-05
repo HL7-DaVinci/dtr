@@ -15,12 +15,12 @@ const FHIR_URI_PREFIX = "../fetchFhirUri/";
 // hardcoded appContext, needs to by retrieved from OAuth 2.0 access token response
 const appContext = {
   template: "urn:hl7:davinci:crd:home-oxygen-questionnaire",
-  request: "http://localhost:8080/fhir/DeviceRequest/devreq013/"
+  request: "http://localhost:8080/ehr-server/stu3/DeviceRequest/devreq013/"
 }
 
 // hardcoded smart, should be set up with context stuff
 var smart = FHIR.client({
-  serviceUrl: "http://localhost:8080/fhir",
+  serviceUrl: "http://localhost:8080/ehr-server/stu3",
   patientId: "pat013"
 });
 
