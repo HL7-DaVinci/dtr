@@ -2,13 +2,15 @@ const path = require("path");
 
 module.exports = {
   entry: {
-    launch: path.resolve(__dirname, "frontend/src/launch.js"),
-    index: path.resolve(__dirname, "frontend/src/index.js")
+    launch: path.resolve(__dirname, "src/launch.js"),
+    index: path.resolve(__dirname, "src/index.js")
   },
   output: {
     filename: "[name].bundle.js",
-    path: path.resolve(__dirname, "frontend/dist")
+    path: path.resolve(__dirname, "public"),
+    publicPath: "/",
   },
+  resolve: { extensions: ["*", ".js", ".jsx"] },
   module: {
     rules: [
       {
@@ -18,7 +20,7 @@ module.exports = {
         use: { loader: "ignore-loader" }
       },
       {
-        test: /\.m?js$/,
+        test: /\.(mjs|js|jsx)$/,
         exclude: /node_modules/,
         use: {
           loader: "babel-loader",
@@ -33,6 +35,10 @@ module.exports = {
             ]
           }
         }
+      },
+      {
+        test: /\.css$/,
+        use: ["style-loader", "css-loader"]
       }
     ]
   },

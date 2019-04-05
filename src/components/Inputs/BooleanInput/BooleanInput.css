@@ -1,0 +1,22 @@
+.boolButton{
+    height:20px;
+    border: 2px solid black;
+    margin-right:5px;
+}
+/* .boolButton.true{
+
+    border-color:#66DD8F;
+}
+.boolButton.false{
+
+    border-color:#DD668F;
+}
+.selected.true{
+    background-color:#66DD8F;
+
+}
+
+.selected.false{
+    background-color:#DD668F;
+
+} */

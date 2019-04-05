@@ -3,39 +3,43 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "buildRunDev": "webpack --config ./webpack.config.dev.js && node ./bin/www",
-    "buildRun": "webpack --config ./webpack.config.prod.js && node ./bin/www",
-    "buildDev": "webpack --config ./webpack.config.dev.js --progress --colors",
     "build": "webpack --config ./webpack.config.prod.js --progress --colors",
-    "start": "node ./bin/www",
+    "start": "webpack-dev-server --config ./webpack.config.dev.js --port 3005",
     "lint": "node ./node_modules/.bin/eslint --ext .js ./"
   },
   "devDependencies": {
     "@babel/core": "^7.1.6",
     "@babel/preset-env": "^7.1.6",
+    "@babel/preset-react": "^7.0.0",
     "babel-loader": "^8.0.4",
     "babel-minify-webpack-plugin": "^0.3.1",
     "compression-webpack-plugin": "^2.0.0",
-    "eslint": "^5.9.0",
+    "css-loader": "^2.1.1",
     "eslint-config-prettier": "^3.3.0",
     "ignore-loader": "^0.1.2",
+    "react-hot-loader": "^4.8.2",
+    "style-loader": "^0.23.1",
     "webpack": "^4.25.1",
     "webpack-cli": "^3.1.2",
     "webpack-merge": "^4.1.4"
   },
   "dependencies": {
+    "bootstrap": "^4.3.1",
     "core-js": "^2.5.7",
-    "cql-exec-fhir": "^1.0.1",
+    "cql-exec-fhir": "^1.2.0",
     "cql-execution": "~1.2.2",
-    "express": "~4.16.0",
     "fhirclient": "^0.1.12",
+    "react": "^16.8.4",
+    "react-bootstrap": "^1.0.0-beta.5",
+    "react-dom": "^16.8.4",
+    "react-scripts": "^2.1.8",
     "regenerator-runtime": "^0.12.1",
     "whatwg-fetch": "^3.0.0"
   },
   "browserslist": [
     "last 4 firefox versions",
     "last 4 chrome versions",
-    "ie >= 9",
+    "ie >= 10",
     "last 2 edge versions"
   ]
 }

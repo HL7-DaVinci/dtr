@@ -1,0 +1,40 @@
+.text-input{
+    margin-left:15px;
+}
+
+.text-input-box{
+    width:75%;
+    max-width: 450px;
+    border-width:1px 2px 2px 5px;
+    border-style:solid;
+    border-color:black;
+    font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif
+}
+
+.text-input-label{
+    font-family:monospace;
+    background-color:black;
+    color:white;
+    font-size:9px;
+    display:table;
+    text-align:center;
+    padding:1px 2px 0 2px;
+    line-height:9px;
+    height:9px;
+    border-radius:10% 15% 0 0;
+}
+
+input:focus {
+    outline:none;
+}
+
+textarea:focus {
+    outline:none;
+}
+
+textarea{
+    min-height:60px;
+}
+.text-input-area{
+    height:80px;
+}

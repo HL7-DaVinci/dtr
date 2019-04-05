@@ -1,0 +1,415 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "q1",
+  "title": "Home Oxygen Therapy Order Template",
+  "status": "draft",
+  "subjectType": [
+    "Patient"
+  ],
+  "date": "2019-03-11",
+  "publisher": "Da Vinci DTR",
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/cqf-library",
+      "valueCanonical": "todo/Library/home-oxygen-logic"
+    }
+  ],
+  "contained": [
+    {
+      "resourceType": "ValueSet",
+      "id": "gender",
+      "identifier": [
+        {
+          "system": "todo",
+          "value": "todo"
+        }
+      ],
+      "name": "Gender",
+      "status": "draft",
+      "description": "Gender",
+      "compose": {
+        "include": [
+          {
+            "system": "todo",
+            "concept": [
+              {
+                "code": "M",
+                "display": "Male"
+              },
+              {
+                "code": "F",
+                "display": "Female"
+              },
+              {
+                "code": "Other",
+                "display": "Other"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "linkId": "1",
+      "text": "Patient Information",
+      "type": "group",
+      "item": [
+        {
+          "linkId": "1.1",
+          "text": "Last Name",
+          "type": "string",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/cqf-expression",
+              "valueExpression": {
+                "language": "text/cql",
+                "expression": "PatientLastName"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "1.2",
+          "text": "First Name",
+          "type": "string",
+          "required": true,
+          "enableWhen":[
+              {
+                  "question":"1.1",
+                  "operator":"=",
+                  "answerString":"5"
+              },
+              {
+                "question":"1.3",
+                "operator":"=",
+                "answerBoolean":"S"
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/cqf-expression",
+              "valueExpression": {
+                "language": "text/cql",
+                "expression": "PatientFirstName"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "1.3",
+          "text": "Middle Initial",
+          "type": "text",
+          "required": false,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/cqf-expression",
+              "valueExpression": {
+                "language": "text/cql",
+                "expression": "PatientMiddleInitial"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "1.4",
+          "text": "Date Of Birth",
+          "type": "date",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/cqf-expression",
+              "valueExpression": {
+                "language": "text/cql",
+                "expression": "PatientDateOfBirth"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "1.5",
+          "text": "Gender",
+          "type": "choice",
+          "required": true,
+          "answerValueSet": "#gender",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/cqf-expression",
+              "valueExpression": {
+                "language": "text/cql",
+                "expression": "PatientGender"
+              }
+            }
+          ]
+        },
+        {
+          "linkId": "1.6",
+          "text": "Medicare ID",
+          "type": "open-choice",
+          "answerOption":[
+            {
+                "valueCoding":{
+                    "system":"http://hl7.org",
+                    "version":"v1.0",
+                    "code":"7B3o9FFa",
+                    "display":"Bounty Chunter"
+                },
+                "initialSelected":false
+            },
+            {
+                "valueCoding":{
+                    "system":"http://fakesystem.org",
+                    "version":"v1.0",
+                    "code":"5oi1oOI23",
+                    "display":"Verbal Autopsy"
+                },
+                "initialSelected":true
+            },
+            {
+                "valueCoding":{
+                    "system":"http://fakesystem.org",
+                    "version":"v1.0",
+                    "code":"4"
+                }
+            },
+            {
+                "valueCoding":{
+                    "system":"http://fakesystem.org",
+                    "version":"v1.0",
+                    "code":"110110001",
+                    "display":"Bip boop"
+                }
+            }
+        ],
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/cqf-expression",
+              "valueExpression": {
+                "language": "text/cql",
+                "expression": "PatientMedicareId"
+              }
+            }
+          ]
+        },
+        {
+            "linkId": "1.7",
+            "text": "Name of Favorite Pet",
+            "repeats":true,
+            "type": "open-choice",
+            "answerOption":[
+              {
+                  "valueCoding":{
+                      "system":"http://hl7.org",
+                      "version":"v1.0",
+                      "code":"7B3o9FFa",
+                      "display":"Fishy Boi"
+                  },
+                  "initialSelected":false
+              },
+              {
+                  "valueCoding":{
+                      "system":"http://fakesystem.org",
+                      "version":"v1.0",
+                      "code":"5oi1oOI23",
+                      "display":"Dogman"
+                  },
+                  "initialSelected":true
+              },
+              {
+                  "valueCoding":{
+                      "system":"http://fakesystem.org",
+                      "version":"v1.0",
+                      "code":"4",
+                      "display":"Yoshi is still out there"
+                  }
+              },
+              {
+                  "valueCoding":{
+                      "system":"http://fakesystem.org",
+                      "version":"v1.0",
+                      "code":"110110001"
+                  }
+              }
+          ],
+            "required": false,
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/cqf-expression",
+                "valueExpression": {
+                  "language": "text/cql",
+                  "expression": "PatientMedicareId"
+                }
+              }
+            ]
+          }
+      ]
+    },
+    {
+        "linkId": "2",
+        "text": "Lab Tests",
+        "type": "group",
+        "item": [
+          {
+            "linkId": "2.1",
+            "text": "O2 Saturation",
+            "type": "decimal",
+            "readOnly":true,
+            "required": true,
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/cqf-expression",
+                "valueExpression": {
+                  "language": "text/cql",
+                  "expression": "PatientO2Saturation"
+                }
+              }
+            ]
+          },
+          {
+            "linkId": "2.2",
+            "text": "Recieved X-ray",
+            "type": "boolean",
+            "required": true,
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/cqf-expression",
+                "valueExpression": {
+                  "language": "text/cql",
+                  "expression": "RecievedXRay"
+                }
+              }
+            ]
+          },
+          {
+            "linkId": "2.3",
+            "text": "Mile Time",
+            "type": "time",
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/cqf-expression",
+                "valueExpression": {
+                  "language": "text/cql",
+                  "expression": "MileTime"
+                }
+              }
+            ]
+          },
+          {
+            "linkId": "2.4",
+            "text": "Website",
+            "type": "url",
+            "required": false,
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/cqf-expression",
+                "valueExpression": {
+                  "language": "text/cql",
+                  "expression": "Website"
+                }
+              }
+            ]
+          },
+          {
+            "linkId": "2.5",
+            "text": "Favorite Color",
+            "type": "choice",
+            "required": true,
+            "repeats": true,
+            "answerOption":[
+                {
+                    "valueCoding":{
+                        "system":"http://colors.org",
+                        "version":"v1.30",
+                        "code":"ff0000",
+                        "display":"Red"
+                    },
+                    "initialSelected":true
+                },
+                {
+                    "valueCoding":{
+                        "system":"http://colors.org",
+                        "version":"v1.30",
+                        "code":"0000ff",
+                        "display":"Blue"
+                    },
+                    "initialSelected":false
+                },
+                {
+                    "valueCoding":{
+                        "system":"http://colors.org",
+                        "version":"v1.30",
+                        "code":"00ff00",
+                        "display":"Green"
+                    }
+                }
+            ],
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/cqf-expression",
+                "valueExpression": {
+                  "language": "text/cql",
+                  "expression": "Color"
+                }
+              }
+            ]
+          },
+          {
+            "linkId": "2.6",
+            "text": "Vitals",
+            "type": "group",
+            "required": true,
+            "item": [
+                {
+                    "linkId": "2.6.1",
+                    "text": "Heartbeat",
+                    "type": "quantity",
+                    "required": true,
+                    "extension": [
+                      {
+                        "url": "http://hl7.org/fhir/StructureDefinition/cqf-expression",
+                        "valueExpression": {
+                          "language": "text/cql",
+                          "expression": "HeartBeat"
+                        }
+                      }
+                    ]
+                },
+                {
+                    "linkId": "2.6.2",
+                    "text": "Blood Pressure",
+                    "type": "attachment",
+                    "required": true,
+                    "extension": [
+                      {
+                        "url": "http://hl7.org/fhir/StructureDefinition/cqf-expression",
+                        "valueExpression": {
+                          "language": "text/cql",
+                          "expression": "BloodPressure"
+                        }
+                      }
+                    ]
+                },
+                {
+                    "linkId": "2.6.3",
+                    "text": "He is havin a good time?",
+                    "type": "dateTime",
+                    "required": true,
+                    "extension": [
+                      {
+                        "url": "http://hl7.org/fhir/StructureDefinition/cqf-expression",
+                        "valueExpression": {
+                          "language": "text/cql",
+                          "expression": "Fun"
+                        }
+                      }
+                    ]
+                }
+            ]
+          }
+        ]
+      }
+  ]
+}
