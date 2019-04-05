@@ -9,7 +9,13 @@ module.exports = merge(common, {
     contentBase: path.resolve(__dirname, "public"),
     port: 3005,
     publicPath: "http://localhost:3005/",
-    hotOnly: true
+    hotOnly: true,
+    proxy: {
+      '/fetchFhirUri': {
+          target: 'http://localhost:8090',
+          secure: false
+      }
+    }
   },
   plugins: [new webpack.HotModuleReplacementPlugin()]
 });

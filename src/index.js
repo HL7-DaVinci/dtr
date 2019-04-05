@@ -7,6 +7,11 @@ import ReactDOM from "react-dom";
 import App from "./App.js";
 
 
+// This endpoint available when deployed in CRD server, for development we have
+// the proxy set up in webpack.config.dev.js so the CRD server needs to be running
+const FHIR_URI_PREFIX = "../fetchFhirUri/";
+
+
 // hardcoded appContext, needs to by retrieved from OAuth 2.0 access token response
 const appContext = {
   template: "urn:hl7:davinci:crd:home-oxygen-questionnaire",
@@ -19,7 +24,6 @@ var smart = FHIR.client({
   patientId: "pat013"
 });
 
-const FHIR_URI_PREFIX = "http://localhost:8090/fetchFhirUri/";
 
 ReactDOM.render(
   <App
