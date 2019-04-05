@@ -24,7 +24,7 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, deviceRequestIdO
     }
 
     //fetch questionnaire and all elms
-    var questionnaireUrl = new URL(fhirUriPrefix+encodeURIComponent(questionnaireUri));
+    var questionnaireUrl = fhirUriPrefix+encodeURIComponent(questionnaireUri);
     pendingFetches += 1;
     fetch(questionnaireUrl).then(handleFetchErrors).then(r => r.json())
     .then(questionnaire => {
@@ -52,7 +52,7 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, deviceRequestIdO
 
     function fetchElm(libraryUri, isMain = false){
       if (libraryUri in fetchedUris) return;
-      let libraryUrl = new URL(fhirUriPrefix+encodeURIComponent(libraryUri));
+      let libraryUrl = fhirUriPrefix+encodeURIComponent(libraryUri);
       pendingFetches += 1;
       fetch(libraryUrl).then(handleFetchErrors).then(r => r.json())
       .then(libraryResource => {
@@ -73,7 +73,7 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, deviceRequestIdO
     function fetchElmFile(libraryResource, isMain){
       const elmUri = libraryResource.content.filter(c => c.contentType == "application/elm+json")[0].url;
       if (elmUri in fetchedUris) return;
-      let elmUrl = new URL(fhirUriPrefix+encodeURIComponent(elmUri));
+      let elmUrl = fhirUriPrefix+encodeURIComponent(elmUri);
       pendingFetches += 1;
       fetch(elmUrl).then(handleFetchErrors).then(r => r.json())
       .then(elm => {
