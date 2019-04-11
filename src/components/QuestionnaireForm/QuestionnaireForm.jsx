@@ -21,6 +21,7 @@ export default class QuestionnaireForm extends Component {
             values: {
                 "1.1": "henlo"
             },
+            orderedLinks:[],
             view: null
         };
         this.updateQuestionValue = this.updateQuestionValue.bind(this);
@@ -40,14 +41,16 @@ export default class QuestionnaireForm extends Component {
         }
         const items = this.props.qform.item;
         this.setState({ items });
-        console.log(items);
+        const links = this.prepopulate(items, []);
+        this.setState({orderedLinks:links})
     }
 
     componentDidMount() {
-
-
+        
     }
+
     evaluateOperator(operator, questionValue, answerValue) {
+
         switch (operator) {
             case "exists":
                 return (answerValue) === (questionValue !== undefined);
@@ -64,7 +67,7 @@ export default class QuestionnaireForm extends Component {
             case ">=":
                 return questionValue >= answerValue;
             default:
-                return (answerValue) === (questionValue !== undefined);
+                return questionValue === answerValue;
         }
     }
 
@@ -116,7 +119,23 @@ export default class QuestionnaireForm extends Component {
             enableCriteria.forEach((rule) => {
                 const question = this.state.values[rule.question]
                 const answer = findValueByPrefix(rule, "answer");
-                results.push(this.evaluateOperator(rule.operator, question, answer))
+                if(typeof question === 'object' && typeof answer === 'object') {
+                    if(rule.answerQuantity) {
+                        // at the very least the unit and value need to be the same
+                        results.push(this.evaluateOperator(rule.operator, question.value, answer.value.toString())
+                        && this.evaluateOperator(rule.operator, question.unit, answer.unit));
+                    }else if(rule.answerCoding) {
+                        let result = false;
+                        if(Array.isArray(question)) {
+                            question.forEach((e) => {
+                                result = result || (e.code===answer.code && e.system === answer.system);
+                            })
+                        }
+                        results.push(result);
+                    }
+                }else{
+                    results.push(this.evaluateOperator(rule.operator, question, answer));
+                }
             });
             return !checkAny ? results.some((i) => { return i }) : results.every((i) => { return i });
         } else {
@@ -126,6 +145,30 @@ export default class QuestionnaireForm extends Component {
     }
 
 
+    prepopulate(items, links) {
+        items.map((item)=>{
+            if(item.item) {
+                this.prepopulate(item.item, links);
+            } else {
+
+                        // autofill fields
+                links.push(item.linkId);
+                if(item.enableWhen) {
+                    console.log(item.enableWhen);
+                }
+                if(item.extension) {
+                    item.extension.forEach((e)=>{
+                        if(e.url==="http://hl7.org/fhir/StructureDefinition/cqif-calculatedValue") {
+                            // stu3 
+                            const value = findValueByPrefix(e, "value");
+                            this.updateQuestionValue(item.linkId, this.props.cqlPrepoulationResults[value], 'values')
+                        }
+                    })
+                }
+            }
+        })
+        return links;
+    }
 
     renderComponent(item, level) {
         if (this.checkEnable(item)) {
@@ -137,7 +180,6 @@ export default class QuestionnaireForm extends Component {
                         item={item}
                         level={level}
                     />
-
                 case "string":
                     return <TextInput
                         key={item.linkId}
@@ -300,62 +342,70 @@ export default class QuestionnaireForm extends Component {
         }
         Object.keys(this.state.itemTypes).map((item) => {
             const itemType = this.state.itemTypes[item];
-            const answerItem = {
-                "linkId": item,
-                "text": itemType.text,
-                "answer": []
+            if(itemType) {
+                const answerItem = {
+                    "linkId": item,
+                    "text": itemType.text,
+                    "answer": []
+                }
+                // TODO: Figure out what to do when a value is missing
+                switch (itemType.valueType) {
+                    case "valueAttachment":
+                        //TODO
+                        break;
+                    case "valueQuantity":
+                        const quantity = this.state.values[item];
+                        if (quantity && quantity.comparator === "=") {
+                            delete quantity.comparator;
+                        }
+                        answerItem.answer.push({ [itemType.valueType]: quantity })
+                        break;
+                    default:
+                        const answer = this.state.values[item];
+                        if (Array.isArray(answer)) {
+                            answer.forEach((e) => {
+                                // possible for an array to contain multiple types
+                                let finalType;
+                                if(e.valueTypeFinal){
+                                    finalType=e.valueTypeFinal;
+                                    delete e.valueTypeFinal;
+                                }else{
+                                    finalType = itemType.valueType;
+                                }
+                                answerItem.answer.push({ [finalType]: e });
+                            })
+                        } else {
+                            answerItem.answer.push({ [itemType.valueType]: answer });
+                        }
+                }
+                response.item.push(answerItem);
             }
-            // TODO: Figure out what to do when a value is missing
-            switch (itemType.valueType) {
-                case "valueAttachment":
-                    //TODO
-                    break;
-                case "valueQuantity":
-                    const quantity = this.state.values[item];
-                    if (quantity && quantity.comparator === "=") {
-                        delete quantity.comparator;
-                    }
-                    answerItem.answer.push({ [itemType.valueType]: quantity })
-                    break;
-                default:
-                    const answer = this.state.values[item];
-                    if (Array.isArray(answer)) {
-                        answer.forEach((e) => {
-                            // possible for an array to contain multiple types
-                            let finalType;
-                            if(e.valueTypeFinal){
-                                finalType=e.valueTypeFinal;
-                                delete e.valueTypeFinal;
-                            }else{
-                                finalType = itemType.valueType;
-                            }
-                            answerItem.answer.push({ [finalType]: e });
-                        })
-                    } else {
-                        answerItem.answer.push({ [itemType.valueType]: answer });
-                    }
-            }
-            response.item.push(answerItem);
         });
 
         console.log(response);
     }
 
     render() {
-        console.log(this.state.values);
         return (
             <div>
                 <h2 className="document-header">{this.props.qform.title}</h2>
                 <div className="sidenav">
-                    {Object.keys(this.state.itemTypes).map((e)=>{
+                    {this.state.orderedLinks.map((e)=>{
                         const value = this.state.values[e];
+                        let extraClass;
+                        let indicator;
+                        if(this.state.itemTypes[e]){
+                            extraClass = (value!==undefined&&value!==null&&value!==""&&(Array.isArray(value)?value.length>0:true)?"sidenav-active":"")
+                            indicator = true;
+                        }else{
+                            extraClass = "sidenav-disabled"
 
+                        }
                         return <div 
                         key={e}
-                        className={"sidenav-box " + (value!==undefined&&value!==""&&(Array.isArray(value)?value.length>0:true)?"sidenav-active":"")}
-                        onClick={()=>{
-                            console.log(this.state.itemTypes[e].ref.current.offsetTop);
-                            window.scrollTo(0, this.state.itemTypes[e].ref.current.previousSibling.offsetTop) 
+                        className={"sidenav-box " + extraClass}
+                        onClick={() => { 
+                            indicator?window.scrollTo(0, this.state.itemTypes[e].ref.current.previousSibling.offsetTop):null;
                         }}
                         >
                             {e}

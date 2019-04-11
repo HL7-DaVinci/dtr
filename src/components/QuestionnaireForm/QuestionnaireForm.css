@@ -37,7 +37,14 @@ html {
 .sidenav-active {
   color:white;
 }
+.sidenav-disabled {
+    background-color: #666;
+    color: #444;
+}
 
+.sidenav-disabled:hover {
+    background-color: #666;
+}
 .submit-button {
   margin-left: 55px;
   border-width: 1px 1px 1px 5px;

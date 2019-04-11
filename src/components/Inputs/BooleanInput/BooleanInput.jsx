@@ -15,6 +15,11 @@ export default class BooleanInput extends Component {
         this.ref = React.createRef();
     }
 
+    componentWillUnmount() {
+        this.props.updateCallback(this.props.item.linkId,  
+           null, "itemTypes");
+    }
+
     componentDidMount() {
         // setup
         const value = this.props.retrieveCallback(this.props.item.linkId);
@@ -25,7 +30,7 @@ export default class BooleanInput extends Component {
             {"type":"boolean",
             "text":this.props.item.text, 
             "valueType":"valueBoolean",
-            "ref":this.ref}, "itemTypes")
+            "ref":this.ref}, "itemTypes");
 
     }
 
