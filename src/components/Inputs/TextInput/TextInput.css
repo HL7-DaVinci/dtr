@@ -24,6 +24,16 @@
     border-radius:10% 15% 0 0;
 }
 
+.read-only .text-input-box{
+    background-color:#888;
+    border-color:#555
+}
+
+.read-only .text-input-label {
+    background-color: #555;
+    color:#ccc;
+}
+
 input:focus {
     outline:none;
 }

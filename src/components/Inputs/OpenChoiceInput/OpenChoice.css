@@ -14,6 +14,8 @@
     width:450px;
     height:auto;
     overflow:hidden;
+    color:white;
+
 }
 .open-choice .dropdown-input:after {
     position: absolute;
@@ -61,7 +63,6 @@
     border-radius:2px;
     margin-bottom:1px;
     font-family:'Courier New', Courier, monospace;
-    color:white !important;
     line-height:16px;
     margin-top:1px;
     overflow-wrap: break-word;
@@ -75,4 +76,15 @@
     padding:0px;
     max-width:250px;
     overflow-wrap: break-word;
+}
+
+.read-only .dropdown-input, .read-only .input-block{
+    background-color:#555;
+    border-color:#444;
+    pointer-events:none;
+    color: #ddd;
+}
+
+.read-only .selected-value {
+    background-color: #666;
 }

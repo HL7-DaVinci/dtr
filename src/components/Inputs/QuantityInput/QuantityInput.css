@@ -39,3 +39,9 @@
 .quantity-input.system {
     width:175px;
 }
+
+.read-only .quantity-input {
+    background-color:#AAA;
+    border-color:#555;
+    pointer-events:none;
+}

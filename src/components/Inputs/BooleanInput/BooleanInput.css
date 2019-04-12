@@ -3,20 +3,13 @@
     border: 2px solid black;
     margin-right:5px;
 }
-/* .boolButton.true{
 
-    border-color:#66DD8F;
-}
-.boolButton.false{
-
-    border-color:#DD668F;
-}
-.selected.true{
-    background-color:#66DD8F;
-
+.read-only .boolButton{
+    background-color:#AAA;
+    border-color:#444;
+    pointer-events:none;
 }
 
-.selected.false{
-    background-color:#DD668F;
-
-} */
+.read-only .selected {
+    background-color: #444;
+}

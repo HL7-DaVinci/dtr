@@ -41,7 +41,10 @@ html {
     background-color: #666;
     color: #444;
 }
-
+.sidenav-manually-disabled {
+    background-color:#336;
+    color:#AAA;
+}
 .sidenav-disabled:hover {
     background-color: #666;
 }
@@ -55,4 +58,27 @@ html {
 .submit-button:hover {
   background-color: #f3f3f3;
   border-color:#000;
+}
+
+.filled {
+    color:white;
+
+}
+
+.filter-filled { 
+    font-family: monospace;
+    margin:0;
+    padding:5px;
+
+}
+
+.floating-tools {
+    right:10px;
+    top:0;
+    width: 100px;
+    border-width: 0px 1px 1px 1px;
+    border-style: solid;
+    border-color:black;
+    position:fixed;
+    background-color:white;
 }
