@@ -21,8 +21,9 @@ export default class QuestionnaireForm extends Component {
             values: {
                 "1.1": "henlo"
             },
-            orderedLinks:[],
-            view: null
+            orderedLinks: [],
+            fullView: true,
+            turnOffValues: []
         };
         this.updateQuestionValue = this.updateQuestionValue.bind(this);
         this.updateNestedQuestionValue = this.updateNestedQuestionValue.bind(this);
@@ -42,11 +43,11 @@ export default class QuestionnaireForm extends Component {
         const items = this.props.qform.item;
         this.setState({ items });
         const links = this.prepopulate(items, []);
-        this.setState({orderedLinks:links})
+        this.setState({ orderedLinks: links })
     }
 
     componentDidMount() {
-        
+
     }
 
     evaluateOperator(operator, questionValue, answerValue) {
@@ -119,21 +120,21 @@ export default class QuestionnaireForm extends Component {
             enableCriteria.forEach((rule) => {
                 const question = this.state.values[rule.question]
                 const answer = findValueByPrefix(rule, "answer");
-                if(typeof question === 'object' && typeof answer === 'object') {
-                    if(rule.answerQuantity) {
+                if (typeof question === 'object' && typeof answer === 'object') {
+                    if (rule.answerQuantity) {
                         // at the very least the unit and value need to be the same
                         results.push(this.evaluateOperator(rule.operator, question.value, answer.value.toString())
-                        && this.evaluateOperator(rule.operator, question.unit, answer.unit));
-                    }else if(rule.answerCoding) {
+                            && this.evaluateOperator(rule.operator, question.unit, answer.unit));
+                    } else if (rule.answerCoding) {
                         let result = false;
-                        if(Array.isArray(question)) {
+                        if (Array.isArray(question)) {
                             question.forEach((e) => {
-                                result = result || (e.code===answer.code && e.system === answer.system);
+                                result = result || (e.code === answer.code && e.system === answer.system);
                             })
                         }
                         results.push(result);
                     }
-                }else{
+                } else {
                     results.push(this.evaluateOperator(rule.operator, question, answer));
                 }
             });
@@ -146,19 +147,19 @@ export default class QuestionnaireForm extends Component {
 
 
     prepopulate(items, links) {
-        items.map((item)=>{
-            if(item.item) {
+        items.map((item) => {
+            if (item.item) {
                 this.prepopulate(item.item, links);
             } else {
 
-                        // autofill fields
+                // autofill fields
                 links.push(item.linkId);
-                if(item.enableWhen) {
+                if (item.enableWhen) {
                     console.log(item.enableWhen);
                 }
-                if(item.extension) {
-                    item.extension.forEach((e)=>{
-                        if(e.url==="http://hl7.org/fhir/StructureDefinition/cqif-calculatedValue") {
+                if (item.extension) {
+                    item.extension.forEach((e) => {
+                        if (e.url === "http://hl7.org/fhir/StructureDefinition/cqif-calculatedValue") {
                             // stu3 
                             const value = findValueByPrefix(e, "value");
                             this.updateQuestionValue(item.linkId, this.props.cqlPrepoulationResults[value], 'values')
@@ -170,8 +171,13 @@ export default class QuestionnaireForm extends Component {
         return links;
     }
 
+    isNotEmpty(value) {
+        return (value !== undefined && value !== null && value !== "" && (Array.isArray(value) ? value.length > 0 : true));
+    }
+
     renderComponent(item, level) {
-        if (this.checkEnable(item)) {
+        const enable = this.checkEnable(item);
+        if (enable && (this.state.turnOffValues.indexOf(item.linkId) < 0)) {
             switch (item.type) {
                 case "group":
                     return <Section
@@ -328,6 +334,7 @@ export default class QuestionnaireForm extends Component {
 
     // create the questionnaire response based on the current state
     outputResponse(status) {
+
         const today = new Date();
         const dd = String(today.getDate()).padStart(2, '0');
         const mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
@@ -342,7 +349,7 @@ export default class QuestionnaireForm extends Component {
         }
         Object.keys(this.state.itemTypes).map((item) => {
             const itemType = this.state.itemTypes[item];
-            if(itemType) {
+            if (itemType && (itemType.enabled || this.state.turnOffValues.indexOf(item) >= 0)) {
                 const answerItem = {
                     "linkId": item,
                     "text": itemType.text,
@@ -360,16 +367,21 @@ export default class QuestionnaireForm extends Component {
                         }
                         answerItem.answer.push({ [itemType.valueType]: quantity })
                         break;
+                    case "valueDateTime":
+                    case "valueDate":
+                        const date = this.state.values[item];
+                        answerItem.answer.push({ [itemType.valueType]: date.toString() });
+                        break;
                     default:
                         const answer = this.state.values[item];
                         if (Array.isArray(answer)) {
                             answer.forEach((e) => {
                                 // possible for an array to contain multiple types
                                 let finalType;
-                                if(e.valueTypeFinal){
-                                    finalType=e.valueTypeFinal;
+                                if (e.valueTypeFinal) {
+                                    finalType = e.valueTypeFinal;
                                     delete e.valueTypeFinal;
-                                }else{
+                                } else {
                                     finalType = itemType.valueType;
                                 }
                                 answerItem.answer.push({ [finalType]: e });
@@ -381,32 +393,59 @@ export default class QuestionnaireForm extends Component {
                 response.item.push(answerItem);
             }
         });
-
         console.log(response);
     }
 
+    removeFilledFields() {
+        if (this.state.turnOffValues.length > 0) {
+            this.setState({ turnOffValues: [] });
+        } else {
+            const returnArray = [];
+            this.state.orderedLinks.forEach((e) => {
+                if (this.isNotEmpty(this.state.values[e]) && this.state.itemTypes[e] && this.state.itemTypes[e].enabled) {
+                    returnArray.push(e);
+                }
+            });
+            console.log(returnArray);
+            this.setState({ turnOffValues: returnArray });
+        }
+    }
     render() {
         return (
             <div>
-                <h2 className="document-header">{this.props.qform.title}</h2>
+                <div className="floating-tools">
+                    <p className="filter-filled" >filter: <input type="checkbox" onClick={() => {
+                        this.removeFilledFields();
+                    }}></input></p>
+                </div>
+                <h2 className="document-header">{this.props.qform.title}
+
+                </h2>
+
                 <div className="sidenav">
-                    {this.state.orderedLinks.map((e)=>{
+                    {this.state.orderedLinks.map((e) => {
                         const value = this.state.values[e];
                         let extraClass;
                         let indicator;
-                        if(this.state.itemTypes[e]){
-                            extraClass = (value!==undefined&&value!==null&&value!==""&&(Array.isArray(value)?value.length>0:true)?"sidenav-active":"")
+                        if (this.state.itemTypes[e] && this.state.itemTypes[e].enabled) {
+                            extraClass = (this.isNotEmpty(value) ? "sidenav-active" : "")
                             indicator = true;
-                        }else{
-                            extraClass = "sidenav-disabled"
+                        } else {
+                            if (this.isNotEmpty(this.state.values[e]) && this.state.turnOffValues.indexOf(e) > -1) {
+                                extraClass = "sidenav-manually-disabled";
+                            } else if (this.state.values[e]) {
+                                extraClass = "sidenav-disabled filled"
+                            } else {
+                                extraClass = "sidenav-disabled"
+                            }
 
                         }
-                        return <div 
-                        key={e}
-                        className={"sidenav-box " + extraClass}
-                        onClick={() => { 
-                            indicator?window.scrollTo(0, this.state.itemTypes[e].ref.current.previousSibling.offsetTop):null;
-                        }}
+                        return <div
+                            key={e}
+                            className={"sidenav-box " + extraClass}
+                            onClick={() => {
+                                indicator ? window.scrollTo(0, this.state.itemTypes[e].ref.current.previousSibling.offsetTop) : null;
+                            }}
                         >
                             {e}
                         </div>

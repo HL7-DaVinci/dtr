@@ -7,26 +7,42 @@ export default class Section extends Component {
         super(props);
         this.state = {
             containedResources: null,
-            items: null
+            items: null,
+            components:[]
         };
     }
 
     componentDidMount() {
         // setup
+        this.getComponents(this.props);
+    }
 
+    componentWillReceiveProps(props) {
+        this.getComponents(props);
+    }
 
+    getComponents(props) {
+        const newArray = [];
+        props.item.item.map((_item)=>{
+            const component = props.componentRenderer(_item, props.level+1);
+            if(component) {
+               newArray.push({component,_item});
+            }
+        });
+        this.setState({components: newArray});
     }
 
     render() {
         return (
-            <div className="section">
+            <div className={"section " + (this.state.components.length===0?"disabled":"")}>
                 <h3 className="section-header"
                     style={{marginLeft:-15 - (15*this.props.level)}}>{this.props.item.text}</h3>
-                {this.props.item.item.map((_item)=>{
-                    const component = this.props.componentRenderer(_item, this.props.level+1);
+                {this.state.components.map((obj)=>{
+                    const component = obj.component;
+                    const _item = obj._item;
                     return component?_item.type!=="group"?(
                     <div key ={_item.linkId}>
-                        <div className={"entry-block " + (_item.readOnly?"read-only":null)}>
+                        <div className={"entry-block " + (_item.readOnly?"read-only":"")}>
                         <p className="header-input">
                             <span 
                                 className="info-block"

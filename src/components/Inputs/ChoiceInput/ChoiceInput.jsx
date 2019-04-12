@@ -21,7 +21,11 @@ export default class ChoiceInput extends Component {
 
     componentWillUnmount() {
         this.props.updateCallback(this.props.item.linkId,  
-           null, "itemTypes");
+            {"type":"choice", 
+            "text":this.props.item.text, 
+            "valueType":"valueCoding",
+            "ref":this.ref,
+            "enabled":false}, "itemTypes")
     }
 
     componentWillMount() {
@@ -35,7 +39,8 @@ export default class ChoiceInput extends Component {
             {"type":"choice", 
             "text":this.props.item.text, 
             "valueType":"valueCoding",
-            "ref":this.ref}, "itemTypes")
+            "ref":this.ref,
+            "enabled":true}, "itemTypes")
     }
 
     componentDidMount() {
@@ -54,9 +59,15 @@ export default class ChoiceInput extends Component {
                 }
             }else if(value){
                 // value is of type `coding`
-                if(choice.code === value.code) {
-                    this.setValue(choice);
+                if(Array.isArray(value)) {
+                    value.forEach((val)=> {
+                        
+                        if(choice.code === val.code) {
+                            this.setValue(choice);
+                        }
+                    })
                 }
+
             }
         })
     }

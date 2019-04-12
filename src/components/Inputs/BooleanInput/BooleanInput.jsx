@@ -17,20 +17,25 @@ export default class BooleanInput extends Component {
 
     componentWillUnmount() {
         this.props.updateCallback(this.props.item.linkId,  
-           null, "itemTypes");
+            {"type":"boolean",
+            "text":this.props.item.text, 
+            "valueType":"valueBoolean",
+            "ref":this.ref,
+            "enabled": false}, "itemTypes");
     }
 
     componentDidMount() {
         // setup
         const value = this.props.retrieveCallback(this.props.item.linkId);
-        if(value) {
-            this.setState({value: value});
+        if(value!==undefined && value!==null) {
+            this.setValue(value);
         }
         this.props.updateCallback(this.props.item.linkId,  
             {"type":"boolean",
             "text":this.props.item.text, 
             "valueType":"valueBoolean",
-            "ref":this.ref}, "itemTypes");
+            "ref":this.ref,
+            "enabled": true}, "itemTypes");
 
     }
 

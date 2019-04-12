@@ -22,9 +22,13 @@ export default class OpenChoice extends Component {
 
     componentWillUnmount() {
         this.props.updateCallback(this.props.item.linkId,  
-           null, "itemTypes");
+            {"type":this.props.inputTypeDisplay,
+            "text":this.props.item.text,
+            "valueType":"valueCoding",
+            "ref":this.ref,
+            "enabled": false}, "itemTypes");
     }
-    
+
     componentWillMount() {
         const returnAnswer = getListOfChoices(this.props, this.setChoice);
         if(returnAnswer) {
@@ -44,7 +48,8 @@ export default class OpenChoice extends Component {
             {"type":this.props.inputTypeDisplay,
             "text":this.props.item.text,
             "valueType":"valueCoding",
-            "ref":this.ref}, "itemTypes")
+            "ref":this.ref,
+            "enabled": true}, "itemTypes");
     }
 
     autofill(choices, values) {
@@ -70,13 +75,15 @@ export default class OpenChoice extends Component {
                 {"type":this.props.inputTypeDisplay,
                 "text":this.props.item.text,
                 "valueType":"valueString",
-                "ref":this.ref}, "itemTypes")
+                "ref":this.ref,
+                "enabled": true}, "itemTypes");
         }else{
             this.props.updateCallback(this.props.item.linkId,  
                 {"type":this.props.inputTypeDisplay,
                 "text":this.props.item.text,
                 "valueType":"valueCoding",
-                "ref":this.ref}, "itemTypes")
+                "ref":this.ref,
+                "enabled": true}, "itemTypes");
         }
     }
 
@@ -188,7 +195,8 @@ export default class OpenChoice extends Component {
                                                     {"type":this.props.inputTypeDisplay,
                                                     "text":this.props.item.text,
                                                     "valueType":"valueCoding",
-                                                    "ref":this.ref}, "itemTypes");
+                                                    "ref":this.ref,
+                                                    "enabled": true}, "itemTypes");
                                             }
                                             
                                         }}

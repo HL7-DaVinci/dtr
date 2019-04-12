@@ -27,8 +27,14 @@ export default class QuantityInput extends Component {
     }
 
     componentWillUnmount() {
-        this.props.updateCallback(this.props.item.linkId,  
-           null, "itemTypes");
+        this.props.updateQuestionValue(this.props.item.linkId,
+            {
+                "type": "quantity",
+                "text": this.props.item.text,
+                "valueType": "valueQuantity",
+                "ref": this.ref,
+                "enabled": false
+            }, "itemTypes")
     }
     
     componentDidMount() {
@@ -43,7 +49,8 @@ export default class QuantityInput extends Component {
                 "type": "quantity",
                 "text": this.props.item.text,
                 "valueType": "valueQuantity",
-                "ref": this.ref
+                "ref": this.ref,
+                "enabled": true
             }, "itemTypes")
     }
 
