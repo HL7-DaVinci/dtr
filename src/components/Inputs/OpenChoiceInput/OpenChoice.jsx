@@ -56,10 +56,17 @@ export default class OpenChoice extends Component {
         const options = []
         values && values.forEach((value) => {
             choices.forEach((choice) => {
+                if(value.code) {
+                    value = value.code;
+                }
                 if(choice.code === value) { 
                     options.push(choice);
                 }
             })
+            if(value.valueTypeFinal==="valueString") {
+                // manually entered info
+                options.push(value);
+            }
         })
         this.addOption(options);
     }

@@ -81,4 +81,5 @@ html {
     border-color:black;
     position:fixed;
     background-color:white;
+    z-index: 5;
 }
