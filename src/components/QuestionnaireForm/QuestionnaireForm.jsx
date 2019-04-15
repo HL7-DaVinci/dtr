@@ -22,6 +22,7 @@ export default class QuestionnaireForm extends Component {
                 "1.1": "henlo"
             },
             orderedLinks: [],
+            sectionLinks:{},
             fullView: true,
             turnOffValues: []
         };
@@ -43,7 +44,7 @@ export default class QuestionnaireForm extends Component {
         const items = this.props.qform.item;
         this.setState({ items });
         const links = this.prepopulate(items, []);
-        this.setState({ orderedLinks: links })
+        this.setState({ orderedLinks: links });
     }
 
     componentDidMount() {
@@ -149,14 +150,15 @@ export default class QuestionnaireForm extends Component {
     prepopulate(items, links) {
         items.map((item) => {
             if (item.item) {
+                // its a section/group
+                links.push(item.linkId);
                 this.prepopulate(item.item, links);
             } else {
-
                 // autofill fields
                 links.push(item.linkId);
-                if (item.enableWhen) {
-                    console.log(item.enableWhen);
-                }
+                // if (item.enableWhen) {
+                //     console.log(item.enableWhen);
+                // }
                 if (item.extension) {
                     item.extension.forEach((e) => {
                         if (e.url === "http://hl7.org/fhir/StructureDefinition/cqif-calculatedValue") {
@@ -183,6 +185,7 @@ export default class QuestionnaireForm extends Component {
                     return <Section
                         key={item.linkId}
                         componentRenderer={this.renderComponent}
+                        updateCallback={this.updateQuestionValue}
                         item={item}
                         level={level}
                     />
@@ -295,6 +298,7 @@ export default class QuestionnaireForm extends Component {
                         retrieveCallback={this.retrieveValue}
                         inputType="number"
                         inputTypeDisplay="valueInteger"
+                        valueType="integer"
                     />
 
                 case "quantity":
@@ -334,7 +338,7 @@ export default class QuestionnaireForm extends Component {
 
     // create the questionnaire response based on the current state
     outputResponse(status) {
-
+        console.log(this.state.sectionLinks);
         const today = new Date();
         const dd = String(today.getDate()).padStart(2, '0');
         const mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
@@ -347,8 +351,57 @@ export default class QuestionnaireForm extends Component {
             item: []
 
         }
-        Object.keys(this.state.itemTypes).map((item) => {
+
+        let currentItem = response.item;
+        let currentLevel = 0;
+        let currentValues = [];
+        const chain = {0: {currentItem, currentValues}};
+        this.state.orderedLinks.map((item) => {
             const itemType = this.state.itemTypes[item];
+
+            if(Object.keys(this.state.sectionLinks).indexOf(item)>=0) {
+                currentValues = currentValues.filter((e)=>{return e!==item});
+                if(chain[currentLevel+1]){
+                    chain[currentLevel+1].currentValues = currentValues;
+                }
+                const section = this.state.sectionLinks[item];
+                currentValues = section.values;
+                // new section
+                currentItem = chain[section.level].currentItem
+                const newItem = {
+                    "linkId": item,
+                    "text": section.text,
+                    item: []
+                };
+                currentItem.push(newItem);
+                currentItem = newItem.item;
+                currentLevel = section.level;
+
+                // filter out this section
+                chain[section.level+1] = {currentItem, currentValues};
+            }else{
+                // not a new section, so it's an item
+                if(currentValues.indexOf(item)<0 && itemType && itemType.enabled) {
+                    // item not in this section, drop a level
+                    const tempLevel = currentLevel;
+
+                    while(chain[currentLevel].currentValues.length === 0 && currentLevel > 0) {
+                        // keep dropping levels until we find an unfinished section
+                        currentLevel--;
+                    }
+
+                    // check off current item
+                    chain[tempLevel].currentValues = currentValues.filter((e)=>{return e!==item});
+
+                    currentValues = chain[currentLevel].currentValues;
+                    currentItem = chain[currentLevel].currentItem;
+                } else {
+                    // item is in this section, check it off
+
+                    currentValues = currentValues.filter((e)=>{return e!==item});
+                    chain[currentLevel + 1].currentValues = currentValues;
+                }
+            }
             if (itemType && (itemType.enabled || this.state.turnOffValues.indexOf(item) >= 0)) {
                 const answerItem = {
                     "linkId": item,
@@ -390,7 +443,7 @@ export default class QuestionnaireForm extends Component {
                             answerItem.answer.push({ [itemType.valueType]: answer });
                         }
                 }
-                response.item.push(answerItem);
+                currentItem.push(answerItem);
             }
         });
         console.log(response);
@@ -406,7 +459,6 @@ export default class QuestionnaireForm extends Component {
                     returnArray.push(e);
                 }
             });
-            console.log(returnArray);
             this.setState({ turnOffValues: returnArray });
         }
     }
@@ -424,31 +476,33 @@ export default class QuestionnaireForm extends Component {
 
                 <div className="sidenav">
                     {this.state.orderedLinks.map((e) => {
-                        const value = this.state.values[e];
-                        let extraClass;
-                        let indicator;
-                        if (this.state.itemTypes[e] && this.state.itemTypes[e].enabled) {
-                            extraClass = (this.isNotEmpty(value) ? "sidenav-active" : "")
-                            indicator = true;
-                        } else {
-                            if (this.isNotEmpty(this.state.values[e]) && this.state.turnOffValues.indexOf(e) > -1) {
-                                extraClass = "sidenav-manually-disabled";
-                            } else if (this.state.values[e]) {
-                                extraClass = "sidenav-disabled filled"
+                        if(Object.keys(this.state.sectionLinks).indexOf(e)<0) {
+                            const value = this.state.values[e];
+                            let extraClass;
+                            let indicator;
+                            if (this.state.itemTypes[e] && this.state.itemTypes[e].enabled) {
+                                extraClass = (this.isNotEmpty(value) ? "sidenav-active" : "")
+                                indicator = true;
                             } else {
-                                extraClass = "sidenav-disabled"
+                                if (this.isNotEmpty(value) && this.state.turnOffValues.indexOf(e) > -1) {
+                                    extraClass = "sidenav-manually-disabled";
+                                } else if (value) {
+                                    extraClass = "sidenav-disabled filled"
+                                } else {
+                                    extraClass = "sidenav-disabled"
+                                }
+    
                             }
-
+                            return <div
+                                key={e}
+                                className={"sidenav-box " + extraClass}
+                                onClick={() => {
+                                    indicator ? window.scrollTo(0, this.state.itemTypes[e].ref.current.previousSibling.offsetTop) : null;
+                                }}
+                            >
+                                {e}
+                            </div>
                         }
-                        return <div
-                            key={e}
-                            className={"sidenav-box " + extraClass}
-                            onClick={() => {
-                                indicator ? window.scrollTo(0, this.state.itemTypes[e].ref.current.previousSibling.offsetTop) : null;
-                            }}
-                        >
-                            {e}
-                        </div>
                     })}
                     <div className="sidenav-box "></div>
                 </div>
