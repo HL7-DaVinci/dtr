@@ -30,7 +30,7 @@ html {
   font-family: 'Courier New', Courier, monospace
 }
 
-.sidenav-box:hover {
+.sidenav-box:not(.sidenav-manually-disabled):not(.sidenav-disabled):hover {
   background-color:#333;
 }
 
@@ -43,11 +43,9 @@ html {
 }
 .sidenav-manually-disabled {
     background-color:#336;
-    color:#AAA;
+    color:white;
 }
-.sidenav-disabled:hover {
-    background-color: #666;
-}
+
 .submit-button {
   margin-left: 55px;
   border-width: 1px 1px 1px 5px;
