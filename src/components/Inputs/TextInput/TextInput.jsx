@@ -2,6 +2,9 @@ import React, { Component } from 'react';
 
 import './TextInput.css';
 import '../../ComponentStyles.css';
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+
 
 export default class TextInput extends Component {
     constructor(props) {
@@ -9,9 +12,12 @@ export default class TextInput extends Component {
         this.state = {
             value: "",
             area: false
+            // dateVal:null
         };
+    console.log(this.props)
 
     this.onInputChange = this.onInputChange.bind(this);
+    this.handleDateChange = this.handleDateChange.bind(this);
     this.myRef = React.createRef();
     }
 
@@ -36,30 +42,46 @@ export default class TextInput extends Component {
 
     onInputChange(event) {
         // update the parent state
+        console.log(event)
+        console.log(this.state);
         this.props.updateCallback(this.props.item.linkId, event.target.value, "values")
         // update local state
         this.setState({value: event.target.value})
+    }
+
+    handleDateChange(value) {
+        // update the parent state
+        this.props.updateCallback(this.props.item.linkId, value, "values")
+
+        // update local state
+        this.setState({value: value})
     }
 
     render() {
         return (
             <div className="text-input" ref={this.myRef}>
                 <div className="text-input-label">{this.props.inputTypeDisplay}</div>
-                {this.state.area?
+                { this.state.area
+                    ? 
                     <textarea 
                         className="text-input-box" 
                         value = {this.state.value} 
                         onChange={this.onInputChange}>
                     </textarea>
-                    :
-                    <input className="text-input-box" 
+                    : ( this.props.inputType !="date"
+                      ? <input className="text-input-box" 
                         type={this.props.inputType} 
                         value = {this.state.value} 
                         onChange={this.onInputChange}
-                        readOnly={this.props.item.readOnly}>
-                         
-                    </input>
-                }
+                        readOnly={this.props.item.readOnly}
+                        ></input>
+                      :  <DatePicker
+                            selected={new Date(this.state.value)}
+                            onChange={this.handleDateChange}
+                            dateFormat="MM/dd/yyyy"
+                         />
+                    )
+                  }
             </div>
         );
     }

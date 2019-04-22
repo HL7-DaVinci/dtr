@@ -1,0 +1,912 @@
+{
+    "user_profiles": [
+        {
+          "username": "john",
+          "name": "John",
+          "npi": "1932102951"
+        },
+        {
+          "username": "mary",
+          "name": "Mary",
+          "npi": "1932102952"
+        }
+      ],
+      "crd":{
+        "crd_url":"http://localhost:8090/",
+        "coverage_decision_path": "cds-services/coverage_decision",
+        "coverage_requirement_path": "cds-services/coverage_requirement",
+        "patient_view_path":"cds-services/patient_view"
+      },
+      "payer":{
+        "fhir_url": "http://3.92.187.150:8280/payer_fhir/baseDstu3/"
+      },
+      "provider":{
+        "fhir_url": "http://3.92.187.150:8280/fhir/baseDstu3/",
+        "client_secret": "237b167a-c4d0-4861-856d-6decf5426022",
+        "client_id": "app-login",
+        "authorized_fhir": true
+      },
+      "authorization_service":{
+        "auth_token_url": "https://3.92.187.150:8443/auth/realms/ProviderCredentials/protocol/openid-connect/token",
+        "token_verification_url": "https://3.92.187.150:8443/auth/realms/ClientFhirServer/protocol/openid-connect/token/introspect",
+        "token_type": "Bearer",
+        "token_expires_in": 300,
+        "scope": "patient/Patient.read patient/Observation.read",
+        "subject": "cds-service4"
+      },
+      "cds_service":{
+        "vsac_user":"prathyanusha",
+        "vsac_password":"Anusha56"
+      },
+      "xmlx12_url":"http://127.0.0.1:5000/",
+      "requirements": [
+    {
+       "rule": "The treating physician examined the patient and determined that he or she has a severe lung disease (some examples: chronic obstructive pulmonary disease, diffuse interstitial lung disease, cystic fibrosis, bronchiectasis, and widespread pulmonary neoplasm)",
+       "type": "FHIR",
+       "fhir_data": [
+          {
+             "Condition": {
+                "code": {
+                  "codes": [
+                     {
+                        "system": "http://snomed.info/sct",
+                        "code": "K72.90",
+                        "display": "Hepatic failure, unspecified without coma"
+                    }
+                  ],
+                  "display": "Hepatic failure, unspecified without coma"
+              }
+          }
+         },
+          {
+             "Condition": {
+                "code": {
+                  "codes": [
+                     {
+                        "system": "http://snomed.info/sct",
+                        "code": "K72.90",
+                        "display": "Hepatic failure, unspecified without coma"
+                    }
+                  ],
+                  "display": "Hepatic failure, unspecified without coma"
+              }
+             }
+          },
+          {
+             "Condition": {
+                "code": {
+                  "codes": [
+                     {
+                        "system": "http://snomed.info/sct",
+                        "code": "K72.90",
+                        "display": "Hepatic failure, unspecified without coma"
+                    }
+                  ],
+                  "display": "Hepatic failure, unspecified without coma"
+              }
+             }
+          },
+          {
+             "Condition": {
+                "code":{
+                  "codes": [
+                     {
+                        "system": "http://snomed.info/sct",
+                        "code": "K72.90",
+                        "display": "Hepatic failure, unspecified without coma"
+                    }
+                  ],
+                  "display": "Hepatic failure, unspecified without coma"
+              }
+             }
+          },
+          {
+             "Condition": {
+                "code": {
+                  "codes": [
+                     {
+                        "system": "http://snomed.info/sct",
+                        "code": "K72.90",
+                        "display": "Hepatic failure, unspecified without coma"
+                    }
+                  ],
+                  "display": "Hepatic failure, unspecified without coma"
+              }
+             }
+          }
+       ]
+    },
+    {
+       "rule": "The treating physician examined the patient and determined that he or she has Hypoxia-related symptoms or findings (some examples: pulmonary hypertension, recurring congestive heart failure due to cor pulmonale, erythrocytosis, impairment of cognitive process, nocturnal restlessness, and morning headache)",
+       "type": "FHIR",
+       "fhir_data": [
+          {
+              "Condition": {
+                "code": {
+                  "codes": [
+                      {
+                          "code": "K72.90",
+                          "system": "2.16.840.1.113762.1.4.1099.13",
+                           "display": "Hepatic failure, unspecified without coma"
+
+                      }
+                  ],
+                  "display": "Hepatic failure, unspecified without coma"
+
+              }
+             }
+          },
+          {
+             "Condition": {
+                "code": "Primary pulmonary hypertension"
+             }
+          },
+          {
+             "Condition": {
+                "code": "Secondary polycythemia"
+             }
+          },
+          {
+             "Condition": {
+                "code": "Mild cognitive impairment, so stated"
+             }
+          },
+          {
+             "Observation": {
+                "code": "Restlessness and agitation"
+             }
+          },
+          {
+             "Condition": {
+                "code": "Chronic tension-type headache, intractable"
+             }
+          }
+       ]
+    },
+    {
+       "rule": "The treating physician or a qualified provider or supplier of laboratory services conducted the qualifying blood gas study",
+       "type": "FHIR",
+       "fhir_data": [
+          {
+             "DiagnosticReport": {
+                "code": {
+                  "codes": [
+                      {
+                          "code": "18630-4",
+                          "system": "2.16.840.1.113762.1.4.1099.13",
+                          "display": "Primary diagnosis"
+                      }
+                  ],
+                  "display": "Primary diagnosis"
+              }
+             }
+          },
+          {
+             "Procedure": {
+                "code": "Arterial Blood Gas With Oxyhemoglobin"
+             }
+          },
+          {
+             "Encounter": {
+                "participant": "Physician"
+             }
+          }
+       ]
+    },
+    {
+       "rule": "The qualifying blood gas study value was obtained during an inpatient hospital stay – Closest to, but no earlier than, 2 days prior to the hospital discharge date, with home oxygen therapy beginning immediately following discharge",
+       "type": "FHIR",
+       "fhir_data": [
+          {
+             "Procedure": {
+                "code": {
+                  "codes": [
+                     {
+                        "system": "http://snomed.info/sct",
+                        "code": "18027006",
+                        "display": "Transplantation of liver (procedure)"
+                    }
+                  ],
+                  "text": "Transplantation of liver (procedure)"
+              }
+             }
+          },
+          {
+             "Encounter": {
+                "type": "Inpatient stay"
+             }
+          }
+       ]
+    },
+    {
+       "rule": "The qualifying blood gas study value was obtained during an outpatient encounter – Within 30 days of the date of Initial Certification while the patient is in a chronic stable state, which is when the patient is not in a period of acute illness or an exacerbation of his or her underlying disease",
+       "type": "FHIR",
+       "fhir_data": [
+          {
+             "Observation": {
+                "code": {
+                  "codes": [
+                      {
+                          "code": "18630-4",
+                          "system": "2.16.840.1.113762.1.4.1099.13",
+                          "display": "Primary diagnosis"
+                      }
+                  ],
+                  "display": "Primary diagnosis"
+              }
+             }
+          },
+          {
+             "DiagnosticReport": {
+                "code": "Practitioner certification status"
+             }
+          },
+          {
+             "Encounter": {
+                "type": "Outpatient"
+             }
+          }
+       ]
+    },
+    {
+       "rule": "The treating physician tried or considered alternative treatments and they were deemed clinically ineffective",
+       "type": "FHIR",
+       "fhir_data": [
+          {
+             "DiagnosticReport": {
+                "code": {
+                  "codes": [
+                      {
+                          "code": "18630-4",
+                          "system": "2.16.840.1.113762.1.4.1099.13",
+                          "display": "Primary diagnosis"
+                      }
+                  ],
+                  "display": "Primary diagnosis"
+              }
+             }
+          }
+       ]
+    },
+    {
+       "rule": "When the patient is on room air while at rest (awake), Arterial oxygen saturation is at or below 88 percent or Arterial Partial Pressure of Oxygen (PO2) is at or below 55 mm Hg",
+       "type": "FHIR",
+       "fhir_data": [
+          {
+             "Observation": {
+                "code": {
+                  "codes": [
+                      {
+                          "code": "18630-4",
+                          "system": "2.16.840.1.113762.1.4.1099.13",
+                          "display": "Primary diagnosis"
+                      }
+                  ],
+                  "display": "Primary diagnosis"
+              }
+             }
+          },
+          {
+             "Procedure": {
+                "code": "Gases, blood, O2 saturation only, by direct measurement, except pulse oximetry"
+             }
+          },
+          {
+             "Procedure": {
+                "code": "Gases, blood, any combination of pH, pCO2, pO2, CO2, HCO3 (including calculated O2 saturation)"
+             }
+          }
+       ]
+    },
+    {
+       "rule": "When the patient is excercising and the arterial PO2 is at or above 56 mm Hg or an arterial oxygen saturation is at or above 89 percent, the patient documented improvement of hypoxemia during exercise with oxygen and Arterial PO2 is at or below 55 mm Hg or an arterial oxygen saturation is at or below 88 percent",
+       "type": "FHIR",
+       "fhir_data": [
+          {
+             "Procedure": {
+                "code": {
+                  "codes": [
+                     {
+                        "system": "http://snomed.info/sct",
+                        "code": "18027006",
+                        "display": "Transplantation of liver (procedure)"
+                    }
+                  ],
+                  "text": "Transplantation of liver (procedure)"
+              }
+             }
+          },
+          {
+             "Procedure": {
+                "code": "Gases, blood, O2 saturation only, by direct measurement, except pulse oximetry"
+             }
+          },
+          {
+             "Procedure": {
+                "code": "Gases, blood, any combination of pH, pCO2, pO2, CO2, HCO3 (including calculated O2 saturation)"
+             }
+          }
+       ]
+    },
+    {
+       "rule": "Patient tested during sleep and if arterial PO2 is at or above 56 mm Hg or an arterial oxygen saturation is at or above 89 percent while awake, additional testing must show that the Arterial PO2 is at or below 55 mm Hg or an arterial oxygen saturation is at or below 88 percent for at least 5 minutes taken during sleep or additional testing must show a decrease in arterial PO2 of more than 10 mm Hg or a decrease in arterial oxygen saturation more than 5 percent for at least 5 minutes associated with symptoms or signs more than 5 percent from baseline saturation for at least 5 minutes taken during sleep associated with symptoms or signs reasonably attributable to hypoxemia or the Initial coverage of home oxygen therapy is limited to 12 months or the treating physician-specified length of need for oxygen, whichever is shorter",
+       "type": "FHIR",
+       "fhir_data": [
+          {
+             "Observation": {
+                "code": {
+                  "codes": [
+                      {
+                          "code": "18630-4",
+                          "system": "2.16.840.1.113762.1.4.1099.13",
+                          "display": "Primary diagnosis"
+                      }
+                  ],
+                  "display": "Primary diagnosis"
+              }
+             }
+          },
+          {
+             "Procedure": {
+                "code": "Gases, blood, O2 saturation only, by direct measurement, except pulse oximetry"
+             }
+          },
+          {
+             "Procedure": {
+                "code": "Gases, blood, any combination of pH, pCO2, pO2, CO2, HCO3 (including calculated O2 saturation)"
+             }
+          },
+          {
+             "Condition": {
+                "code": "Primary pulmonary hypertension"
+             }
+          },
+          {
+             "Condition": {
+                "code": "Secondary polycythemia"
+             }
+          },
+          {
+             "Condition": {
+                "code": "Mild cognitive impairment, so stated"
+             }
+          },
+          {
+             "Condition": {
+                "code": "Insomnia, unspecified"
+             }
+          },
+          {
+             "Condition": {
+                "code": "Cor pulmonale (chronic)"
+             }
+          }
+       ]
+    },
+    {
+       "rule": "Patient on room air at rest while awake when tested has Arterial oxygen saturation of 89 percent at rest (awake) or Arterial PO2 of 56–59 mm Hg and patient is tested with Dependent edema suggesting congestive heart failure or Pulmonary hypertension or cor pulmonale, determined by measurement of pulmonary artery pressure, gated blood pool scan, echocardiogram, or “P” pulmonale on EKG (P wave greater than 3 mm in standard leads II, III, or AVF) or Erythrocythemia with a hematocrit greater than 56 percent",
+       "type": "FHIR",
+       "fhir_data": [
+          {
+             "Observation": {
+                "code": {
+                  "codes": [
+                      {
+                          "code": "18630-4",
+                          "system": "2.16.840.1.113762.1.4.1099.13",
+                          "display": "Primary diagnosis"
+                      }
+                  ],
+                  "display": "Primary diagnosis"
+              }
+             }
+          },
+          {
+             "Procedure": {
+                "code": "Gases, blood, O2 saturation only, by direct measurement, except pulse oximetry"
+             }
+          },
+          {
+             "Procedure": {
+                "code": "Gases, blood, any combination of pH, pCO2, pO2, CO2, HCO3 (including calculated O2 saturation)"
+             }
+          },
+          {
+             "Condition": {
+                "code": "Edema, unspecified"
+             }
+          },
+          {
+             "Condition": {
+                "code": "Right heart failure, unspecified"
+             }
+          },
+          {
+             "Condition": {
+                "code": "Primary pulmonary hypertension"
+             }
+          },
+          {
+             "Condition": {
+                "code": "Secondary polycythemia"
+             }
+          },
+          {
+             "Procedure": {
+                "code": "Other Cardiovascular Procedures"
+             }
+          },
+          {
+             "Procedure": {
+                "code": "Transthoracic echocardiography"
+             }
+          },
+          {
+             "Procedure": {
+                "code": "Hematocrit"
+             }
+          }
+       ]
+    },
+    {
+       "rule": "Patient during exercise tested with Arterial oxygen saturation of 89 percent or Arterial PO2 of 56–59 mm Hg and Dependent edema suggesting congestive heart failure Pulmonary hypertension or cor pulmonale, determined by measurement of pulmonary artery pressure, gated blood pool scan, echocardiogram, or “P” pulmonale on EKG (P wave greater than 3 mm in standard leads II, III, or AVF) or Erythrocythemia with a hematocrit greater than 56 percent ",
+       "type": "FHIR",
+       "fhir_data": [
+          {
+             "Procedure": {
+                "code":{
+                  "codes": [
+                     {
+                        "system": "http://snomed.info/sct",
+                        "code": "18027006",
+                        "display": "Transplantation of liver (procedure)"
+                    }
+                  ],
+                  "text": "Transplantation of liver (procedure)"
+              }
+             }
+          },
+          {
+             "Procedure": {
+                "code": "Gases, blood, O2 saturation only, by direct measurement, except pulse oximetry"
+             }
+          },
+          {
+             "Procedure": {
+                "code": "Gases, blood, any combination of pH, pCO2, pO2, CO2, HCO3 (including calculated O2 saturation)"
+             }
+          },
+          {
+             "Condition": {
+                "code": "Edema, unspecified"
+             }
+          },
+          {
+             "Condition": {
+                "code": "Right heart failure, unspecified"
+             }
+          },
+          {
+             "Condition": {
+                "code": "Primary pulmonary hypertension"
+             }
+          },
+          {
+             "Condition": {
+                "code": "Secondary polycythemia"
+             }
+          },
+          {
+             "Procedure": {
+                "code": "Other Cardiovascular Procedures"
+             }
+          },
+          {
+             "Procedure": {
+                "code": "Transthoracic echocardiography"
+             }
+          },
+          {
+             "Procedure": {
+                "code": "Hematocrit"
+             }
+          }
+       ]
+    },
+    {
+       "rule": "Patient during sleep tested with Arterial oxygen saturation of 89 percent or Arterial PO2 of 56–59 mm Hg and Dependent edema suggesting congestive heart failure Pulmonary hypertension or cor pulmonale, determined by measurement of pulmonary artery pressure, gated blood pool scan, echocardiogram, or “P” pulmonale on EKG (P wave greater than 3 mm in standard leads II, III, or AVF) or Erythrocythemia with a hematocrit greater than 56 percent ",
+       "type": "FHIR",
+       "fhir_data": [
+          {
+             "Observation": {
+                "code":{
+                  "codes": [
+                      {
+                          "code": "18630-4",
+                          "system": "2.16.840.1.113762.1.4.1099.13",
+                          "display": "Primary diagnosis"
+                      }
+                  ],
+                  "display": "Primary diagnosis"
+              }
+             }
+          },
+          {
+             "Procedure": {
+                "code": "Gases, blood, O2 saturation only, by direct measurement, except pulse oximetry"
+             }
+          },
+          {
+             "Procedure": {
+                "code": "Gases, blood, any combination of pH, pCO2, pO2, CO2, HCO3 (including calculated O2 saturation)"
+             }
+          },
+          {
+             "Condition": {
+                "code": "Edema, unspecified"
+             }
+          },
+          {
+             "Condition": {
+                "code": "Right heart failure, unspecified"
+             }
+          },
+          {
+             "Condition": {
+                "code": "Primary pulmonary hypertension"
+             }
+          },
+          {
+             "Condition": {
+                "code": "Secondary polycythemia"
+             }
+          },
+          {
+             "Procedure": {
+                "code": "Other Cardiovascular Procedures"
+             }
+          },
+          {
+             "Procedure": {
+                "code": "Transthoracic echocardiography"
+             }
+          },
+          {
+             "Procedure": {
+                "code": "Hematocrit"
+             }
+          }
+       ]
+    },
+    {
+       "rule": "Patient tested with Arterial oxygen saturation at or above 90 percent or Arterial PO2 at or above 60 mm Hg",
+       "type": "FHIR",
+       "fhir_data": [
+          {
+             "Procedure": {
+                "code": {
+                  "codes": [
+                     {
+                        "system": "http://snomed.info/sct",
+                        "code": "18027006",
+                        "display": "Transplantation of liver (procedure)"
+                    }
+                  ],
+                  "text": "Transplantation of liver (procedure)"
+              }
+             }
+          },
+          {
+             "Procedure": {
+                "code": "Gases, blood, any combination of pH, pCO2, pO2, CO2, HCO3 (including calculated O2 saturation)"
+             }
+          }
+       ]
+    },
+    {
+       "rule": "The medical record of the patient should include the Primary diagnosis, Duration of condition, Clinical course (worsening or improving),Prognosis, if portable oxygen is needed, an indication that he or she is mobile within the home, Results of the blood gas study,Nature and extent of functional limitations,Past experience with related items, Other therapeutic interventions and results and Other pertinent information",
+       "type": "FHIR",
+       "fhir_data": [
+          {
+             "Condition": {
+                "code": {
+                  "codes": [
+                      {
+                          "code": "K72.90",
+                          "system": "2.16.840.1.113762.1.4.1099.13",
+                           "display": "Hepatic failure, unspecified without coma"
+
+                      }
+                  ],
+                  "display": "Hepatic failure, unspecified without coma"
+
+              },
+                "onset": {
+                   "onsetPeriod": "Duration of condition"
+                },
+                "abatement": {
+                   "abatementPeriod": "Duration of condition"
+                },
+                "clinicalStatus": "Clinical course (worsening or improving)",
+                "stage": {
+                   "assessment": {
+                      "code": "Arterial Blood Gas With Oxyhemoglobin",
+                      "conclusion": "Results of the blood gas study",
+                      "focus": "Nature and extent of functional limitations",
+                      "device": {
+                         "note": "Past experience with related items"
+                      },
+                      "note": "Other therapeutic interventions and results"
+                   }
+                },
+                "note": "Other pertinent information"
+             }
+          },
+          {
+             "FormRequest": {
+                "checkbox": "if portable oxygen is needed or not",
+                "text": "If portable oxygen is needed, an indication that he or she is mobile within the home",
+                "text-type": "Prognosis"
+             }
+          }
+       ]
+    },
+    {
+       "rule": "The face-to-face examination with the patient should be performed by the Physician or Nurse Practitioner (NP) or Clinical Nurse Specialist (CNS) or Physician Assistant (PA)",
+       "type": "FHIR",
+       "fhir_data": [
+          {
+             "Encounter": {
+                "type": "Prolonged Services With Direct Face-to-Face Patient Contact 99354"
+             }
+          },
+          {
+             "Encounter": {
+                "type": "Prolonged Services With Direct Face-to-Face Patient Contact 99355"
+             }
+          },
+          {
+             "Encounter": {
+                "type": "Prolonged Services With Direct Face-to-Face Patient Contact 99356"
+             }
+          },
+          {
+             "Encounter": {
+                "type": "Prolonged Services With Direct Face-to-Face Patient Contact 99357"
+             }
+          },
+          {
+             "Encounter": {
+                "participant": "Physician"
+             }
+          },
+          {
+             "Encounter": {
+                "participant": "Nurse Practitioner (NP)"
+             }
+          },
+          {
+             "Encounter": {
+                "participant": "Clinical Nurse Specialist (CNS)"
+             }
+          },
+          {
+             "Encounter": {
+                "participant": " Physician Assistant (PA)"
+             }
+          }
+       ]
+    },
+    {
+       "rule": "Written Order (Prescription) Prior to Delivery (WOPD) under the Treating Physician Responsibilities must include the Patient name, Physician or Practitioner Name, Practitioner National Provider Identifier (NPI), Description of the item ordered, Pertinent diagnoses/conditions that relate to the need for the item ordered, an indication if the request is an initial or resubmission review, an indicataion if the request is expedited and the reason why, Supplier National Supplier Clearinghouse (NSC) Number and the Physician signature along with the date of the Physician signature",
+       "type": "FHIR",
+       "fhir_data": [
+          {
+             "Claim": {
+                "patient": {
+                   "name": "Patient name"
+                },
+                "provider": {
+                   "name": "Physician or Practitioner Name",
+                   "identifier": "Practitioner National Provider Identifier (NPI)"
+                },
+                "item": {
+                   "detail": "Description of the item ordered",
+                   "encounter": {
+                      "period": {
+                         "end": "Date of the face-to-face examination"
+                      }
+                   }
+                },
+                "diagnosis": {
+                   "diagnosis": {
+                      "diagnosisReference": "Pertinent diagnoses/conditions that relate to the need for the item ordered"
+                   }
+                }
+             },
+             "Bundle": {
+                "signature": {
+                   "who": "Practitioner",
+                   "when": "Date of Practitioner signature"
+                }
+             }
+          },
+          {
+             "FormRequest": {
+                "checkbox": "Indicate if the request is an initial or resubmission review",
+                "text": "Indicate if the request is expedited and the reason why",
+                "number": "Supplier National Supplier Clearinghouse (NSC) Number"
+             }
+          }
+       ]
+    },
+    {
+       "rule": "CERTIFICATE OF MEDICAL NECESSITY(CMN) for Oxygen.The physician must fill in Section B and D of the CMN",
+       "type": "FHIR",
+       "fhir_data": [
+          {
+             "Bundle": {
+                "signature": {
+                   "who": "Practitioner",
+                   "when": "Date of Practitioner signature"
+                }
+             }
+          },
+          {
+             "Claim": {
+                "diagnosis": {
+                   "diagnosis": {
+                      "diagnosisCodeableConcept": "DIAGNOSIS CODES"
+                   }
+                },
+                "prescription": {
+                   "occurrence": {
+                      "occurrencePeriod": "Estimated Length of need"
+                   }
+                }
+             }
+          },
+          {
+             "FormRequest": {
+                "text": "Enter the result of arterial blood gas PO2 in mm Hg",
+                "text": "Enter the result of oxygen saturation test in %",
+                "date": "Date of test",
+                "checkbox": "Was the test performed with the patient in a chronic stable state as an outpatient?",
+                "checkbox": "Was the test performed within two days prior to discharge from an inpatient facility to home?",
+                "checkbox": "Was the test performed under other circumstances?",
+                "checkbox": "The condition of the test: At Rest, During Exercise, During Sleep",
+                "checkbox": "If you are ordering portable oxygen,is the patient mobile within home?",
+                "text": "Enter the highest oxygen flow rate ordered for this patient in liters per minute,If less than 1 LPM enter a X",
+                "text": "If greater than 4 LPM is prescribed, enter results of recent arterial blood gas PO2 test in mm Hg with patient in a chronic stable state",
+                "text": "If greater than 4 LPM is prescribed, enter results of recent Enter the result of oxygen saturation test in % with patient in a chronic stable state",
+                "date": "If greater than 4 LPM is prescribed, enter date of test with patient in a chronic stable state",
+                "boolean": "Does the patient have dependent edema due to congestive heart failure?",
+                "boolean": "Does the patient have cor pulmonale or pulmonary hypertension documented by P pulmonale on an EKG or by an echocardiogram, gated blood pool scan or direct pulmonary artery pressure measurement?",
+                "boolean": "Does the patient have a hematocrit greater than 56%?"
+             }
+          }
+       ]
+    },
+    {
+       "rule": "Submitters should include the Prior Authorization package data elements",
+       "type": "FHIR",
+       "fhir_data": [
+          {
+             "Patient": {
+                "name": "Beneficiary Name",
+                "identifier": "Beneficiary Medicare Number",
+                "birthDate": "Beneficiary Date of Birth",
+                "gender": "Beneficiary Gender",
+                "address": "Beneficiary Address",
+                "managingOrganization": "Place of Service"
+             }
+          },
+          {
+             "Claim": {
+                "enterer": {
+                   "name": "Contact Name",
+                   "telecom": "Telephone Number",
+                   "address": "Address"
+                }
+             }
+          },
+          {
+             "Claim": {
+                "created": "Submission Date",
+                "supportingInfo": {
+                   "code": "HCPCS Codes"
+                },
+                "diagnosis": {
+                   "diagnosis": {
+                      "diagnosisCodeableConcept": "Diagnosis code"
+                   }
+                }
+             }
+          }
+       ]
+    },
+    {
+       "rule": "The Supplier must include the Prior Authorization package data elements",
+       "type": "Supplier",
+       "fhir_data": [
+          {
+             "SupplyRequest": {
+                "supplier": {
+                   "name": "Supplier Name",
+                   "identifier": "Supplier National Provider Identification",
+                   "address": "Supplier Address",
+                   "telecom": "Supplier Phone Number"
+                }
+             }
+          }
+       ]
+    },
+    {
+       "rule": "The Supplier Responsibilities must be the possession of the documentation of the Written Order (Prescription) Prior to Delivery (WOPD) and the face-to-face examination",
+       "type": "Supplier",
+       "fhir_data": [
+          {
+             "Claim": {
+                "patient": {
+                   "name": "Patient name"
+                },
+                "provider": {
+                   "name": "Physician or Practitioner Name",
+                   "identifier": "Practitioner National Provider Identifier (NPI)"
+                },
+                "item": {
+                   "detail": "Description of the item ordered",
+                   "encounter": {
+                      "period": {
+                         "end": "Date of the face-to-face examination"
+                      }
+                   },
+                   "udi": "Durable medical equipment code"
+                },
+                "diagnosis": {
+                   "diagnosis": {
+                      "diagnosisReference": "Pertinent diagnoses/conditions that relate to the need for the item ordered"
+                   }
+                }
+             },
+             "Bundle": {
+                "signature": {
+                   "who": "Practitioner",
+                   "when": "Date of Practitioner signature"
+                }
+             }
+          },
+          {
+             "FormRequest": {
+                "checkbox": "Indicate if the request is an initial or resubmission review",
+                "text": "Indicate if the request is expedited and the reason why",
+                "number": "Supplier National Supplier Clearinghouse (NSC) Number"
+             }
+          },
+          {
+             "DocumentReference": {
+                "date": "Date of receipt",
+                "context": {
+                   "encounter": {
+                      "type": "Face-to-face examination"
+                   }
+                }
+             }
+          }
+       ]
+    },
+    {
+       "rule": "The Supplier must ensure the maintainance of the WOPD or CMN for Oxygen in the medical record",
+       "type": "Attachable Document",
+       "fhir_data": [
+          {
+             "WOPD": "Written Order (Prescription) Prior to Delivery (WOPD)"
+          },
+          {
+             "CMN": "CERTIFICATE OF MEDICAL NECESSITY(CMN) for Oxygen"
+          }
+       ]
+    }
+ ]
+      
+}

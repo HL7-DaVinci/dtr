@@ -19,7 +19,7 @@ export default class QuestionnaireForm extends Component {
             items: null,
             itemTypes: {},
             values: {
-                "1.1": "henlo"
+                // "1.1": "henlo"
             },
             view: null
         };
@@ -35,12 +35,32 @@ export default class QuestionnaireForm extends Component {
     componentWillMount() {
         // setup
         // get all contained resources
+        // console.log(this.props);
         if (this.props.qform.contained) {
             this.distributeContained(this.props.qform.contained)
         }
         const items = this.props.qform.item;
         this.setState({ items });
-        console.log(items);
+        // console.log("Items",items);
+        let values = this.state.values;
+
+        items.forEach((item) => {
+            if(item['type'] == "group"){
+                item.item.forEach((sub_item)=>{
+                    // console.log("sub_item:",sub_item)
+                    if(sub_item.hasOwnProperty("extension")){
+                        // console.log("-- Value of sub_item:",sub_item.extension[0].valueString,this.props.cqlPrepoulationResults[sub_item.extension[0].valueString])
+                        let value = this.props.cqlPrepoulationResults[sub_item.extension[0].valueString];
+                        if(value != null && value != undefined && value != ""){
+                            values[sub_item.linkId] = value
+                        }
+                    }
+                })
+            }
+        });
+
+        // console.log("VALESSS",values)
+        this.setState({values});
     }
 
     componentDidMount() {
@@ -69,6 +89,7 @@ export default class QuestionnaireForm extends Component {
     }
 
     retrieveValue(elementName) {
+        // console.log("console.log(elementName) ::",elementName);
         return this.state.values[elementName];
     }
 
@@ -128,6 +149,11 @@ export default class QuestionnaireForm extends Component {
 
 
     renderComponent(item, level) {
+        // console.log("item,level,this.retrieveValue")
+        // console.log(item,level,this.retrieveValue)
+        // if(item.hasOwnProperty("extension")){
+        //     if(item.extension.linkId)
+        // }
         if (this.checkEnable(item)) {
             switch (item.type) {
                 case "group":

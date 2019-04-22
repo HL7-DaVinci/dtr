@@ -2,18 +2,21 @@
     margin-left:15px;
 }
 
-.text-input-box{
+.text-input-box,.react-datepicker-wrapper input{
     width:75%;
     max-width: 450px;
-    border-width:1px 2px 2px 5px;
+    /* border-width:1px 2px 2px 5px; */
+    border-width: 1px;
+    border-radius: 0px 3px 3px 3px;
+    height: 35px;
     border-style:solid;
-    border-color:black;
+    border-color: #8a6d3b;
     font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif
 }
 
 .text-input-label{
     font-family:monospace;
-    background-color:black;
+    background-color:#8a6d3b;
     color:white;
     font-size:9px;
     display:table;
@@ -38,3 +41,4 @@ textarea{
 .text-input-area{
     height:80px;
 }
+

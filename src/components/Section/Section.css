@@ -9,7 +9,7 @@
     margin-left:15px;
     margin-top:15px;
     min-width:100px;
-    font-weight:bold;
+    /* font-weight:bold; */
 }
 
 .info-block {
@@ -26,7 +26,7 @@
 }
 
 .read-only .text-input-box{
-    background-color:#888;
+    background-color:lightgray;
     border-color:#555
 }
 
@@ -44,5 +44,7 @@
 
 
 .section-header {
-    margin-top:20px;
+    margin-top: 20px;
+    color: #8a6d3b;
+    font-size: larger;
 }

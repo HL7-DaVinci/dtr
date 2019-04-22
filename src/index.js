@@ -5,6 +5,8 @@ import urlUtils from "./util/url";
 import React from "react";
 import ReactDOM from "react-dom";
 import App from "./App.js";
+import { createToken } from './components/Authentication';
+
 
 
 // This endpoint available when deployed in CRD server, for development we have
@@ -15,25 +17,38 @@ const FHIR_URI_PREFIX = "../fetchFhirUri/";
 // hardcoded appContext, needs to by retrieved from OAuth 2.0 access token response
 const appContext = {
   template: "urn:hl7:davinci:crd:home-oxygen-questionnaire",
-  request: "http://localhost:8080/ehr-server/stu3/DeviceRequest/devreq013/"
+  request: "http://3.92.187.150:8280/fhir/baseDstu3/DeviceRequest/10058/"
 }
 
+
 // hardcoded smart, should be set up with context stuff
-var smart = FHIR.client({
-  serviceUrl: "http://localhost:8080/ehr-server/stu3",
-  patientId: "pat013"
+async function getFromFhir(){
+  let token = await createToken('john', 'john123');
+  var smart = FHIR.client({
+    serviceUrl: "http://3.92.187.150:8280/fhir/baseDstu3",
+    patientId: "4",
+    auth:{
+        type:'bearer',
+        token: token
+      }
+  });
+  return smart
+}
+
+getFromFhir().then((smart)=>{
+  console.log("after get")
+  ReactDOM.render(
+    <App
+      FHIR_URI_PREFIX={FHIR_URI_PREFIX}
+      questionnaireUri={appContext.template}
+      smart={smart}
+      deviceRequestUri={appContext.request}
+    />,
+    document.getElementById("root")
+  );
 });
 
 
-ReactDOM.render(
-  <App
-    FHIR_URI_PREFIX={FHIR_URI_PREFIX}
-    questionnaireUri={appContext.template}
-    smart={smart}
-    deviceRequestUri={appContext.request}
-  />,
-  document.getElementById("root")
-);
 
 // const valueSetDB = {};
 

@@ -7,7 +7,7 @@
     width: 35px;
     height:25px;
     top:0.25px;
-    background-color: black;
+    background-color: #d1be9c;
 }
 
 .dropdown-input:focus {
@@ -27,7 +27,7 @@
 
   .option-block{
       position:absolute;
-      background-color: black;
+      background-color: #d1be9c;
       top: 100%;
       left: 0;
       right: 0;

@@ -17,7 +17,17 @@ html {
   overflow-wrap: break-word;
 }
 .document-header {
-  margin-left:55px;
+    margin-left: 39px;
+    text-align: left;
+    font-size: 18px;
+    color: white;
+    position: static;
+    top: 0;
+    width: 100%;
+    background: #3FB1CF;
+    padding: 10px;
+    z-index: 99;
+    box-shadow: 0 2px 4px 0 rgba(0,0,0,0.16),0 2px 10px 0 rgba(0,0,0,0.12)!important;
 }
 
 .sidenav-box {
