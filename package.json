@@ -24,6 +24,9 @@
     "webpack-merge": "^4.1.4"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^1.2.17",
+    "@fortawesome/free-solid-svg-icons": "^5.8.1",
+    "@fortawesome/react-fontawesome": "^0.1.4",
     "bootstrap": "^4.3.1",
     "core-js": "^2.5.7",
     "cql-exec-fhir": "^1.2.0",
@@ -33,6 +36,7 @@
     "react-bootstrap": "^1.0.0-beta.5",
     "react-datepicker": "~2.4.0",
     "react-dom": "^16.8.4",
+    "react-dropzone": "^10.1.4",
     "react-scripts": "^2.1.8",
     "regenerator-runtime": "^0.12.1",
     "webpack-dev-server": "^3.3.1",

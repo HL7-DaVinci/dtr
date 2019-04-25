@@ -1,0 +1,56 @@
+.drag-drop-box{
+    height:70px;
+    cursor: pointer;
+    text-align: center;
+}
+.drop-box{
+    border: 1px solid #b9b1b1;
+    width: 531px;
+    color: #928d8d;
+    padding: 20px;
+    overflow: hidden;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-left: 25px;
+}
+.header{
+    text-align: left;
+    font-size: 18px;
+    padding: 20px 10px 0px 15px;
+    color: #8a6d3b;
+    /* border-bottom: 1px solid lightgrey; */
+}
+.margin-top-10px{
+    margin-top:10x;
+    margin-left:25px;
+}
+.file-upload-icon{
+    font-size: 30px;    
+}
+.close-thik:after {
+    content: '✖'; /* UTF-8 symbol */
+    float:right;
+    /* position: relative; */
+    position:absolute;
+    top: 1px;
+    right: 3px;
+    color: grey;
+    cursor: pointer;
+}
+.file-block{
+    width: 25%;
+    height: 100px;
+    border: 1px solid grey;
+    list-style: none;
+    border-radius: 3px;
+    word-wrap: break-word;
+    padding: 10px;
+    color: grey;
+      background-color: #F4F9F9;
+    /* overflow:hidden; */
+    float: left;
+    position: relative;
+    margin: 5px;
+}
+
+

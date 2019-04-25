@@ -7,6 +7,8 @@ import TextInput from '../Inputs/TextInput/TextInput';
 import ChoiceInput from '../Inputs/ChoiceInput/ChoiceInput';
 import BooleanInput from '../Inputs/BooleanInput/BooleanInput';
 import QuantityInput from '../Inputs/QuantityInput/QuantityInput';
+import DocumentInput from '../Inputs/DocumentInput/DocumentInput';
+import {saveDocu} from '../Inputs/DocumentInput/DocumentInput';
 import { findValueByPrefix } from '../../util/util.js';
 import OpenChoice from '../Inputs/OpenChoiceInput/OpenChoice';
 
@@ -25,7 +27,7 @@ export default class QuestionnaireForm extends Component {
         };
         this.updateQuestionValue = this.updateQuestionValue.bind(this);
         this.updateNestedQuestionValue = this.updateNestedQuestionValue.bind(this);
-
+        // this.saveDocuments = this.saveDocuments.bind(this);
         this.renderComponent = this.renderComponent.bind(this);
         this.retrieveValue = this.retrieveValue.bind(this);
         this.outputResponse = this.outputResponse.bind(this);
@@ -115,7 +117,6 @@ export default class QuestionnaireForm extends Component {
             }
         }))
     }
-
 
     distributeContained(contained) {
         // make a key:value map for the contained
@@ -363,7 +364,7 @@ export default class QuestionnaireForm extends Component {
             }
             response.item.push(answerItem);
         });
-
+        console.log(saveDocu)
         console.log(response);
     }
 
@@ -400,14 +401,18 @@ export default class QuestionnaireForm extends Component {
                     }
                 </div>
                  <div className="wrapper2">
-                    {
-                        this.state.items.map((item) => {
-                            console.log(item.linkId, this.state.items.length / 2);
-                            if(item.linkId > (this.state.items.length / 2 + 1)){
-                                return this.renderComponent(item, 0);
-                            }                            
-                        })
-                    }
+                    <div>
+                        {
+                            this.state.items.map((item) => {
+                                console.log(item.linkId, this.state.items.length / 2);
+                                if(item.linkId > (this.state.items.length / 2 + 1)){
+                                    return this.renderComponent(item, 0);
+                                }                            
+                            })
+                        }
+                        <DocumentInput
+                        />
+                    </div>
                 </div>
                 <button className="btn submit-button" onClick={this.outputResponse}>Submit</button>
             </div>
