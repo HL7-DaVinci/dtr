@@ -50,7 +50,7 @@ export default class Section extends Component {
 
                     ):<div key={_item.linkId}>{component}</div>:null
                 })}
-                <br /><hr></hr>
+                <br />
             </div>
         );
     }

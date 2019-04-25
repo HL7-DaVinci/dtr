@@ -31,10 +31,11 @@
     "fhirclient": "^0.1.12",
     "react": "^16.8.4",
     "react-bootstrap": "^1.0.0-beta.5",
+    "react-datepicker": "~2.4.0",
     "react-dom": "^16.8.4",
     "react-scripts": "^2.1.8",
-    "react-datepicker": "~2.4.0",
     "regenerator-runtime": "^0.12.1",
+    "webpack-dev-server": "^3.3.1",
     "whatwg-fetch": "^3.0.0"
   },
   "browserslist": [

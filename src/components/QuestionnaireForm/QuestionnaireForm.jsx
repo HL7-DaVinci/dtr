@@ -389,10 +389,23 @@ export default class QuestionnaireForm extends Component {
                     })}
                     <div className="sidenav-box "></div>
                 </div>
-                <div className="wrapper">
+                <div className="wrapper1">
                     {
                         this.state.items.map((item) => {
-                            return this.renderComponent(item, 0);
+                            console.log(item.linkId, this.state.items.length/2);
+                            if(item.linkId <= (this.state.items.length / 2 + 1)){
+                                return this.renderComponent(item, 0);
+                            }
+                        })
+                    }
+                </div>
+                 <div className="wrapper2">
+                    {
+                        this.state.items.map((item) => {
+                            console.log(item.linkId, this.state.items.length / 2);
+                            if(item.linkId > (this.state.items.length / 2 + 1)){
+                                return this.renderComponent(item, 0);
+                            }                            
                         })
                     }
                 </div>

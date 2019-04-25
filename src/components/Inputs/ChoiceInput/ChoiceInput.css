@@ -11,12 +11,12 @@
 }
 
 .selected{
-    background-color:black;
-    border-color:black;
+    background-color:#d1be9c;
+    border-color:#d1be9c;
 
 }
 .radio-button:hover{
-    border:2px solid black;
+    border:2px solid #d1be9c;
 }
 
 /* Tooltip container */

@@ -1,6 +1,15 @@
-.wrapper{
+.wrapper1{
+  width: 50%;
+  float: left;
+  display: block;
+  margin-left: 15px;
+  border-right: 1px solid #ccc;
+}
+.wrapper2{
+  width:50%;
+  float:left;
   display:block;
-  margin-left:15px;
+  margin-left:-20px;
 }
 html {
   scroll-behavior: smooth;
@@ -49,13 +58,17 @@ html {
 }
 
 .submit-button {
-  margin-left: 55px;
-  border-width: 1px 1px 1px 5px;
-  border-style:solid;
-  border-color:#333;
+    margin-left: 20%;
+    border-width: 1px;
+    width: 60%;
+    border-style: solid;
+    background-color: #3FB1CF;
+    margin-top: 20px;
+    color: white;
 }
 
 .submit-button:hover {
-  background-color: #f3f3f3;
-  border-color:#000;
+    background-color: #3FB1CF;
+  /* background-color: #f3f3f3; */
+  border-color:gray;
 }
