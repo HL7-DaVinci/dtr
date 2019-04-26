@@ -10,6 +10,12 @@ module.exports = merge(common, {
     port: 3005,
     publicPath: "http://localhost:3005/",
     hotOnly: true,
+    historyApiFallback: {
+        rewrites: [
+          { from: /index/, to: '/index.html' },
+          { from: /launch/, to: '/launch.html' }
+        ]
+      },
     proxy: {
       '/fetchFhirUri': {
           target: 'http://localhost:8090',

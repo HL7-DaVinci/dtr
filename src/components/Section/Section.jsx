@@ -7,26 +7,56 @@ export default class Section extends Component {
         super(props);
         this.state = {
             containedResources: null,
-            items: null
+            items: null,
+            components:[],
+            len: []
         };
     }
 
     componentDidMount() {
         // setup
+        const len = this.getComponents(this.props);
+        this.setState({len});
+        this.props.updateCallback(this.props.item.linkId,{level: this.props.level, text: this.props.item.text, values: len}, "sectionLinks");
+    }
 
+    componentWillReceiveProps(props) {
+        const len = this.getComponents(props);
+        this.setState({len});
 
+        let areEqual = len.length === this.state.len.length && len.every(item => this.state.len.indexOf(item) > -1);
+        if(!areEqual) {
+            props.updateCallback(props.item.linkId,{level: props.level, text: props.item.text, values: len}, "sectionLinks");
+
+        }
+
+    }
+
+    getComponents(props) {
+        const newArray = [];
+        const linkArray = []
+        props.item.item.map((_item)=>{
+            const component = props.componentRenderer(_item, props.level+1);
+            if(component) {
+                newArray.push({component,_item});
+                linkArray.push(_item.linkId)
+            }
+        });
+        this.setState({components: newArray});
+        return linkArray;
     }
 
     render() {
         return (
-            <div className="section">
+            <div className={"section " + (this.state.components.length===0?"disabled":"")}>
                 <h3 className="section-header"
                     style={{marginLeft:-15 - (15*this.props.level)}}>{this.props.item.text}</h3>
-                {this.props.item.item.map((_item)=>{
-                    const component = this.props.componentRenderer(_item, this.props.level+1);
+                {this.state.components.map((obj)=>{
+                    const component = obj.component;
+                    const _item = obj._item;
                     return component?_item.type!=="group"?(
                     <div key ={_item.linkId}>
-                        <div className={"entry-block " + (_item.readOnly?"read-only":null)}>
+                        <div className={"entry-block " + (_item.readOnly?"read-only":"")}>
                         <p className="header-input">
                             <span 
                                 className="info-block"

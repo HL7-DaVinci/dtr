@@ -15,6 +15,15 @@ export default class TextInput extends Component {
     this.myRef = React.createRef();
     }
 
+    componentWillUnmount() {
+        this.props.updateCallback(this.props.item.linkId,  
+            {"type":this.props.inputTypeDisplay,
+            "text":this.props.item.text,
+            "valueType": this.props.valueType,
+            "ref":this.myRef,
+            "enabled": false}, "itemTypes");
+    }
+
     componentDidMount() {
         // setup initial value from qForm
         const value = this.props.retrieveCallback(this.props.item.linkId);
@@ -29,7 +38,8 @@ export default class TextInput extends Component {
             {"type":this.props.inputTypeDisplay,
             "text":this.props.item.text,
             "valueType": this.props.valueType,
-            "ref":this.myRef}
+            "ref":this.myRef,
+            "enabled": true}
             , "itemTypes")
 
     }

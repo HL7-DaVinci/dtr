@@ -10,6 +10,7 @@ export default class ChoiceInput extends Component {
     constructor(props) {
         super(props);
         this.state = {
+            value: "",
             values: [],
             choices:[]
         };
@@ -18,13 +19,17 @@ export default class ChoiceInput extends Component {
         this.ref = React.createRef();
     }
 
-    componentDidMount() {
-        // setup
-        const value = this.props.retrieveCallback(this.props.item.linkId);
-        if(value) {
-            this.setState({value: value});
-        }
+    componentWillUnmount() {
+        this.props.updateCallback(this.props.item.linkId,  
+            {"type":"choice", 
+            "text":this.props.item.text, 
+            "valueType":"valueCoding",
+            "ref":this.ref,
+            "enabled":false}, "itemTypes")
+    }
 
+    componentWillMount() {
+        // setup
         const returnAnswer = getListOfChoices(this.props, this.setChoice);
         if(returnAnswer) {
             this.setValue(returnAnswer);
@@ -34,11 +39,38 @@ export default class ChoiceInput extends Component {
             {"type":"choice", 
             "text":this.props.item.text, 
             "valueType":"valueCoding",
-            "ref":this.ref}, "itemTypes")
-
-
+            "ref":this.ref,
+            "enabled":true}, "itemTypes")
     }
 
+    componentDidMount() {
+        // autofill takes priority of initial selected
+        const value = this.props.retrieveCallback(this.props.item.linkId);
+        this.autofill(this.state.choices, value);
+    }
+
+    autofill(choices, value) {
+        // check if the value is the same
+        choices.forEach((choice) => {
+            if(typeof value === 'string') {
+                // value is of type `code` - it assumes some specific valueSet
+                if(choice.code === value) {
+                    this.setValue(choice);
+                }
+            }else if(value){
+                // value is of type `coding`
+                if(Array.isArray(value)) {
+                    value.forEach((val)=> {
+                        
+                        if(choice.code === val.code) {
+                            this.setValue(choice);
+                        }
+                    })
+                }
+
+            }
+        })
+    }
 
     setChoice(pair) {
         this.setState(previousState => ({

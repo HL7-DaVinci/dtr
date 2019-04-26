@@ -20,6 +20,15 @@ export default class OpenChoice extends Component {
 
     }
 
+    componentWillUnmount() {
+        this.props.updateCallback(this.props.item.linkId,  
+            {"type":this.props.inputTypeDisplay,
+            "text":this.props.item.text,
+            "valueType":"valueCoding",
+            "ref":this.ref,
+            "enabled": false}, "itemTypes");
+    }
+
     componentWillMount() {
         const returnAnswer = getListOfChoices(this.props, this.setChoice);
         if(returnAnswer) {
@@ -33,12 +42,35 @@ export default class OpenChoice extends Component {
     }
 
     componentDidMount() {
+        const value = this.props.retrieveCallback(this.props.item.linkId);
+        this.autofill(this.state.choices, value);
         this.props.updateCallback(this.props.item.linkId,  
             {"type":this.props.inputTypeDisplay,
             "text":this.props.item.text,
             "valueType":"valueCoding",
-            "ref":this.ref}, "itemTypes")
+            "ref":this.ref,
+            "enabled": true}, "itemTypes");
     }
+
+    autofill(choices, values) {
+        const options = []
+        values && values.forEach((value) => {
+            choices.forEach((choice) => {
+                if(value.code) {
+                    value = value.code;
+                }
+                if(choice.code === value) { 
+                    options.push(choice);
+                }
+            })
+            if(value.valueTypeFinal==="valueString") {
+                // manually entered info
+                options.push(value);
+            }
+        })
+        this.addOption(options);
+    }
+
     onInputChange(event) {
         this.setState({display: event.target.value})
         if(!this.props.item.repeats) {
@@ -50,13 +82,15 @@ export default class OpenChoice extends Component {
                 {"type":this.props.inputTypeDisplay,
                 "text":this.props.item.text,
                 "valueType":"valueString",
-                "ref":this.ref}, "itemTypes")
+                "ref":this.ref,
+                "enabled": true}, "itemTypes");
         }else{
             this.props.updateCallback(this.props.item.linkId,  
                 {"type":this.props.inputTypeDisplay,
                 "text":this.props.item.text,
                 "valueType":"valueCoding",
-                "ref":this.ref}, "itemTypes")
+                "ref":this.ref,
+                "enabled": true}, "itemTypes");
         }
     }
 
@@ -71,7 +105,12 @@ export default class OpenChoice extends Component {
     }
 
     addOption(e) {
-        const newArray = [...this.state.values, e];
+        let newArray;
+        if(Array.isArray(e)) {
+            newArray = [...this.state.values, ...e];
+        } else {
+            newArray = [...this.state.values, e];
+        }
         this.setState({values:newArray});
         this.props.updateCallback(this.props.item.linkId, newArray,"values");
 
@@ -163,7 +202,8 @@ export default class OpenChoice extends Component {
                                                     {"type":this.props.inputTypeDisplay,
                                                     "text":this.props.item.text,
                                                     "valueType":"valueCoding",
-                                                    "ref":this.ref}, "itemTypes");
+                                                    "ref":this.ref,
+                                                    "enabled": true}, "itemTypes");
                                             }
                                             
                                         }}

@@ -21,7 +21,10 @@ export default class QuestionnaireForm extends Component {
             values: {
                 "1.1": "henlo"
             },
-            view: null
+            orderedLinks: [],
+            sectionLinks:{},
+            fullView: true,
+            turnOffValues: []
         };
         this.updateQuestionValue = this.updateQuestionValue.bind(this);
         this.updateNestedQuestionValue = this.updateNestedQuestionValue.bind(this);
@@ -40,14 +43,16 @@ export default class QuestionnaireForm extends Component {
         }
         const items = this.props.qform.item;
         this.setState({ items });
-        console.log(items);
+        const links = this.prepopulate(items, []);
+        this.setState({ orderedLinks: links });
     }
 
     componentDidMount() {
 
-
     }
+
     evaluateOperator(operator, questionValue, answerValue) {
+
         switch (operator) {
             case "exists":
                 return (answerValue) === (questionValue !== undefined);
@@ -64,7 +69,7 @@ export default class QuestionnaireForm extends Component {
             case ">=":
                 return questionValue >= answerValue;
             default:
-                return (answerValue) === (questionValue !== undefined);
+                return questionValue === answerValue;
         }
     }
 
@@ -116,7 +121,23 @@ export default class QuestionnaireForm extends Component {
             enableCriteria.forEach((rule) => {
                 const question = this.state.values[rule.question]
                 const answer = findValueByPrefix(rule, "answer");
-                results.push(this.evaluateOperator(rule.operator, question, answer))
+                if (typeof question === 'object' && typeof answer === 'object') {
+                    if (rule.answerQuantity) {
+                        // at the very least the unit and value need to be the same
+                        results.push(this.evaluateOperator(rule.operator, question.value, answer.value.toString())
+                            && this.evaluateOperator(rule.operator, question.unit, answer.unit));
+                    } else if (rule.answerCoding) {
+                        let result = false;
+                        if (Array.isArray(question)) {
+                            question.forEach((e) => {
+                                result = result || (e.code === answer.code && e.system === answer.system);
+                            })
+                        }
+                        results.push(result);
+                    }
+                } else {
+                    results.push(this.evaluateOperator(rule.operator, question, answer));
+                }
             });
             return !checkAny ? results.some((i) => { return i }) : results.every((i) => { return i });
         } else {
@@ -126,18 +147,48 @@ export default class QuestionnaireForm extends Component {
     }
 
 
+    prepopulate(items, links) {
+        items.map((item) => {
+            if (item.item) {
+                // its a section/group
+                links.push(item.linkId);
+                this.prepopulate(item.item, links);
+            } else {
+                // autofill fields
+                links.push(item.linkId);
+                // if (item.enableWhen) {
+                //     console.log(item.enableWhen);
+                // }
+                if (item.extension) {
+                    item.extension.forEach((e) => {
+                        if (e.url === "http://hl7.org/fhir/StructureDefinition/cqif-calculatedValue") {
+                            // stu3 
+                            const value = findValueByPrefix(e, "value");
+                            this.updateQuestionValue(item.linkId, this.props.cqlPrepoulationResults[value], 'values')
+                        }
+                    })
+                }
+            }
+        })
+        return links;
+    }
+
+    isNotEmpty(value) {
+        return (value !== undefined && value !== null && value !== "" && (Array.isArray(value) ? value.length > 0 : true));
+    }
 
     renderComponent(item, level) {
-        if (this.checkEnable(item)) {
+        const enable = this.checkEnable(item);
+        if (enable && (this.state.turnOffValues.indexOf(item.linkId) < 0)) {
             switch (item.type) {
                 case "group":
                     return <Section
                         key={item.linkId}
                         componentRenderer={this.renderComponent}
+                        updateCallback={this.updateQuestionValue}
                         item={item}
                         level={level}
                     />
-
                 case "string":
                     return <TextInput
                         key={item.linkId}
@@ -247,6 +298,7 @@ export default class QuestionnaireForm extends Component {
                         retrieveCallback={this.retrieveValue}
                         inputType="number"
                         inputTypeDisplay="valueInteger"
+                        valueType="integer"
                     />
 
                 case "quantity":
@@ -286,6 +338,7 @@ export default class QuestionnaireForm extends Component {
 
     // create the questionnaire response based on the current state
     outputResponse(status) {
+        console.log(this.state.sectionLinks);
         const today = new Date();
         const dd = String(today.getDate()).padStart(2, '0');
         const mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
@@ -298,68 +351,158 @@ export default class QuestionnaireForm extends Component {
             item: []
 
         }
-        Object.keys(this.state.itemTypes).map((item) => {
-            const itemType = this.state.itemTypes[item];
-            const answerItem = {
-                "linkId": item,
-                "text": itemType.text,
-                "answer": []
-            }
-            // TODO: Figure out what to do when a value is missing
-            switch (itemType.valueType) {
-                case "valueAttachment":
-                    //TODO
-                    break;
-                case "valueQuantity":
-                    const quantity = this.state.values[item];
-                    if (quantity && quantity.comparator === "=") {
-                        delete quantity.comparator;
-                    }
-                    answerItem.answer.push({ [itemType.valueType]: quantity })
-                    break;
-                default:
-                    const answer = this.state.values[item];
-                    if (Array.isArray(answer)) {
-                        answer.forEach((e) => {
-                            // possible for an array to contain multiple types
-                            let finalType;
-                            if(e.valueTypeFinal){
-                                finalType=e.valueTypeFinal;
-                                delete e.valueTypeFinal;
-                            }else{
-                                finalType = itemType.valueType;
-                            }
-                            answerItem.answer.push({ [finalType]: e });
-                        })
-                    } else {
-                        answerItem.answer.push({ [itemType.valueType]: answer });
-                    }
-            }
-            response.item.push(answerItem);
-        });
 
+        let currentItem = response.item;
+        let currentLevel = 0;
+        let currentValues = [];
+        const chain = {0: {currentItem, currentValues}};
+        this.state.orderedLinks.map((item) => {
+            const itemType = this.state.itemTypes[item];
+
+            if(Object.keys(this.state.sectionLinks).indexOf(item)>=0) {
+                currentValues = currentValues.filter((e)=>{return e!==item});
+                if(chain[currentLevel+1]){
+                    chain[currentLevel+1].currentValues = currentValues;
+                }
+                const section = this.state.sectionLinks[item];
+                currentValues = section.values;
+                // new section
+                currentItem = chain[section.level].currentItem
+                const newItem = {
+                    "linkId": item,
+                    "text": section.text,
+                    item: []
+                };
+                currentItem.push(newItem);
+                currentItem = newItem.item;
+                currentLevel = section.level;
+
+                // filter out this section
+                chain[section.level+1] = {currentItem, currentValues};
+            }else{
+                // not a new section, so it's an item
+                if(currentValues.indexOf(item)<0 && itemType && itemType.enabled) {
+                    // item not in this section, drop a level
+                    const tempLevel = currentLevel;
+
+                    while(chain[currentLevel].currentValues.length === 0 && currentLevel > 0) {
+                        // keep dropping levels until we find an unfinished section
+                        currentLevel--;
+                    }
+
+                    // check off current item
+                    chain[tempLevel].currentValues = currentValues.filter((e)=>{return e!==item});
+
+                    currentValues = chain[currentLevel].currentValues;
+                    currentItem = chain[currentLevel].currentItem;
+                } else {
+                    // item is in this section, check it off
+
+                    currentValues = currentValues.filter((e)=>{return e!==item});
+                    chain[currentLevel + 1].currentValues = currentValues;
+                }
+            }
+            if (itemType && (itemType.enabled || this.state.turnOffValues.indexOf(item) >= 0)) {
+                const answerItem = {
+                    "linkId": item,
+                    "text": itemType.text,
+                    "answer": []
+                }
+                // TODO: Figure out what to do when a value is missing
+                switch (itemType.valueType) {
+                    case "valueAttachment":
+                        //TODO
+                        break;
+                    case "valueQuantity":
+                        const quantity = this.state.values[item];
+                        if (quantity && quantity.comparator === "=") {
+                            delete quantity.comparator;
+                        }
+                        answerItem.answer.push({ [itemType.valueType]: quantity })
+                        break;
+                    case "valueDateTime":
+                    case "valueDate":
+                        const date = this.state.values[item];
+                        answerItem.answer.push({ [itemType.valueType]: date.toString() });
+                        break;
+                    default:
+                        const answer = this.state.values[item];
+                        if (Array.isArray(answer)) {
+                            answer.forEach((e) => {
+                                // possible for an array to contain multiple types
+                                let finalType;
+                                if (e.valueTypeFinal) {
+                                    finalType = e.valueTypeFinal;
+                                    delete e.valueTypeFinal;
+                                } else {
+                                    finalType = itemType.valueType;
+                                }
+                                answerItem.answer.push({ [finalType]: e });
+                            })
+                        } else {
+                            answerItem.answer.push({ [itemType.valueType]: answer });
+                        }
+                }
+                currentItem.push(answerItem);
+            }
+        });
         console.log(response);
     }
 
+    removeFilledFields() {
+        if (this.state.turnOffValues.length > 0) {
+            this.setState({ turnOffValues: [] });
+        } else {
+            const returnArray = [];
+            this.state.orderedLinks.forEach((e) => {
+                if (this.isNotEmpty(this.state.values[e]) && this.state.itemTypes[e] && this.state.itemTypes[e].enabled) {
+                    returnArray.push(e);
+                }
+            });
+            this.setState({ turnOffValues: returnArray });
+        }
+    }
     render() {
-        console.log(this.state.values);
         return (
             <div>
-                <h2 className="document-header">{this.props.qform.title}</h2>
-                <div className="sidenav">
-                    {Object.keys(this.state.itemTypes).map((e)=>{
-                        const value = this.state.values[e];
+                <div className="floating-tools">
+                    <p className="filter-filled" >filter: <input type="checkbox" onClick={() => {
+                        this.removeFilledFields();
+                    }}></input></p>
+                </div>
+                <h2 className="document-header">{this.props.qform.title}
 
-                        return <div 
-                        key={e}
-                        className={"sidenav-box " + (value!==undefined&&value!==""&&(Array.isArray(value)?value.length>0:true)?"sidenav-active":"")}
-                        onClick={()=>{
-                            console.log(this.state.itemTypes[e].ref.current.offsetTop);
-                            window.scrollTo(0, this.state.itemTypes[e].ref.current.previousSibling.offsetTop) 
-                        }}
-                        >
-                            {e}
-                        </div>
+                </h2>
+
+                <div className="sidenav">
+                    {this.state.orderedLinks.map((e) => {
+                        if(Object.keys(this.state.sectionLinks).indexOf(e)<0) {
+                            const value = this.state.values[e];
+                            let extraClass;
+                            let indicator;
+                            if (this.state.itemTypes[e] && this.state.itemTypes[e].enabled) {
+                                extraClass = (this.isNotEmpty(value) ? "sidenav-active" : "")
+                                indicator = true;
+                            } else {
+                                if (this.isNotEmpty(value) && this.state.turnOffValues.indexOf(e) > -1) {
+                                    extraClass = "sidenav-manually-disabled";
+                                } else if (value) {
+                                    extraClass = "sidenav-disabled filled"
+                                } else {
+                                    extraClass = "sidenav-disabled"
+                                }
+    
+                            }
+                            return <div
+                                key={e}
+                                className={"sidenav-box " + extraClass}
+                                onClick={() => {
+                                    indicator ? window.scrollTo(0, this.state.itemTypes[e].ref.current.previousSibling.offsetTop) : null;
+                                }}
+                            >
+                                {e}
+                            </div>
+                        }
                     })}
                     <div className="sidenav-box "></div>
                 </div>

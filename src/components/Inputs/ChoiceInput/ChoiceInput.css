@@ -66,3 +66,9 @@
   
   border-right:5px solid black; 
 }
+
+.read-only .radio-button{
+    background-color:#AAA;
+    border-color:#444;
+    pointer-events:none;
+}
