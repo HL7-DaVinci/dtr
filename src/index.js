@@ -6,6 +6,19 @@ import React from "react";
 import ReactDOM from "react-dom";
 import App from "./App.js";
 
+// get the URL parameters received from the authorization server
+const state = urlUtils.getUrlParameter("state"); // session key
+const code = urlUtils.getUrlParameter("code"); // authorization code
+console.log("state: " + state);
+console.log("code: "+code);
+console.log(window.location);
+// load the app parameters stored in the session
+const params = JSON.parse(sessionStorage[state]); // load app session
+const tokenUri = params.tokenUri;
+const clientId = params.clientId;
+const secret = params.secret;
+const serviceUri = params.serviceUri;
+const redirectUri = params.redirectUri;
 
 // This endpoint available when deployed in CRD server, for development we have
 // the proxy set up in webpack.config.dev.js so the CRD server needs to be running
@@ -17,7 +30,6 @@ const appContext = {
   template: "urn:hl7:davinci:crd:home-oxygen-questionnaire",
   request: "http://localhost:8080/ehr-server/stu3/DeviceRequest/devreq013/"
 }
-
 // hardcoded smart, should be set up with context stuff
 var smart = FHIR.client({
   serviceUrl: "http://localhost:8080/ehr-server/stu3",
