@@ -28,6 +28,7 @@ class App extends Component {
         valueSetDB: {},
         parameters: {device_request: fhirWrapper.wrap(artifacts.deviceRequest)}
       }
+      console.log("Exec inputs",executionInputs)
       return executeElm(this.smart, "stu3", executionInputs);
     })
     .then(cqlResults => {
@@ -40,7 +41,7 @@ class App extends Component {
     if (this.state.questionnaire && this.state.cqlPrepoulationResults){
       return (
         <div className="App">
-          <QuestionnaireForm qform = {this.state.questionnaire} cqlPrepoulationResults= {this.state.cqlPrepoulationResults} />
+          <QuestionnaireForm qform = {this.state.questionnaire} smart={this.smart} cqlPrepoulationResults= {this.state.cqlPrepoulationResults} />
         </div>
       );
     } else {

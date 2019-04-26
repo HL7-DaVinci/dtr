@@ -28,6 +28,8 @@ export default class QuestionnaireForm extends Component {
         this.updateQuestionValue = this.updateQuestionValue.bind(this);
         this.updateNestedQuestionValue = this.updateNestedQuestionValue.bind(this);
         // this.saveDocuments = this.saveDocuments.bind(this);
+
+        this.practitionerResource = {}
         this.renderComponent = this.renderComponent.bind(this);
         this.retrieveValue = this.retrieveValue.bind(this);
         this.outputResponse = this.outputResponse.bind(this);
@@ -61,6 +63,11 @@ export default class QuestionnaireForm extends Component {
             }
         });
 
+        this.props.smart.patient.api.search({type: "Practitioner", identifier: "23"})
+            .then(response => {
+            console.log("Practitioner",response)
+              this.practitionerResource = response.data.entry[0].resource
+            }, err => console.log("Error",err))
         // console.log("VALESSS",values)
         this.setState({values});
     }
@@ -364,8 +371,21 @@ export default class QuestionnaireForm extends Component {
             }
             response.item.push(answerItem);
         });
-        console.log(saveDocu)
+
+        response.resourceType ="QuestionnaireResponse"
+        let contained  = [this.props.cqlPrepoulationResults.Patient._json,this.practitionerResource]
+        response.contained = contained
+        response.author = {reference:"#"+this.practitionerResource.id.toString()}
+        response.subject = {reference:"#"+this.props.cqlPrepoulationResults.Patient._json.id.toString()}
         console.log(response);
+        this.props.smart.patient.api.create({resource:response}).then(res => {
+            console.log("RESSPSPS");
+            console.log(res);
+            }, err => {
+                console.log("Err!");
+                console.log(err);
+                // reject(err)
+            })
     }
 
     render() {

@@ -11,7 +11,7 @@ function executeElm(smart, fhirVersion, executionInputs) {
     console.log("We need to fetch these resources:", neededResources);
     buildPopulatedResourceBundle(smart, neededResources)
     .then(function(resourceBundle) {
-      console.log("Fetched resources are in this bundle:", resourceBundle);
+      // console.log("Fetched resources are in this bundle:", resourceBundle);
       patientSource.loadBundles([resourceBundle]);
       const results = executeElmAgainstPatientSource(executionInputs, patientSource);
       resolve(results);
@@ -27,6 +27,8 @@ function executeElmAgainstPatientSource(executionInputs, patientSource) {
   const codeService = new cql.CodeService(executionInputs.valueSetDB);
   const executor = new cql.Executor(lib, codeService, executionInputs.parameters);
   const results = executor.exec(patientSource);
+  console.log("results");
+  console.log(results);
   return results.patientResults[Object.keys(results.patientResults)[0]];
 }
 

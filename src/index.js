@@ -17,7 +17,7 @@ const FHIR_URI_PREFIX = "../fetchFhirUri/";
 // hardcoded appContext, needs to by retrieved from OAuth 2.0 access token response
 const appContext = {
   template: "urn:hl7:davinci:crd:home-oxygen-questionnaire",
-  request: "http://3.92.187.150:8280/fhir/baseDstu3/DeviceRequest/10058/"
+  request: "http://localhost:8080/fhir/baseDstu3/DeviceRequest/24956/"
 }
 
 
@@ -25,8 +25,8 @@ const appContext = {
 async function getFromFhir(){
   let token = await createToken('john', 'john123');
   var smart = FHIR.client({
-    serviceUrl: "http://3.92.187.150:8280/fhir/baseDstu3",
-    patientId: "4",
+    serviceUrl: "http://localhost:8080/fhir/baseDstu3",
+    patientId: "9953",
     auth:{
         type:'bearer',
         token: token
