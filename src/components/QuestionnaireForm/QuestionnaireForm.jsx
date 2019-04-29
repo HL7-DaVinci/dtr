@@ -8,10 +8,10 @@ import ChoiceInput from '../Inputs/ChoiceInput/ChoiceInput';
 import BooleanInput from '../Inputs/BooleanInput/BooleanInput';
 import QuantityInput from '../Inputs/QuantityInput/QuantityInput';
 import DocumentInput from '../Inputs/DocumentInput/DocumentInput';
-import {saveDocu} from '../Inputs/DocumentInput/DocumentInput';
+import { saveDocu } from '../Inputs/DocumentInput/DocumentInput';
 import { findValueByPrefix } from '../../util/util.js';
 import OpenChoice from '../Inputs/OpenChoiceInput/OpenChoice';
-
+import { appContext } from '../../index';
 
 export default class QuestionnaireForm extends Component {
     constructor(props) {
@@ -49,27 +49,29 @@ export default class QuestionnaireForm extends Component {
         let values = this.state.values;
 
         items.forEach((item) => {
-            if(item['type'] == "group"){
-                item.item.forEach((sub_item)=>{
+            if (item['type'] == "group") {
+                item.item.forEach((sub_item) => {
                     // console.log("sub_item:",sub_item)
-                    if(sub_item.hasOwnProperty("extension")){
+                    if (sub_item.hasOwnProperty("extension")) {
                         // console.log("-- Value of sub_item:",sub_item.extension[0].valueString,this.props.cqlPrepoulationResults[sub_item.extension[0].valueString])
                         let value = this.props.cqlPrepoulationResults[sub_item.extension[0].valueString];
-                        if(value != null && value != undefined && value != ""){
+                        if (value != null && value != undefined && value != "") {
                             values[sub_item.linkId] = value
                         }
                     }
                 })
             }
         });
-
-        this.props.smart.patient.api.search({type: "Practitioner", identifier: "23"})
-            .then(response => {
-            console.log("Practitioner",response)
-              this.practitionerResource = response.data.entry[0].resource
-            }, err => console.log("Error",err))
-        // console.log("VALESSS",values)
-        this.setState({values});
+        console.log("appContext-------", appContext);
+        if (appContext.npi != undefined) {
+            this.props.smart.patient.api.search({ type: "Practitioner", identifier: appContext.npi })
+                .then(response => {
+                    console.log("Practitioner", response)
+                    this.practitionerResource = response.data.entry[0].resource
+                }, err => console.log("Error", err))
+            // console.log("VALESSS",values)
+            this.setState({ values });
+        }
     }
 
     componentDidMount() {
@@ -357,10 +359,10 @@ export default class QuestionnaireForm extends Component {
                         answer.forEach((e) => {
                             // possible for an array to contain multiple types
                             let finalType;
-                            if(e.valueTypeFinal){
-                                finalType=e.valueTypeFinal;
+                            if (e.valueTypeFinal) {
+                                finalType = e.valueTypeFinal;
                                 delete e.valueTypeFinal;
-                            }else{
+                            } else {
                                 finalType = itemType.valueType;
                             }
                             answerItem.answer.push({ [finalType]: e });
@@ -372,20 +374,20 @@ export default class QuestionnaireForm extends Component {
             response.item.push(answerItem);
         });
 
-        response.resourceType ="QuestionnaireResponse"
-        let contained  = [this.props.cqlPrepoulationResults.Patient._json,this.practitionerResource]
+        response.resourceType = "QuestionnaireResponse"
+        let contained = [this.props.cqlPrepoulationResults.Patient._json, this.practitionerResource]
         response.contained = contained
-        response.author = {reference:"#"+this.practitionerResource.id.toString()}
-        response.subject = {reference:"#"+this.props.cqlPrepoulationResults.Patient._json.id.toString()}
-        console.log(response);
-        this.props.smart.patient.api.create({resource:response}).then(res => {
+        response.author = { reference: "#" + this.practitionerResource.id.toString() }
+        response.subject = { reference: "#" + this.props.cqlPrepoulationResults.Patient._json.id.toString() }
+        // console.log(response);
+        this.props.smart.patient.api.create({ resource: response }).then(res => {
             console.log("RESSPSPS");
             console.log(res);
-            }, err => {
-                console.log("Err!");
-                console.log(err);
-                // reject(err)
-            })
+        }, err => {
+            console.log("Err!");
+            console.log(err);
+            // reject(err)
+        })
     }
 
     render() {
@@ -394,16 +396,16 @@ export default class QuestionnaireForm extends Component {
             <div>
                 <h2 className="document-header">{this.props.qform.title}</h2>
                 <div className="sidenav">
-                    {Object.keys(this.state.itemTypes).map((e)=>{
+                    {Object.keys(this.state.itemTypes).map((e) => {
                         const value = this.state.values[e];
 
-                        return <div 
-                        key={e}
-                        className={"sidenav-box " + (value!==undefined&&value!==""&&(Array.isArray(value)?value.length>0:true)?"sidenav-active":"")}
-                        onClick={()=>{
-                            console.log(this.state.itemTypes[e].ref.current.offsetTop);
-                            window.scrollTo(0, this.state.itemTypes[e].ref.current.previousSibling.offsetTop) 
-                        }}
+                        return <div
+                            key={e}
+                            className={"sidenav-box " + (value !== undefined && value !== "" && (Array.isArray(value) ? value.length > 0 : true) ? "sidenav-active" : "")}
+                            onClick={() => {
+                                console.log(this.state.itemTypes[e].ref.current.offsetTop);
+                                window.scrollTo(0, this.state.itemTypes[e].ref.current.previousSibling.offsetTop)
+                            }}
                         >
                             {e}
                         </div>
@@ -413,21 +415,21 @@ export default class QuestionnaireForm extends Component {
                 <div className="wrapper1">
                     {
                         this.state.items.map((item) => {
-                            console.log(item.linkId, this.state.items.length/2);
-                            if(item.linkId <= (this.state.items.length / 2 + 1)){
+                            // console.log(item.linkId, this.state.items.length/2);
+                            if (item.linkId <= (this.state.items.length / 2 + 1)) {
                                 return this.renderComponent(item, 0);
                             }
                         })
                     }
                 </div>
-                 <div className="wrapper2">
+                <div className="wrapper2">
                     <div>
                         {
                             this.state.items.map((item) => {
-                                console.log(item.linkId, this.state.items.length / 2);
-                                if(item.linkId > (this.state.items.length / 2 + 1)){
+                                // console.log(item.linkId, this.state.items.length / 2);
+                                if (item.linkId > (this.state.items.length / 2 + 1)) {
                                     return this.renderComponent(item, 0);
-                                }                            
+                                }
                             })
                         }
                         <DocumentInput

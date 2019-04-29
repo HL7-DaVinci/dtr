@@ -13,29 +13,69 @@ import { createToken } from './components/Authentication';
 // the proxy set up in webpack.config.dev.js so the CRD server needs to be running
 const FHIR_URI_PREFIX = "../fetchFhirUri/";
 
+async function getMessageDef(token) {
+  var tempURL = "http://3.92.187.150:8280/fhir/baseDstu3/MessageDefinition/15105";
+  let req = fetch(tempURL, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token
+    }
+  }).then((response) => {
+    return response.json();
+  }).then((response) => {
+    return response;
+  }).catch(err => err);
+  return req;
+}
 
 // hardcoded appContext, needs to by retrieved from OAuth 2.0 access token response
-const appContext = {
-  template: "urn:hl7:davinci:crd:home-oxygen-questionnaire",
-  request: "http://localhost:8080/fhir/baseDstu3/DeviceRequest/24956/"
+export const appContext = {
+  // template: "urn:hl7:davinci:crd:home-oxygen-questionnaire",
+  template: "",
+  request: "http://3.92.187.150:8280/fhir/baseDstu3/DeviceRequest/10058/",
+  patientId: "",
+  npi: ""
 }
 
 
 // hardcoded smart, should be set up with context stuff
-async function getFromFhir(){
+async function getFromFhir() {
   let token = await createToken('john', 'john123');
-  var smart = FHIR.client({
-    serviceUrl: "http://localhost:8080/fhir/baseDstu3",
-    patientId: "9953",
-    auth:{
-        type:'bearer',
-        token: token
+  let msg_def = await getMessageDef(token);
+  var smart;
+  // console.log("message def----", msg_def);
+  if (msg_def.description != undefined) {
+    let resp = JSON.parse('{' + decodeURIComponent(msg_def.description) + '}');
+    let app_context = resp.appContext;
+    if (app_context.file_links) {
+      if (app_context.file_links.questionnaire_file != undefined) {
+        let questionnaire_template = app_context.file_links.questionnaire_file.split('/');
+        appContext.template = decodeURIComponent(questionnaire_template[1]);
       }
-  });
-  return smart
+    }
+    if (app_context.appData) {
+      if (app_context.appData.patientId != undefined) {
+        appContext.patientId = app_context.appData.patientId;
+        smart = FHIR.client({
+          serviceUrl: "http://3.92.187.150:8280/fhir/baseDstu3",
+          patientId: appContext.patientId,
+          auth: {
+            type: 'bearer',
+            token: token
+          }
+        });
+      }
+      if (app_context.appData.Practitioner != undefined) {
+        appContext.npi = app_context.appData.Practitioner;
+      }
+    }
+  }
+  console.log("app context", appContext);
+  return smart;
 }
 
-getFromFhir().then((smart)=>{
+getFromFhir().then((smart) => {
   console.log("after get")
   ReactDOM.render(
     <App

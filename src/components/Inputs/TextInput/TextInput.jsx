@@ -14,7 +14,7 @@ export default class TextInput extends Component {
             area: false
             // dateVal:null
         };
-    console.log(this.props)
+    // console.log(this.props)
 
     this.onInputChange = this.onInputChange.bind(this);
     this.handleDateChange = this.handleDateChange.bind(this);
@@ -42,8 +42,8 @@ export default class TextInput extends Component {
 
     onInputChange(event) {
         // update the parent state
-        console.log(event)
-        console.log(this.state);
+        // console.log(event)
+        // console.log(this.state);
         this.props.updateCallback(this.props.item.linkId, event.target.value, "values")
         // update local state
         this.setState({value: event.target.value})
