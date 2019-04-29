@@ -16,7 +16,7 @@ Install [node.js](https://nodejs.org/en/).
 3. Run `npm install`
 4. Run `npm start`
 
-The service will run on port 3050.  This can be changed in [/bin/www](/bin/www).
+The service will run on port 3005.  This can be changed in [/bin/www](/bin/www).
 
 ## Using the App
 
@@ -41,7 +41,8 @@ The [CRD reference implementation](https://github.com/HL7-DaVinci/CRD) will retu
 Official releases are built automatically, but you may test the process or roll your own similar to the following:
 
     docker build -t hspc/davinci-dtr:latest .
-    docker run -it --name davinci-dtr -p 3005:3005 hspc/davinci-dtr:latest
+    docker run -it --name davinci-dtr -p 3005:3005 --rm hspc/davinci-dtr:latest
+
 # License
 
 This project is licensed under the Apache License 2.0.  See [LICENSE](/LICENSE) for more details.
