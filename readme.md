@@ -36,6 +36,12 @@ http://localhost:3050/launch?iss=http://launch.smarthealthit.org/v/r2/fhir/&pati
 
 The [CRD reference implementation](https://github.com/HL7-DaVinci/CRD) will return CDS Hooks cards with links to this SMART app.  If making requests with the [request generator](https://github.com/HL7-DaVinci/crd-request-generator), opening the `SMART Link` with this app running at the same time will open the app in the same page in an embedded window.  The `CRD RI` will return links with reference to its own FHIR server, so to function properly, both the [EHR FHIR server](https://github.com/HL7-DaVinci/CRD/tree/master/ehr-server) and [rules server](https://github.com/HL7-DaVinci/CRD/tree/master/server) must be running.
 
+## Building Releases
+
+Official releases are built automatically, but you may test the process or roll your own similar to the following:
+
+    docker build -t hspc/davinci-dtr:latest .
+    docker run -it --name davinci-dtr -p 3005:3005 hspc/davinci-dtr:latest
 # License
 
 This project is licensed under the Apache License 2.0.  See [LICENSE](/LICENSE) for more details.
