@@ -45,6 +45,7 @@ export default class DocumentInput extends Component {
         //     console.log('includes')
         // }
         this.setState({ files: new_files });
+        this.props.updateCallback('files',this.state.files)
     }
     onCancel(file) {
         let new_files = this.state.files;
@@ -56,6 +57,7 @@ export default class DocumentInput extends Component {
         this.setState({
             files: new_files
         });
+        this.props.updateCallback('files',this.state.files)
     }
     onRemove(file) {
         var new_files = this.state.files;
@@ -65,6 +67,7 @@ export default class DocumentInput extends Component {
             }
         }
         this.setState({ files: new_files })
+        this.props.updateCallback('files',this.state.files)
     }
 
     saveDocuments(){

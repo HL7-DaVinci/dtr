@@ -23,12 +23,14 @@ export default class QuestionnaireForm extends Component {
             values: {
                 // "1.1": "henlo"
             },
-            view: null
+            view: null,
+            files:[],
+            communicationJson:{}
         };
         this.updateQuestionValue = this.updateQuestionValue.bind(this);
         this.updateNestedQuestionValue = this.updateNestedQuestionValue.bind(this);
         // this.saveDocuments = this.saveDocuments.bind(this);
-
+        this.updateDocuments = this.updateDocuments.bind(this);
         this.practitionerResource = {}
         this.renderComponent = this.renderComponent.bind(this);
         this.retrieveValue = this.retrieveValue.bind(this);
@@ -125,6 +127,50 @@ export default class QuestionnaireForm extends Component {
                 }
             }
         }))
+    }
+    updateDocuments(elementName, object){
+        console.log(elementName,object,'is it workinggg')
+        this.setState({[elementName]:object})
+        var fileInputData = {
+            "resourceType": "Communication",
+            "id": "376",
+            "meta": {
+                "versionId": "1",
+                "lastUpdated": "2018-10-08T07:22:32.421+00:00"
+            },
+            "status": "preparation",
+            "identifier": [
+                {
+                    "use": "official"
+                }
+            ],
+            "payload": [],
+        }
+        if (this.state.files != null) {
+            for (var i = 0; i < this.state.files.length; i++) {
+                (function (file) {
+                    let content_type = file.type;
+                    let file_name = file.name;
+                    var reader = new FileReader();
+                    reader.onload = function (e) {
+                        // get file content  
+                        fileInputData.payload.push({
+                            "contentAttachment": {
+                                "data": reader.result,
+                                "contentType": content_type,
+                                "title": file_name,
+                                "language": "en"
+                            }
+                        })
+                    }
+                    reader.readAsBinaryString(file);
+                })(this.state.files[i])
+            }
+        }
+        console.log("Resource Json before communication--",fileInputData );
+        // this.props.saveDocuments(this.props.files,fileInputData)
+        this.setState({communicationJson:fileInputData})
+        // return fileInputData
     }
 
     distributeContained(contained) {
@@ -388,6 +434,14 @@ export default class QuestionnaireForm extends Component {
             console.log(err);
             // reject(err)
         })
+        this.props.smart.patient.api.create({resource:this.state.communicationJson}).then(commmunicationRes => {
+            console.log("Communication REsponse");
+            console.log(commmunicationRes);
+            }, err => {
+                console.log("Err!");
+                console.log(err);
+                // reject(err)
+            })
     }
 
     render() {
@@ -433,6 +487,7 @@ export default class QuestionnaireForm extends Component {
                             })
                         }
                         <DocumentInput
+                            updateCallback={this.updateDocuments}
                         />
                     </div>
                 </div>
