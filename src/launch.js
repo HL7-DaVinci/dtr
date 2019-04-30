@@ -12,11 +12,6 @@ var secret = null; // set me, if confidential
 // These parameters will be received at launch time in the URL
 var serviceUri = urlUtils.getUrlParameter("iss");
 var launchContextId = urlUtils.getUrlParameter("launch");
-console.log(launchContextId);
-// var patientId = urlUtils.getUrlParameter("patientId");
-// var template = urlUtils.getUrlParameter("template");
-// var deviceRequest = urlUtils.getUrlParameter("DeviceRequest");
-
 
 // The scopes that the app will request from the authorization server
 // encoded in a space-separated string:
@@ -74,8 +69,7 @@ function redirect(conformanceStatement) {
       tokenUri = arg.valueUri;
     }
   });
-  console.log(authUri);
-  console.log(tokenUri);
+
   // retain a couple parameters in the session for later use
   sessionStorage[state] = JSON.stringify({
     clientId: clientId,
