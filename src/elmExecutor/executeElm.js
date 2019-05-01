@@ -12,8 +12,13 @@ function executeElm(smart, fhirVersion, executionInputs) {
     buildPopulatedResourceBundle(smart, neededResources)
     .then(function(resourceBundle) {
       console.log("Fetched resources are in this bundle:", resourceBundle);
+      console.log(JSON.stringify(resourceBundle));
       patientSource.loadBundles([resourceBundle]);
-      const results = executeElmAgainstPatientSource(executionInputs, patientSource);
+      const elmResults = executeElmAgainstPatientSource(executionInputs, patientSource);
+      const results = {
+        bundle: resourceBundle,
+        elmResults: elmResults
+      }
       resolve(results);
     })
     .catch(function(err){reject(err)});

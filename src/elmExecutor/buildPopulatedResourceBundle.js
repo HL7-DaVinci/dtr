@@ -99,6 +99,7 @@ function buildPopulatedResourceBundle(smart, neededResources) {
         readResources(neededResources.slice(), () => {
           const bundle = {
             resourceType: "Bundle",
+            type: "collection",
             entry: entryResources.map(r => ({ resource: r }))
           };
           resolve(bundle);

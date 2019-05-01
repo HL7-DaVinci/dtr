@@ -345,6 +345,7 @@ export default class QuestionnaireForm extends Component {
         const yyyy = today.getFullYear();
         const authored = `${yyyy}-${mm}-${dd}`
         const response = {
+            resourceType: "QuestionnaireResponse",
             id: "response1",
             authored: authored,
             status: "completed", //TODO: Get status from somewhere
@@ -408,7 +409,6 @@ export default class QuestionnaireForm extends Component {
                     "text": itemType.text,
                     "answer": []
                 }
-                // TODO: Figure out what to do when a value is missing
                 switch (itemType.valueType) {
                     case "valueAttachment":
                         //TODO
@@ -443,10 +443,96 @@ export default class QuestionnaireForm extends Component {
                             answerItem.answer.push({ [itemType.valueType]: answer });
                         }
                 }
+                // FHIR fields are not allowed to be empty or null, so we must prune
+                if ((answerItem.answer.length < 1) ||
+                    (JSON.stringify(answerItem.answer[0]) == "{}") ||
+                    (answerItem.answer[0].hasOwnProperty("valueString") && answerItem.answer[0].valueString == null))
+                {
+                    // console.log("Removing empty answer: ", answerItem);
+                    delete answerItem.answer;
+                }
                 currentItem.push(answerItem);
             }
         });
         console.log(response);
+
+        const priorAuthBundle = JSON.parse(JSON.stringify(this.props.bundle));
+        priorAuthBundle.entry.unshift({ resource: this.props.deviceRequest })
+        priorAuthBundle.entry.unshift({ resource: response })
+        console.log(priorAuthBundle);
+
+        const priorAuthClaim = {
+            resourceType: "Claim",
+            status: "active",
+            type: {coding: [{
+                system: "http://terminology.hl7.org/CodeSystem/claim-type",
+                code: "professional",
+                display: "Professional"
+            }]},
+            use: "preauthorization",
+            patient: { reference: this.makeReference(priorAuthBundle, "Patient") },
+            created: authored,
+            provider: { reference: this.makeReference(priorAuthBundle, "Practitioner") },
+            priority: {coding: [{"code": "normal"}]},
+            presciption: { reference: this.makeReference(priorAuthBundle, "DeviceRequest") },
+            supportingInfo: [{
+                sequence: 1,
+                category: {coding: [{
+                    system: "http://terminology.hl7.org/CodeSystem/claiminformationcategory",
+                    code: "info",
+                    display: "Information"
+                }]},
+                valueReference: { reference: this.makeReference(priorAuthBundle, "QuestionnaireResponse") }
+            }],
+            diagnosis: [],
+            insurance: [{
+                sequence: 1,
+                focal: true,
+                coverage: { reference: this.makeReference(priorAuthBundle, "Coverage") }
+            }]
+        }
+        var sequence = 1;
+        priorAuthBundle.entry.forEach(function(entry, index) {
+            if (entry.resource.resourceType == "Condition") {
+                priorAuthClaim.diagnosis.push({
+                    sequence: sequence++,
+                    diagnosisReference: "Condition/" + entry.resource.id
+                });
+            }
+        })
+        console.log(priorAuthClaim);
+        console.log(JSON.stringify(priorAuthClaim));
+
+        priorAuthBundle.entry.unshift({ resource: priorAuthClaim })
+
+        const Http = new XMLHttpRequest();
+        const priorAuthUrl = "https://davinci-prior-auth.logicahealth.org/fhir";
+        // const priorAuthUrl = "http://localhost:9000/fhir/Claim/$submit";
+        Http.open("POST", priorAuthUrl);
+        Http.setRequestHeader("Content-Type", "application/fhir+json");
+        Http.send(JSON.stringify(priorAuthBundle));
+        Http.onreadystatechange = function() {
+            if (this.readyState === XMLHttpRequest.DONE) {
+                var message = "";
+                if (this.status === 200) {
+                    var claimResponse = JSON.parse(this.responseText);
+                    message = "Prior Authorization " + claimResponse.disposition + "\n";
+                    message += "Prior Authorization Number: " + claimResponse.preAuthRef;
+                } else {
+                    message = "Prior Authorization Request Failed."
+                }
+                console.log(message);
+                alert(message);
+                console.log(this.responseText);
+            }
+        }
+    }
+
+    makeReference(bundle, resourceType) {
+        var entry = bundle.entry.find(function(entry) {
+            return (entry.resource.resourceType == resourceType);
+        });
+        return resourceType + "/" + entry.resource.id;
     }
 
     removeFilledFields() {
