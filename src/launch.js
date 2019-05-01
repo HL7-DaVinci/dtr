@@ -12,7 +12,6 @@ var secret = null; // set me, if confidential
 // These parameters will be received at launch time in the URL
 var serviceUri = urlUtils.getUrlParameter("iss");
 var launchContextId = urlUtils.getUrlParameter("launch");
-var patientId = urlUtils.getUrlParameter("patientId");
 
 // The scopes that the app will request from the authorization server
 // encoded in a space-separated string:
@@ -42,14 +41,14 @@ conformanceGet.onload = function() {
     try {
       conformanceStatement = JSON.parse(conformanceGet.responseText);
     } catch (e) {
-      errorMsg = "Unable to parse conformance statement.";
+      const errorMsg = "Unable to parse conformance statement.";
       document.body.innerText = errorMsg;
       console.error(errorMsg);
       return;
     }
     redirect(conformanceStatement);
   } else {
-    errorMsg = "Conformance statement request failed. Returned status: " + conformanceGet.status;
+    const errorMsg = "Conformance statement request failed. Returned status: " + conformanceGet.status;
     document.body.innerText = errorMsg;
     console.error(errorMsg);
     return;
@@ -70,15 +69,13 @@ function redirect(conformanceStatement) {
       tokenUri = arg.valueUri;
     }
   });
-  console.log(authUri);
-  console.log(tokenUri);
+
   // retain a couple parameters in the session for later use
   sessionStorage[state] = JSON.stringify({
     clientId: clientId,
     secret: secret,
     serviceUri: serviceUri,
     redirectUri: redirectUri,
-    patientId: patientId,
     tokenUri: tokenUri
   });
 
@@ -101,7 +98,7 @@ function redirect(conformanceStatement) {
     encodeURIComponent(serviceUri) +
     "&" +
     "launch=" +
-    launchContextId +
+    encodeURIComponent(launchContextId) +
     "&" +
     "state=" +
     state;
