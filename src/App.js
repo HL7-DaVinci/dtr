@@ -11,7 +11,9 @@ class App extends Component {
     super(props);
     this.state = {
       questionnaire: null,
-      cqlPrepoulationResults: null
+      cqlPrepoulationResults: null,
+      deviceRequest: null,
+      bundle: null
     }
     this.smart = props.smart;
   }
@@ -22,6 +24,7 @@ class App extends Component {
     .then(artifacts => {
       console.log("fetched needed artifacts:", artifacts)
       this.setState({questionnaire: artifacts.questionnaire})
+      this.setState({deviceRequest: artifacts.deviceRequest})
       const executionInputs = {
         elm: artifacts.mainLibraryElm,
         elmDependencies: artifacts.dependentElms,
@@ -32,15 +35,16 @@ class App extends Component {
     })
     .then(cqlResults => {
       console.log("executed cql, result:", cqlResults);
-      this.setState({cqlPrepoulationResults: cqlResults})
+      this.setState({bundle: cqlResults.bundle})
+      this.setState({cqlPrepoulationResults: cqlResults.elmResults})
     });
   }
 
   render() {
-    if (this.state.questionnaire && this.state.cqlPrepoulationResults){
+    if (this.state.questionnaire && this.state.cqlPrepoulationResults && this.state.bundle){
       return (
         <div className="App">
-          <QuestionnaireForm qform = {this.state.questionnaire} cqlPrepoulationResults= {this.state.cqlPrepoulationResults} />
+          <QuestionnaireForm qform = {this.state.questionnaire} cqlPrepoulationResults= {this.state.cqlPrepoulationResults} deviceRequest = {this.state.deviceRequest} bundle = {this.state.bundle} />
         </div>
       );
     } else {
