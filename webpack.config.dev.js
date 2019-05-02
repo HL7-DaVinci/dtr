@@ -8,7 +8,7 @@ module.exports = merge(common, {
   devServer: {
     contentBase: path.resolve(__dirname, "public"),
     port: 3005,
-    publicPath: "https://davinci-dtr.logicahealth.org/",
+    public: "davinci-dtr.logicahealth.org/",
     hotOnly: true,
     historyApiFallback: {
         rewrites: [
