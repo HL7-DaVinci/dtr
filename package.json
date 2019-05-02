@@ -5,7 +5,7 @@
   "scripts": {
     "build": "webpack --config ./webpack.config.prod.js --progress --colors",
     "start": "webpack-dev-server --config ./webpack.config.dev.js --port 3005",
-    "startDocker": "webpack-dev-server --config ./webpack.config.dev.js --port 3005  --host davinci-dtr.logicahealth.org",
+    "startDocker": "webpack-dev-server --config ./webpack.config.dev.js --port 3005  --host 0.0.0.0 --public davinci-dtr.logicahealth.org:3005",
     "lint": "node ./node_modules/.bin/eslint --ext .js ./"
   },
   "devDependencies": {
