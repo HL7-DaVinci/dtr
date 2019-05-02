@@ -444,9 +444,7 @@ export default class QuestionnaireForm extends Component {
                         }
                 }
                 // FHIR fields are not allowed to be empty or null, so we must prune
-                if ((answerItem.answer.length < 1) ||
-                    (JSON.stringify(answerItem.answer[0]) == "{}") ||
-                    (answerItem.answer[0].hasOwnProperty("valueString") && answerItem.answer[0].valueString == null))
+                if (this.isEmptyAnswer(answerItem.answer))
                 {
                     // console.log("Removing empty answer: ", answerItem);
                     delete answerItem.answer;
@@ -526,6 +524,16 @@ export default class QuestionnaireForm extends Component {
                 console.log(this.responseText);
             }
         }
+    }
+
+    isEmptyAnswer(answer) {
+        return ((answer.length < 1) ||
+                (JSON.stringify(answer[0]) == "{}") ||
+                (answer[0].hasOwnProperty("valueString") && (answer[0].valueString == null || answer[0].valueString == "")) ||
+                (answer[0].hasOwnProperty("valueDateTime") && (answer[0].valueDateTime == null || answer[0].valueDateTime == "")) ||
+                (answer[0].hasOwnProperty("valueDate") && (answer[0].valueDate == null || answer[0].valueDate == "")) ||
+                (answer[0].hasOwnProperty("valueBoolean") && (answer[0].valueBoolean == null || answer[0].valueBoolean == "")) ||
+                (answer[0].hasOwnProperty("valueQuantity") && (answer[0].valueQuantity.value == null || answer[0].valueQuantity.value == "")));
     }
 
     makeReference(bundle, resourceType) {
