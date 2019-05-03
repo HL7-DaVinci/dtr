@@ -40,7 +40,7 @@ Note: If you have your own EHR the you should not need to run the EHR (FHIR) Ser
  
 1. First, make sure the **EHR** server runs and has the data it needs by running `gradle loadData` to populate it. Note: The EHR server needs to be running before running `gradle loadData`. 
 
-2. Then, run the **KeyCloak** server. Follow the guide in the KeyCloak readme if you have never set it up before, make the appropriate realm/client/user. _Note: You might need to modify the **frame-ancesters** setting in the KeyCloak admin: e.g. Realm | Security Defences | Content-Security-Policy = frame-src 'self'; **frame-ancesters [http://localhost:*]()**; object-src 'none';_     
+2. Then, run the **KeyCloak** server. Follow the guide in the KeyCloak readme if you have never set it up before, make the appropriate realm/client/user. _Note: You might need to modify the **frame-ancesters** setting in the KeyCloak admin: e.g. Realm | Security Defences | Content-Security-Policy = frame-src 'self'; **frame-ancesters http://localhost:***; object-src 'none';_     
 
 3. Then run the **CRD** server and the **DTR** server and the **Request Generator**.
  
