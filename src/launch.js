@@ -34,8 +34,9 @@ var conformanceUri = serviceUri + "/metadata?format=json";
 // Let's request the conformance statement from the SMART on FHIR API server and
 // find out the endpoint URLs for the authorization server
 const conformanceGet = new XMLHttpRequest();
-conformanceGet.setRequestHeader("Content-Type", "application/json");
 conformanceGet.open("GET", conformanceUri);
+conformanceGet.setRequestHeader("Content-Type", "application/json");
+
 conformanceGet.onload = function() {
   if (conformanceGet.status === 200) {
     let conformanceStatement;
