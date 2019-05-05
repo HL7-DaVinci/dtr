@@ -31,6 +31,7 @@
     "es6-promise": "^4.2.6",
     "fhirclient": "^0.1.12",
     "isomorphic-fetch": "^2.2.1",
+    "node-fetch": "^2.5.0",
     "react": "^16.8.4",
     "react-bootstrap": "^1.0.0-beta.5",
     "react-dom": "^16.8.4",
