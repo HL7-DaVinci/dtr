@@ -36,6 +36,7 @@ var conformanceUri = serviceUri + "/metadata?format=json";
 const conformanceGet = new XMLHttpRequest();
 conformanceGet.open("GET", conformanceUri);
 conformanceGet.setRequestHeader("Content-Type", "application/json");
+conformanceGet.setRequestHeader("Accept", "application/json");
 conformanceGet.responseType = "text";
 conformanceGet.overrideMimeType("application/json");
 
