@@ -42,10 +42,18 @@ const pat = fetch(tokenUri, {
   .then(res => res.json())
   // should get back the access token and maybe the patient ID
   .then(function (auth_response) {
-    const appContext = {
-        template: auth_response.template,
-        request: serviceUri + '/' + auth_response.request
+      console.log(auth_response);
+      console.log(auth_response.appContext);
+      
+
+      const appContext = {
+        template: auth_response.appContext.split("&")[0].split("=")[1],
+        request: serviceUri + '/' + auth_response.appContext.split("&")[1].split("=")[1]
       }
+    // const appContext = {
+    //     template: auth_response.template,
+    //     request: serviceUri + '/' + auth_response.request
+    //   }
       // hardcoded smart, should be set up with context stuff
       var smart = FHIR.client({
         serviceUrl: serviceUri,
