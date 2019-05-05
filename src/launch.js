@@ -1,5 +1,5 @@
 import urlUtils from "./util/url";
-const fetch = require("node-fetch");
+import fetch from "node-fetch";
 
 // Change this to the ID of the client that you registered with the SMART on FHIR authorization server.
 var clientId = "7c47a01b-b7d8-41cf-a290-8ed607108e70";
