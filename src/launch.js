@@ -29,7 +29,7 @@ var launchUri = window.location.protocol + "//" + window.location.host + window.
 var redirectUri = launchUri.replace("launch", "index");
 
 // FHIR Service Conformance Statement URL
-var conformanceUri = serviceUri + "/metadata";
+var conformanceUri = serviceUri + "/metadata?format=json";
 
 // Let's request the conformance statement from the SMART on FHIR API server and
 // find out the endpoint URLs for the authorization server
