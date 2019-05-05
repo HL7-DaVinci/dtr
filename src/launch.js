@@ -38,7 +38,9 @@ conformanceGet.open("GET", conformanceUri);
 conformanceGet.onload = function() {
   if (conformanceGet.status === 200) {
     let conformanceStatement;
+    console.log(conformanceGet);
     try {
+
       conformanceStatement = JSON.parse(conformanceGet.responseText);
     } catch (e) {
       const errorMsg = "Unable to parse conformance statement.";
