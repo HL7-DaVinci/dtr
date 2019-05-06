@@ -1,5 +1,7 @@
 import urlUtils from "./util/url";
 import fetch from "node-fetch";
+require('es6-promise').polyfill();
+require('isomorphic-fetch');
 
 if (!Function.prototype.bind) {
     Function.prototype.bind = function(oThis) {
