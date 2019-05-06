@@ -24,6 +24,7 @@
     "webpack-merge": "^4.1.4"
   },
   "dependencies": {
+    "axios": "^0.18.0",
     "bootstrap": "^4.3.1",
     "core-js": "^2.5.7",
     "cql-exec-fhir": "^1.2.0",

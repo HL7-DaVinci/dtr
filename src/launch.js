@@ -1,32 +1,5 @@
 import urlUtils from "./util/url";
-import fetch from "node-fetch";
-require('es6-promise').polyfill();
-require('isomorphic-fetch');
-
-if (!Function.prototype.bind) {
-    Function.prototype.bind = function(oThis) {
-      if (typeof this !== 'function') {
-        // closest thing possible to the ECMAScript 5
-        // internal IsCallable function
-        throw new TypeError('Function.prototype.bind - what is trying to be bound is not callable');
-      }
-  
-      var aArgs   = Array.prototype.slice.call(arguments, 1),
-          fToBind = this,
-          fNOP    = function() {},
-          fBound  = function() {
-            return fToBind.apply(this instanceof fNOP && oThis
-                   ? this
-                   : oThis,
-                   aArgs.concat(Array.prototype.slice.call(arguments)));
-          };
-  
-      fNOP.prototype = this.prototype;
-      fBound.prototype = new fNOP();
-  
-      return fBound;
-    };
-  }
+import axios from 'axios';
 // Change this to the ID of the client that you registered with the SMART on FHIR authorization server.
 var clientId = "7c47a01b-b7d8-41cf-a290-8ed607108e70";
 
@@ -35,7 +8,7 @@ var clientId = "7c47a01b-b7d8-41cf-a290-8ed607108e70";
 // app (in reality it cannot be confidential, since it cannot keep secrets in the
 // browser)
 var secret = null; // set me, if confidential
-
+console.log("boot");
 // These parameters will be received at launch time in the URL
 var serviceUri = urlUtils.getUrlParameter("iss");
 var launchContextId = urlUtils.getUrlParameter("launch");
@@ -57,23 +30,15 @@ var redirectUri = launchUri.replace("launch", "index");
 
 // FHIR Service Conformance Statement URL
 var conformanceUri = serviceUri + "/metadata?format=json";
-fetch(conformanceUri, {
-    "headers": {
-        "Content-Type": "application/json",
-        "Accept": "application/json"
-    },
-    "method": "GET"
-}).then((response)=>{
-    console.log(response);
-    return response.json();
-
-}).then((json)=>{
-    console.log(json);
-    redirect(json);
-}).catch((e)=>{console.log(e);});
+var headers = {
+  "Content-Type": "application/json",
+  "Accept": "application/json"
+}
+axios.get(conformanceUri,{headers: headers}).then((response)=>{redirect(response.data);})
 // Let's request the conformance statement from the SMART on FHIR API server and
 // find out the endpoint URLs for the authorization server
-// const conformanceGet = new XMLHttpRequest();
+//   let conformanceStatement;
+//   const conformanceGet = new XMLHttpRequest();
 // conformanceGet.open("GET", conformanceUri);
 // conformanceGet.setRequestHeader("Content-Type", "application/json");
 // conformanceGet.setRequestHeader("Accept", "application/json");
@@ -83,8 +48,6 @@ fetch(conformanceUri, {
 
 // conformanceGet.onload = function() {
 //   if (conformanceGet.status === 200) {
-//     let conformanceStatement;
-//     console.log(conformanceGet);
 //     try {
 
 //       conformanceStatement = JSON.parse(conformanceGet.responseText);
