@@ -30,7 +30,7 @@ var launchUri = window.location.protocol + "//" + window.location.host + window.
 var redirectUri = launchUri.replace("launch", "index");
 
 // FHIR Service Conformance Statement URL
-var conformanceUri = serviceUri + "/metadata?format=JSON";
+var conformanceUri = serviceUri + "/metadata?format=json";
 fetch(conformanceUri, {
     "headers": {
         "Content-Type": "application/json",
