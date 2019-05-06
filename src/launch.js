@@ -1,5 +1,5 @@
 import urlUtils from "./util/url";
-import axios from 'axios';
+
 // Change this to the ID of the client that you registered with the SMART on FHIR authorization server.
 var clientId = "7c47a01b-b7d8-41cf-a290-8ed607108e70";
 
@@ -8,7 +8,7 @@ var clientId = "7c47a01b-b7d8-41cf-a290-8ed607108e70";
 // app (in reality it cannot be confidential, since it cannot keep secrets in the
 // browser)
 var secret = null; // set me, if confidential
-console.log("boot");
+
 // These parameters will be received at launch time in the URL
 var serviceUri = urlUtils.getUrlParameter("iss");
 var launchContextId = urlUtils.getUrlParameter("launch");
@@ -30,42 +30,38 @@ var redirectUri = launchUri.replace("launch", "index");
 
 // FHIR Service Conformance Statement URL
 var conformanceUri = serviceUri + "/metadata?format=json";
-var headers = {
-  "Content-Type": "application/json",
-  "Accept": "application/json"
-}
-axios.get(conformanceUri,{headers: headers}).then((response)=>{redirect(response.data);})
+
 // Let's request the conformance statement from the SMART on FHIR API server and
 // find out the endpoint URLs for the authorization server
-//   let conformanceStatement;
-//   const conformanceGet = new XMLHttpRequest();
-// conformanceGet.open("GET", conformanceUri);
-// conformanceGet.setRequestHeader("Content-Type", "application/json");
-// conformanceGet.setRequestHeader("Accept", "application/json");
-// conformanceGet.responseType = "text";
-// conformanceGet.overrideMimeType("application/json");
+let conformanceStatement;
+const conformanceGet = new XMLHttpRequest();
+conformanceGet.open("GET", conformanceUri);
+conformanceGet.setRequestHeader("Content-Type", "application/json");
+conformanceGet.setRequestHeader("Accept", "application/json");
+conformanceGet.responseType = "text";
+conformanceGet.overrideMimeType("application/json");
 
 
-// conformanceGet.onload = function() {
-//   if (conformanceGet.status === 200) {
-//     try {
+conformanceGet.onload = function() {
+  if (conformanceGet.status === 200) {
+    try {
 
-//       conformanceStatement = JSON.parse(conformanceGet.responseText);
-//     } catch (e) {
-//       const errorMsg = "Unable to parse conformance statement.";
-//       document.body.innerText = errorMsg;
-//       console.error(errorMsg);
-//       return;
-//     }
-//     redirect(conformanceStatement);
-//   } else {
-//     const errorMsg = "Conformance statement request failed. Returned status: " + conformanceGet.status;
-//     document.body.innerText = errorMsg;
-//     console.error(errorMsg);
-//     return;
-//   }
-// };
-// conformanceGet.send();
+      conformanceStatement = JSON.parse(conformanceGet.responseText);
+    } catch (e) {
+      const errorMsg = "Unable to parse conformance statement.";
+      document.body.innerText = errorMsg;
+      console.error(errorMsg);
+      return;
+    }
+    redirect(conformanceStatement);
+  } else {
+    const errorMsg = "Conformance statement request failed. Returned status: " + conformanceGet.status;
+    document.body.innerText = errorMsg;
+    console.error(errorMsg);
+    return;
+  }
+};
+conformanceGet.send();
 
 function redirect(conformanceStatement) {
   var authUri, tokenUri;
