@@ -29,7 +29,7 @@ var launchUri = window.location.protocol + "//" + window.location.host + window.
 var redirectUri = launchUri.replace("launch", "index");
 
 // FHIR Service Conformance Statement URL
-var conformanceUri = serviceUri + "/metadata?format=json";
+var conformanceUri = serviceUri + "/metadata?_format=json";
 
 // Let's request the conformance statement from the SMART on FHIR API server and
 // find out the endpoint URLs for the authorization server
@@ -38,9 +38,6 @@ const conformanceGet = new XMLHttpRequest();
 conformanceGet.open("GET", conformanceUri);
 conformanceGet.setRequestHeader("Content-Type", "application/json");
 conformanceGet.setRequestHeader("Accept", "application/json");
-conformanceGet.responseType = "text";
-conformanceGet.overrideMimeType("application/json");
-
 
 conformanceGet.onload = function() {
   if (conformanceGet.status === 200) {
