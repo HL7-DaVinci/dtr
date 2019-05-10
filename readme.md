@@ -1,7 +1,5 @@
 # DTR SMART on FHIR App
-This subproject contains a SMART on FHIR app, which provides a standardized way to interact with FHIR servers.  
-
-This Reference Impementation (RI) supports the **Documentation Templates and Rules** (DTR) Implementation Guide (IG) which specifies how payer rules can be executed in a provider context to ensure that documentation requirements are met. This RI and IG are companions to the **Coverage Requirements Discovery** (CRD) IG and RI.
+This subproject contains a SMART on FHIR app, which provides a standardized way to interact with FHIR servers. This Reference Impementation (RI) supports the **[Documents Templates and Rules (DTR) IG](http://build.fhir.org/ig/HL7/davinci-dtr/)** which specifies how payer rules can be executed in a provider context to ensure that documentation requirements are met. This RI and IG are companions to the **[Coverage Requirements Discovery (CRD) IG](http://build.fhir.org/ig/HL7/davinci-dtr/)** and **[Coverage Requirements Discovery (CRD) RI](https://github.com/HL7-DaVinci/CRD)**.
 
 # Getting Started
 
@@ -36,13 +34,17 @@ http://localhost:3005/launch?iss=http://launch.smarthealthit.org/v/r2/fhir/&pati
 
 Make sure you have all five applications running (**[Request Generator](https://github.com/HL7-DaVinci/crd-request-generator), [EHR (FHIR) Server](https://github.com/HL7-DaVinci/CRD/tree/master/ehr-server), [CRD Server](https://github.com/HL7-DaVinci/CRD), [DTR Server](https://github.com/HL7-DaVinci/dtr),** and **[KeyCloak  Server](https://github.com/HL7-DaVinci/CRD#setting-up-a-keycloak-instance)**) to test the full SMART on FHIR App launch sequence. 
 
-Note: If you have your own EHR the you should not need to run the EHR (FHIR) Server, KeyCloak and the Request Generator. 
- 
-1. First, make sure the **EHR** server runs and has the data it needs by running `gradle loadData` to populate it. Note: The EHR server needs to be running before running `gradle loadData`. 
+_Note: If you have your own EHR the you should not need to run the EHR (FHIR) Server, KeyCloak and the Request Generator._ 
 
-2. Then, run the **KeyCloak** server. Follow the guide in the KeyCloak readme if you have never set it up before, make the appropriate realm/client/user. _Note: You might need to modify the **frame-ancesters** setting in the KeyCloak admin: e.g. Realm | Security Defences | Content-Security-Policy = frame-src 'self'; **frame-ancesters http://localhost:***; object-src 'none';_     
+1. Remove the **target** folder (if it exists) in the **EHR** server folder.
+   
+2. Start the **EHR** server.
 
-3. Then run the **CRD** server and the **DTR** server and the **Request Generator**.
+3. Make sure the **EHR** server has the data it needs by running `gradle loadData` to populate it.
+
+4. Then, run the **KeyCloak** server. Follow the guide in the KeyCloak readme if you have never set it up before, make the appropriate **realm/client/user**. _Note: You might need to modify the **frame-ancesters** setting in the KeyCloak admin: e.g. Realm | Security Defences | Content-Security-Policy = frame-src 'self'; **frame-ancesters http://localhost:***; object-src 'none';_     
+
+5. Then run the **CRD** server, **DTR** server, and **Request Generator**.
  
 You should be able to send a request from the Request Generator's master branch for the SMART app launch by clicking the `Dara` button to pre-populate the inputs.  Check `include prefetch` and send the request, you should get a CDS Hooks Card back. Click the SMART link and you should see a login screen.  Login with whatever user you've registered, and the SMART App should proceed to launch.
 
