@@ -5,6 +5,7 @@ import cqlfhir from "cql-exec-fhir";
 import executeElm from "./elmExecutor/executeElm";
 import fetchArtifacts from "./util/fetchArtifacts";
 import QuestionnaireForm from "./components/QuestionnaireForm/QuestionnaireForm";
+import Testing from "./components/ConsoleBox/Testing";
 // import sample from './sample_questionnaire.json';
 class App extends Component {
   constructor(props) {
@@ -13,32 +14,46 @@ class App extends Component {
       questionnaire: null,
       cqlPrepoulationResults: null,
       deviceRequest: null,
-      bundle: null
+      bundle: null,
+      logs: []
     }
     this.smart = props.smart;
+    this.consoleLog = this.consoleLog.bind(this);
   }
 
   componentDidMount(){
     const fhirWrapper = cqlfhir.FHIRWrapper.FHIRv300();
-    fetchArtifacts(this.props.FHIR_URI_PREFIX, this.props.questionnaireUri, this.smart, this.props.deviceRequestUri)
+    this.consoleLog("fetching artifacts", "infoClass");
+    fetchArtifacts(this.props.FHIR_URI_PREFIX, this.props.questionnaireUri, this.smart, this.consoleLog)
     .then(artifacts => {
       console.log("fetched needed artifacts:", artifacts)
       this.setState({questionnaire: artifacts.questionnaire})
-      this.setState({deviceRequest: artifacts.deviceRequest})
+      this.setState({deviceRequest: this.props.deviceRequest})
       const executionInputs = {
         elm: artifacts.mainLibraryElm,
         elmDependencies: artifacts.dependentElms,
         valueSetDB: {},
-        parameters: {device_request: fhirWrapper.wrap(artifacts.deviceRequest)}
+        parameters: {device_request: fhirWrapper.wrap(this.props.deviceRequest)}
       }
-      return executeElm(this.smart, "stu3", executionInputs);
+      this.consoleLog("executing elm", "infoClass");
+      return executeElm(this.smart, "stu3", executionInputs, this.consoleLog);
     })
     .then(cqlResults => {
-      console.log("executed cql, result:", cqlResults);
+      this.consoleLog("executed cql, result:"+JSON.stringify(cqlResults),"infoClass");
       this.setState({bundle: cqlResults.bundle})
       this.setState({cqlPrepoulationResults: cqlResults.elmResults})
     });
   }
+
+  consoleLog(content, type) {
+    let jsonContent = {
+        content: content,
+        type: type
+    }
+    this.setState(prevState => ({
+        logs: [...prevState.logs, jsonContent]
+    }))
+   }
 
   render() {
     if (this.state.questionnaire && this.state.cqlPrepoulationResults && this.state.bundle){
@@ -51,6 +66,7 @@ class App extends Component {
       return (
         <div className="App">
             <p>Loading...</p>
+            <Testing logs = {this.state.logs}/>
         </div>
       );
     }

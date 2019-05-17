@@ -70,12 +70,17 @@ function processError(smart, callback) {
   };
 }
 
-function buildPopulatedResourceBundle(smart, neededResources) {
+function buildPopulatedResourceBundle(smart, neededResources, consoleLog) {
   return new Promise(function(resolve, reject){
     console.log("waiting for patient");
+    consoleLog("waiting for patient","infoClass");
+
+    console.log(smart);
+    consoleLog(smart.patient.id, "infoClass");
     smart.patient.read().then(
       pt => {
         console.log("got pt", pt);
+        consoleLog("got pt:" + pt, "infoClass");
         const entryResources = [pt];
         const readResources = (neededResources, callback) => {
           const r = neededResources.pop();
@@ -90,6 +95,7 @@ function buildPopulatedResourceBundle(smart, neededResources) {
               }
               if (error) {
                 console.error(error);
+                consoleLog(error.data.statusText,"errorClass");
               }
               readResources(neededResources, callback);
             });
@@ -106,7 +112,8 @@ function buildPopulatedResourceBundle(smart, neededResources) {
         });
       },
       error => {
-        console.log("error: ", error);
+          consoleLog("error: " + error, "errorClass");
+        console.log(error);
         reject(error);
       }
     );

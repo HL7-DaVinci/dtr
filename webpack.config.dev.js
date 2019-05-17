@@ -5,9 +5,18 @@ const common = require("./webpack.config.common.js");
 
 module.exports = merge(common, {
   mode: "development",
+  module: {
+      rules: [
+          {
+              test: /\.js$/,
+              loader:'babel-loader'
+          }
+      ]
+  },
   devServer: {
     contentBase: path.resolve(__dirname, "public"),
     port: 3005,
+    https:true,
     public: "0.0.0.0",
     hotOnly: true,
     historyApiFallback: {
@@ -16,13 +25,13 @@ module.exports = merge(common, {
           { from: /launch/, to: '/launch.html' }
         ]
       },
-    proxy: {
-      '/fetchFhirUri': {
-          target: 'http://localhost:8090',
-          changeOrigin: true,
-          secure: false
-      }
-    }
+    // proxy: {
+    //   '/fetchFhirUri': {
+    //       target: 'http://localhost:8090',
+    //       changeOrigin: true,
+    //       secure: false
+    //   }
+    // }
   },
   plugins: [new webpack.HotModuleReplacementPlugin()]
 });
