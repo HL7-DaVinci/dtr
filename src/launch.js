@@ -1,8 +1,10 @@
 import urlUtils from "./util/url";
 
 // Change this to the ID of the client that you registered with the SMART on FHIR authorization server.
-var clientId = "7c47a01b-b7d8-41cf-a290-8ed607108e70";
-
+var clientId = "7c47a01b-b7d8-41cf-a290-8ed607108e70"; // RUSH Epic client id
+// var clientId = "c7ecff8d-5e91-48f2-b22e-f423c0c4c009"; // app orchard test client
+// var clientId = "20f831e3-a99b-4de0-8473-b334bd31b448"; // app orchard client
+// var clientId = "app-login"; // local client
 // For demonstration purposes, if you registered a confidential client
 // you can enter its secret here. The demo app will pretend it's a confidential
 // app (in reality it cannot be confidential, since it cannot keep secrets in the
@@ -17,7 +19,7 @@ var launchContextId = urlUtils.getUrlParameter("launch");
 // encoded in a space-separated string:
 //      1. permission to read all of the patient's record
 //      2. permission to launch the app in the specific context
-var scope = ["patient/*.read", "launch"].join(" ");
+var scope = ["launch"].join(" ");
 
 // Generate a unique session key string (here we just generate a random number
 // for simplicity, but this is not 100% collision-proof)
@@ -85,6 +87,7 @@ function redirect(conformanceStatement) {
 
   // finally, redirect the browser to the authorizatin server and pass the needed
   // parameters for the authorization request in the URL
+  console.log(encodeURIComponent(scope));
   window.location.href =
     authUri +
     "?" +

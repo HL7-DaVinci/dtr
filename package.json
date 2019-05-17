@@ -40,7 +40,7 @@
     "regenerator-runtime": "^0.12.1",
     "whatwg-fetch": "^3.0.0"
   },
-  "browserslist": [
+  "browsersList": [
     "last 4 firefox versions",
     "last 4 chrome versions",
     "ie >= 10",

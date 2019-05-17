@@ -1,7 +1,8 @@
-function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, deviceRequestIdOrUrl) {
+function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, consoleLog) {
   return new Promise(function(resolve, reject) {
     function handleFetchErrors(response) {
       if (!response.ok) {
+          consoleLog("failed to get resource","errorClass");
         reject("Failure when fetching resource.");
       }
       return response;
@@ -13,42 +14,46 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, deviceRequestIdO
     const retVal = {
       questionnaire: null,
       mainLibraryElm: null,
-      dependentElms: [],
-      deviceRequest: null
+      dependentElms: []
     }
 
     function resolveIfDone(){
       if (pendingFetches != 0) return;
-      if (retVal.questionnaire && retVal.mainLibraryElm && retVal.deviceRequest) resolve(retVal)
+      if (retVal.questionnaire && retVal.mainLibraryElm) resolve(retVal)
       else reject("Failed to fetch all artifacts.")
     }
 
     //fetch questionnaire and all elms
     var questionnaireUrl = fhirUriPrefix+encodeURIComponent(questionnaireUri);
     pendingFetches += 1;
+    consoleLog("fetching questionairre and elms", "infoClass");
+    consoleLog(questionnaireUrl, "infoClass");
     fetch(questionnaireUrl).then(handleFetchErrors).then(r => r.json())
     .then(questionnaire => {
+      consoleLog("fetched questionnaire successfully","infoClass");
       retVal.questionnaire = questionnaire;
       fetchedUris.add(questionnaireUri)
       const mainElmUri = questionnaire.extension.filter(ext => ext.url == "http://hl7.org/fhir/StructureDefinition/cqif-library")[0].valueReference.reference;
       fetchElm(mainElmUri, true)
       pendingFetches -= 1;
+      consoleLog("fetched elms", "infoClass");
+
     })
     .catch(err => reject(err));
 
     // fetch device request
-    if (deviceRequestIdOrUrl.includes("DeviceRequest/")){
-      deviceRequestIdOrUrl.indexOf("DeviceRequest/");
-      deviceRequestIdOrUrl = deviceRequestIdOrUrl.substr(deviceRequestIdOrUrl.indexOf("DeviceRequest/") + 14)
-    }
-    pendingFetches += 1;
-    smart.patient.api.read({type: "DeviceRequest", id: deviceRequestIdOrUrl})
-    .then(response => {
-      pendingFetches -= 1;
-      if (response.status !== "success") reject("Failed ot fetch device request.");
-      retVal.deviceRequest = response.data;
-      resolveIfDone()
-    }, err => reject(err))
+    // if (deviceRequestIdOrUrl.includes("DeviceRequest/")){
+    //   deviceRequestIdOrUrl.indexOf("DeviceRequest/");
+    //   deviceRequestIdOrUrl = deviceRequestIdOrUrl.substr(deviceRequestIdOrUrl.indexOf("DeviceRequest/") + 14)
+    // }
+    // pendingFetches += 1;
+    // smart.patient.api.read({type: "DeviceRequest", id: deviceRequestIdOrUrl})
+    // .then(response => {
+    //   pendingFetches -= 1;
+    //   if (response.status !== "success") reject("Failed ot fetch device request.");
+    //   retVal.deviceRequest = response.data;
+    //   resolveIfDone()
+    // }, err => reject(err))
 
     function fetchElm(libraryUri, isMain = false){
       if (libraryUri in fetchedUris) return;
@@ -59,6 +64,7 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, deviceRequestIdO
         fetchedUris.add(libraryUri);
         fetchRelatedElms(libraryResource);
         fetchElmFile(libraryResource, isMain);
+        consoleLog("fetched Elm","infoClass");
         pendingFetches -= 1;
       })
       .catch(err => reject(err));
