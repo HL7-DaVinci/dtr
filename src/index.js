@@ -19,8 +19,8 @@ const redirectUri = params.redirectUri;
 console.log(1);
 // This endpoint available when deployed in CRD server, for development we have
 // the proxy set up in webpack.config.dev.js so the CRD server needs to be running
-// const FHIR_URI_PREFIX = "../../fetchFhirUri/";
-const FHIR_URI_PREFIX = "https://dry-temple-63581.herokuapp.com/fetchFhirUri/";
+const FHIR_URI_PREFIX = "../../fetchFhirUri/";
+// const FHIR_URI_PREFIX = "https://dry-temple-63581.herokuapp.com/fetchFhirUri/";
 var data = `code=${code}&grant_type=authorization_code&redirect_uri=${redirectUri}`
 // const data = new URLSearchParams();
 // data.append("code", code);
@@ -92,49 +92,3 @@ tokenPost.onload = function() {
     }
   };
 tokenPost.send(data);
-// const pat = fetch(tokenUri, {
-//   method: "POST",
-//   headers: headers,
-//   body: data.toString()
-// })
-//   .then((res) => {res.json()})
-//   // should get back the access token and maybe the patient ID
-//   .then(function (auth_response) {
-//       console.log(auth_response);
-//       console.log(auth_response.appContext);
-      
-
-//       const appContext = {
-//         template: auth_response.appContext.split("&")[0].split("=")[1],
-//         request: serviceUri + '/' + auth_response.appContext.split("&")[1].split("=")[1]
-//       }
-//     // const appContext = {
-//     //     template: auth_response.template,
-//     //     request: serviceUri + '/' + auth_response.request
-//     //   }
-//       // hardcoded smart, should be set up with context stuff
-//       var smart = FHIR.client({
-//         serviceUrl: serviceUri,
-//         patientId: auth_response.patient
-//       });
-      
-      
-//       ReactDOM.render(
-//         <App
-//           FHIR_URI_PREFIX={FHIR_URI_PREFIX}
-//           questionnaireUri={appContext.template}
-//           smart={smart}
-//           deviceRequestUri={appContext.request}
-//         />,
-//         document.getElementById("root")
-//       );
-//       console.log(auth_response);
-//     const patientId = auth_response.patient;
-//     if (patientId == null) {
-//       const errorMsg = "Failed to get a patientId from the app params or the authorization response.";
-//       document.body.innerText = errorMsg;
-//       console.error(errorMsg);
-//       return;
-//     }
-//     return patientId;
-//   });
