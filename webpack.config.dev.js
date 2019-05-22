@@ -25,13 +25,13 @@ module.exports = merge(common, {
           { from: /launch/, to: '/launch.html' }
         ]
       },
-    // proxy: {
-    //   '/fetchFhirUri': {
-    //       target: 'http://localhost:8090',
-    //       changeOrigin: true,
-    //       secure: false
-    //   }
-    // }
+    proxy: {
+      '/fetchFhirUri': {
+        target: 'http://localhost:8090',
+        changeOrigin: true,
+        secure: false
+      }
+    }
   },
   plugins: [new webpack.HotModuleReplacementPlugin()]
 });
