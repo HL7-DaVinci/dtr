@@ -24,7 +24,7 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, filepath, consol
     }
 
     var fhirResources = false;
-    if (filepath == null || filepath == "") {
+    if (filepath == null || filepath == "" || filepath == "_") {
       console.log("fhir resources mode");
       fhirResources = true;
     }
