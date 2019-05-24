@@ -494,7 +494,7 @@ export default class QuestionnaireForm extends Component {
             if (entry.resource.resourceType == "Condition") {
                 priorAuthClaim.diagnosis.push({
                     sequence: sequence++,
-                    diagnosisReference: "Condition/" + entry.resource.id
+                    diagnosisReference: { reference: "Condition/" + entry.resource.id }
                 });
             }
         })
