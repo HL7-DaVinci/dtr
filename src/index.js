@@ -16,7 +16,6 @@ const clientId = params.clientId;
 const secret = params.secret;
 const serviceUri = params.serviceUri;
 const redirectUri = params.redirectUri;
-console.log(1);
 // This endpoint available when deployed in CRD server, for development we have
 // the proxy set up in webpack.config.dev.js so the CRD server needs to be running
 const FHIR_URI_PREFIX = "../../fetchFhirUri/";
@@ -33,7 +32,6 @@ const headers = {
 };
 if (secret) headers["Authorization"] = "Basic " + btoa(clientId + ":" + secret);
 
-console.log(2);
 // obtain authorization token from the authorization service using the authorization code
 const tokenPost = new XMLHttpRequest();
 var auth_response;
@@ -54,7 +52,8 @@ tokenPost.onload = function() {
       const appString = decodeURIComponent(auth_response.appContext);
       const appContext = {
         template: appString.split("&")[0].split("=")[1],
-        request: JSON.parse(appString.split("&")[1].split("=")[1].replace(/\\/g,""))
+        request: JSON.parse(appString.split("&")[1].split("=")[1].replace(/\\/g,"")),
+        filepath: auth_response.appContext.split("&")[2].split("=")[1]
       }
       
         var smart = FHIR.client({
@@ -68,10 +67,11 @@ tokenPost.onload = function() {
         });
         ReactDOM.render(
         <App
-            FHIR_URI_PREFIX={FHIR_URI_PREFIX}
-            questionnaireUri={appContext.template}
-            smart={smart}
-            deviceRequest={appContext.request}
+          FHIR_URI_PREFIX={FHIR_URI_PREFIX}
+          questionnaireUri={appContext.template}
+          smart={smart}
+          deviceRequest={appContext.request}
+          filepath={appContext.filepath}
         />,
         document.getElementById("root")
         );
@@ -92,3 +92,4 @@ tokenPost.onload = function() {
     }
   };
 tokenPost.send(data);
+

@@ -1,4 +1,4 @@
-function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, consoleLog) {
+function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, filepath, consoleLog) {
   return new Promise(function(resolve, reject) {
     function handleFetchErrors(response) {
       if (!response.ok) {
@@ -23,8 +23,18 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, consoleLog) {
       else reject("Failed to fetch all artifacts.")
     }
 
+    var fhirResources = false;
+    if (filepath == null || filepath == "" || filepath == "_") {
+      console.log("fhir resources mode");
+      fhirResources = true;
+    }
+
     //fetch questionnaire and all elms
     var questionnaireUrl = fhirUriPrefix+encodeURIComponent(questionnaireUri);
+    if (!fhirResources) {
+      questionnaireUrl = filepath + "/" + stripFilenameFromURI(questionnaireUri) + ".json";
+    }
+
     pendingFetches += 1;
     consoleLog("fetching questionairre and elms", "infoClass");
     consoleLog(questionnaireUrl, "infoClass");
@@ -58,6 +68,10 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, consoleLog) {
     function fetchElm(libraryUri, isMain = false){
       if (libraryUri in fetchedUris) return;
       let libraryUrl = fhirUriPrefix+encodeURIComponent(libraryUri);
+      if (!fhirResources) {
+        libraryUrl = filepath + "/" + stripFilenameFromURI(libraryUri) + ".json";
+      }
+
       pendingFetches += 1;
       fetch(libraryUrl).then(handleFetchErrors).then(r => r.json())
       .then(libraryResource => {
@@ -80,6 +94,10 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, consoleLog) {
       const elmUri = libraryResource.content.filter(c => c.contentType == "application/elm+json")[0].url;
       if (elmUri in fetchedUris) return;
       let elmUrl = fhirUriPrefix+encodeURIComponent(elmUri);
+      if (!fhirResources) {
+        elmUrl = filepath + "/" + stripFilenameFromURI(elmUri);
+      }
+
       pendingFetches += 1;
       fetch(elmUrl).then(handleFetchErrors).then(r => r.json())
       .then(elm => {
@@ -92,6 +110,11 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, consoleLog) {
       .catch(err => reject(err));
     }
   });
+}
+
+function stripFilenameFromURI(uri) {
+  console.log("stripFilenameFromURI (for fetching): " + uri);
+  return uri.substr(uri.lastIndexOf(":")+1);
 }
 
 export default fetchArtifacts;

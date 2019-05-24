@@ -24,7 +24,7 @@ class App extends Component {
   componentDidMount(){
     const fhirWrapper = cqlfhir.FHIRWrapper.FHIRv300();
     this.consoleLog("fetching artifacts", "infoClass");
-    fetchArtifacts(this.props.FHIR_URI_PREFIX, this.props.questionnaireUri, this.smart, this.consoleLog)
+    fetchArtifacts(this.props.FHIR_URI_PREFIX, this.props.questionnaireUri, this.smart, this.props.filepath, this.consoleLog)
     .then(artifacts => {
       console.log("fetched needed artifacts:", artifacts)
       this.setState({questionnaire: artifacts.questionnaire})
