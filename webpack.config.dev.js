@@ -30,7 +30,7 @@ module.exports = merge(common, {
       context: ['/fetchFhirUri', '/getfile'],
       target: 'https://davinci-crd.logicahealth.org',
       changeOrigin: true,
-      secure: false
+      secure: true
     }]
   },
   plugins: [new webpack.HotModuleReplacementPlugin()]
