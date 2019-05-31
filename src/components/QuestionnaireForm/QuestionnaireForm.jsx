@@ -9,7 +9,10 @@ import BooleanInput from '../Inputs/BooleanInput/BooleanInput';
 import QuantityInput from '../Inputs/QuantityInput/QuantityInput';
 import { findValueByPrefix } from '../../util/util.js';
 import OpenChoice from '../Inputs/OpenChoiceInput/OpenChoice';
+import SendDMEOrder from "../../util/DMEOrders";
 
+// Note: code to enable/disable DMEOrders
+var dMEOrdersEnabled = true;   
 
 export default class QuestionnaireForm extends Component {
     constructor(props) {
@@ -454,6 +457,10 @@ export default class QuestionnaireForm extends Component {
         });
         console.log(response);
 
+        // Note: code to test DMEOrders
+        if (dMEOrdersEnabled) 
+            SendDMEOrder(this, response);
+
         const priorAuthBundle = JSON.parse(JSON.stringify(this.props.bundle));
         priorAuthBundle.entry.unshift({ resource: this.props.deviceRequest })
         priorAuthBundle.entry.unshift({ resource: response })
@@ -521,7 +528,7 @@ export default class QuestionnaireForm extends Component {
                 }
                 console.log(message);
                 alert(message);
-                console.log(this.responseText);
+                console.log(this.responseText);                              
             }
         }
     }
