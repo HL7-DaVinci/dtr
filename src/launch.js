@@ -1,7 +1,7 @@
 import urlUtils from "./util/url";
+let storedJSON = JSON.parse(localStorage.getItem("dtrAppTempClientSet"));
 
-// Change this to the ID of the client that you registered with the SMART on FHIR authorization server.
-var clientId = "app-login"; // local client
+
 // For demonstration purposes, if you registered a confidential client
 // you can enter its secret here. The demo app will pretend it's a confidential
 // app (in reality it cannot be confidential, since it cannot keep secrets in the
@@ -11,6 +11,27 @@ var secret = null; // set me, if confidential
 // These parameters will be received at launch time in the URL
 var serviceUri = urlUtils.getUrlParameter("iss");
 var launchContextId = urlUtils.getUrlParameter("launch");
+
+// Change this to the ID of the client that you registered with the SMART on FHIR authorization server.
+var clientId = "default"; // local client
+
+
+console.log(serviceUri);
+localStorage.setItem("lastAccessedServiceUri", serviceUri);
+if(storedJSON) {
+    if(storedJSON[serviceUri]) {
+        clientId = storedJSON[serviceUri];
+    }else if(storedJSON["default"]){
+        clientId = storedJSON["default"];
+    }else{
+        const errorMsg = "no client id found in local storage, please go to the /register page to register a client id, or verify that the default clientId string in the code is correctly typed.";
+        document.body.innerText = errorMsg;
+        console.log("The app could not find the appropriate client ID");
+    }
+}else{
+    console.log("Unable to access local storage, try visiting /register if you haven't already");
+}
+
 
 // The scopes that the app will request from the authorization server
 // encoded in a space-separated string:

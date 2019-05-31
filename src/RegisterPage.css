@@ -1,0 +1,22 @@
+.client-id{
+    width: 200px;
+}
+
+.submit-btn{
+    display:block;
+    margin-top:15px;
+    background-color:white;
+    width:50px;
+    height:25px;
+}
+
+.bool-checkbox{
+    display:inline-block;
+    
+}
+
+.client-id:disabled {
+    color:#666;
+    background-color:#DDD;
+    border:2px solid #EEE;
+}
