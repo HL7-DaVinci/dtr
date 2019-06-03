@@ -194,8 +194,8 @@ function SendDMEOrder(qForm, response) {
     // send request
     //
     const Http = new XMLHttpRequest();
-    const dmeOrderUrl = "https://davinci-DME-Orders.logicahealth.org/fhir/ServiceRequest/$submit";
-    // const dmeOrderUrl = "http://localhost:9000/fhir/ServiceRequest/$submit";
+    // Note: this URL does not exist 
+    const dmeOrderUrl = "https://some-DME-Orders.domain.org/fhir/ServiceRequest/$submit";       
     Http.open("POST", dmeOrderUrl);
     Http.setRequestHeader("Content-Type", "application/fhir+json");
     Http.send(JSON.stringify(dmeOrderBundle));
