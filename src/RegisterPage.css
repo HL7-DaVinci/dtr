@@ -1,0 +1,59 @@
+.client-id{
+    width: 200px;
+}
+
+.submit-btn{
+    display:block;
+    margin-top:15px;
+    background-color:white;
+    width:50px;
+    height:25px;
+}
+
+.bool-checkbox{
+    display:inline-block;
+    
+}
+
+.client-id:disabled {
+    color:#666;
+    background-color:#DDD;
+    border:2px solid #EEE;
+}
+
+.left{
+    width:30%;
+    float:left;
+    display:block;
+    height:100%;
+}
+
+.sep{
+    width:60%;
+    float:left;
+    display:block;
+    height:100%;
+    margin-left: 15px;
+}
+
+.bold{
+    font-weight: bold;
+}
+
+.delete{
+    border:1px solid black;
+    font-family: monospace;
+    height:10px;
+    width:10px;
+    line-height:8px;
+    text-align:center;
+    margin-right:250px;
+    float:right;
+    background-color:#F33a5b;
+    color:white;
+    cursor:pointer;
+}
+
+.delete:hover{
+    background-color:#Fb5c8f;
+}
