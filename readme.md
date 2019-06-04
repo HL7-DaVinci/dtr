@@ -14,7 +14,7 @@ Install [node.js](https://nodejs.org/en/).
 3. Run `npm install`
 4. Run `npm start`
 
-The service will run on port 3005. This can be changed in `package.json` and `webpack.dev.config.js`.
+The service will run on port 3005. This can be changed in `package.json` and `webpack.dev.config.js`.  Note that the project uses `https` by default.  This can also be changed in `webpack.dev.config.js` by changing the `https` boolean.  There is currently no redirection between `https` and `http`, so using the wrong scheme in the url will result in an empty response.
 
 ## Using the App
 
