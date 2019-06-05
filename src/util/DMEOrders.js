@@ -13,11 +13,20 @@ function SendDMEOrder(qForm, response) {
 
     const serviceRequest =
     {
+        // DME Orders V1.2.xlsx - Row 2 (OK)
         resourceType: "ServiceRequest",
-        identifier: [{ value: create_UUID() }],
-        // Note: this is not currently unsupported
+
+        // DME Orders V1.2.xlsx - Row 5 (OK)
+        identifier: [{ "value": create_UUID() }],       
+       
+        // DME Orders V1.2.xlsx - Row 9 (NYS)
+        // Note: Not Yet Supported (NYS) in the SoF App
         replaces: { reference: "ServiceRequest/undefined" },
+        
+        // DME Orders V1.2.xlsx - Row 10 (?)
         requisition: [{ "value": create_UUID() }],
+        
+        // DME Orders V1.2.xlsx - Row 1 (OK)
         status: {
             coding: [{
                 system: "http://hl7.org/fhir/request-status",
@@ -25,6 +34,8 @@ function SendDMEOrder(qForm, response) {
                 display: "Active"
             }]
         },
+        
+        // DME Orders V1.2.xlsx - Row 13 (OK)
         intent: {
             coding: [{
                 system: "http://hl7.org/fhir/request-intent",
@@ -32,6 +43,9 @@ function SendDMEOrder(qForm, response) {
                 display: "Original Order"
             }]
         },
+                
+        // DME Orders V1.2.xlsx - Row 15 (NYS)
+        // Note: Not Yet Supported (NYS) in the SoF App
         // TODO: When the DME Orders IG is done, get this from appropriate ValueSet  
         category: {
             coding: [
@@ -42,6 +56,8 @@ function SendDMEOrder(qForm, response) {
                 }
             ]
         },
+        
+        // DME Orders V1.2.xlsx - Row 17 (OK)
         priority: {
             coding: [{
                 system: "http://hl7.org/fhir/request-priority",
@@ -49,24 +65,33 @@ function SendDMEOrder(qForm, response) {
                 display: "Routine"
             }]
         },
+        
+        // DME Orders V1.2.xlsx - Row 20 (OK)
         // Note: this gets populated below
         code: { coding: [] },
 
+        // DME Orders V1.2.xlsx - Row 22 (?)
         //
         // TODO: add orderDetail
         //
 
+        // DME Orders V1.2.xlsx - Row 25 (?)
         // TODO: get this from the DeviceRquest             
         quantityQuantity: 1,
 
+        // DME Orders V1.2.xlsx - Row 28 (OK)
         subject: { reference: qForm.makeReference(dmeOrderBundle, "Patient") },
 
+        // DME Orders V1.2.xlsx - Row 29 (OK)
         // Note: this gets populated below, because we might not have one
         encounter: [],
 
+        // DME Orders V1.2.xlsx - Row 31 (?)
         // TODO: get this from the UI
         occurrenceDateTime: getISODateString(),
 
+        // DME Orders V1.2.xlsx - Row 37 (NYS)
+        // Note: Not Yet Supported (NYS) in the SoF App
         // TODO: When the DME Orders IG is done, get this from appropriate ValueSet 
         asNeededCodeableConcept: {
             coding: [{
@@ -75,9 +100,16 @@ function SendDMEOrder(qForm, response) {
                 display: "High oxygen affinity hemoglobin polycythemia"
             }]
         },
+        
+        // DME Orders V1.2.xlsx - Row 38 (OK)       
         authoredOn: getISODateString(),
+        
+        // DME Orders V1.2.xlsx - Row 39 (OK)
         // Note: this gets populated below, because we might not have one
         requester: [],
+                 
+        // DME Orders V1.2.xlsx - Row 40 (NYS)
+        // Note: Not Yet Supported (NYS) in the SoF App
         // TODO: When the DME Orders IG is done, get this from appropriate ValueSet 
         performerType: {
             coding: [
@@ -88,8 +120,13 @@ function SendDMEOrder(qForm, response) {
                 }
             ]
         },
+        
+        // DME Orders V1.2.xlsx - Row 42 (OK)
         // Note: this gets populated below, because we might not have one
         performer: [],
+        
+        // DME Orders V1.2.xlsx - Row 43 (NYS)
+        // Note: Not Yet Supported (NYS) in the SoF App
         // TODO: When the DME Orders IG is done, get this from appropriate ValueSet  
         locationCode: {
             coding: [
@@ -100,9 +137,14 @@ function SendDMEOrder(qForm, response) {
                 }
             ]
         },
+        
+        // DME Orders V1.2.xlsx - Row 42 (OK)
         // Note: this gets populated below, because we might not have one
         locationReference: [],
-        // TODO: When the DME Orders IG is done, get this from appropriate ValueSet 
+        
+        // DME Orders V1.2.xlsx - Row 46 (NYS)
+        // Note: Not Yet Supported (NYS) in the SoF App
+        // TODO: When the DME Orders IG is done, get this from appropriate ValueSet  
         reasonCode: {
             coding: [
                 {
@@ -113,16 +155,21 @@ function SendDMEOrder(qForm, response) {
             ]
         },
 
+        // DME Orders V1.2.xlsx - Row 48 (?)
         // TODO: determine which resource to use: Reference(Condition | Observation | DiagnosticReport | DocumentReference)
         reasonReference: { reference: qForm.makeReference(dmeOrderBundle, "Observation") },
 
+        // DME Orders V1.2.xlsx - Row 49 (OK)
         // TODO: determine which resource to use: Reference(Coverage | ClaimReponse)
         insurance: { reference: qForm.makeReference(dmeOrderBundle, "Coverage") },
 
+        // DME Orders V1.2.xlsx - Row 50 (OK)
         // Note: this gets populated below, because we might not have one
         supportingInfo: [],
 
-        // TODO: When the DME Orders IG is done, get this from appropriate ValueSet 
+        // DME Orders V1.2.xlsx - Row 52 (NYS)
+        // Note: Not Yet Supported (NYS) in the SoF App
+        // TODO: When the DME Orders IG is done, get this from appropriate ValueSet  
         bodySite: {
             coding: [
                 {
@@ -133,17 +180,21 @@ function SendDMEOrder(qForm, response) {
             ]
         },
 
+        // DME Orders V1.2.xlsx - Row 54 (?)
         // TODO: get this Markdown from the UI
         note: {
             text: "It's very easy to make some words **bold** and other words *italic* with Markdown. You can even [link to Google!](http://google.com)"
         },
 
-        // TODO: get this from the UI
+        // DME Orders V1.2.xlsx - Row 55 (?)  
+        // TODO: get this from the UI      
         patientInstruction: "Test patient instruction",
 
+        // DME Orders V1.2.xlsx - Row 50 (OK)
         // Note: this gets populated below, because we might not have one
         relevantHistory: [],
 
+        // DME Orders V1.2.xlsx - Row 58-62 (?)  
         //
         // Add Extension stuff when the DME Orders IG is done
         //      
@@ -202,8 +253,7 @@ function SendDMEOrder(qForm, response) {
     Http.onreadystatechange = function () {
         if (this.readyState === XMLHttpRequest.DONE) {
             var message = "";
-            if (this.status === 200) {
-                //var dmeOrderResponse = JSON.parse(this.responseText);                
+            if (this.status === 200) {                               
                 message = "DME Order Request Success.";
             }
             else {
