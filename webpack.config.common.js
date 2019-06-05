@@ -32,7 +32,8 @@ module.exports = {
               [
                 "@babel/env",
                 {
-                  useBuiltIns: "usage"
+                  corejs: "2.0.0",
+                  useBuiltIns: "entry"
                 }
               ]
             ]
