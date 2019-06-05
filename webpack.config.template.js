@@ -15,7 +15,7 @@ module.exports = merge(common, {
   },
   devServer: {
     contentBase: path.resolve(__dirname, "public"),
-    port: 3005,
+    port: SERVER_PORT,
     https: false,
     public: "0.0.0.0",
     hotOnly: true,
@@ -27,7 +27,7 @@ module.exports = merge(common, {
       },
     proxy: [{
       context: ['/fetchFhirUri', '/getfile'],
-      target: 'https://davinci-crd.logicahealth.org',
+      target: 'PROXY_TARGET',
       changeOrigin: true,
       secure: false
     }]
