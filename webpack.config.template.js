@@ -16,13 +16,14 @@ module.exports = merge(common, {
   devServer: {
     contentBase: path.resolve(__dirname, "public"),
     port: SERVER_PORT,
-    https: false,
+    https: SERVER_HTTPS,
     public: "0.0.0.0",
     hotOnly: true,
     historyApiFallback: {
         rewrites: [
           { from: /index/, to: '/index.html' },
-          { from: /launch/, to: '/launch.html' }
+          { from: /launch/, to: '/launch.html' },
+          { from: /register/, to: '/register.html'}
         ]
       },
     proxy: [{

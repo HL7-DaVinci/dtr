@@ -5,7 +5,9 @@
   "scripts": {
     "build": "webpack --config ./webpack.config.prod.js --progress --colors",
     "start": "webpack-dev-server --config ./webpack.config.dev.js --host 0.0.0.0 --public davinci-dtr.logicahealth.org",
-    "startReg": "webpack-dev-server --config ./webpack.config.dev.js --port 3005",
+    "startDev": "webpack-dev-server --config ./webpack.config.dev.js --host 0.0.0.0 --public davinci-dtr.logicahealth.org",
+    "startProd": "webpack-dev-server --config ./webpack.config.prod.js --host 0.0.0.0 --public davinci-dtr.logicahealth.org",
+    "startTemplate": "webpack-dev-server --config ./webpack.config.run.js --host 0.0.0.0 --public davinci-dtr.logicahealth.org",
     "lint": "node ./node_modules/.bin/eslint --ext .js ./"
   },
   "devDependencies": {
