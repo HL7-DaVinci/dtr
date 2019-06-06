@@ -6,4 +6,4 @@ USER node
 RUN npm install
 COPY --chown=node:node . .
 EXPOSE 3005
-CMD [ "npm", "start" ]
+CMD [ "/home/node/app/run.sh" ]
