@@ -455,11 +455,7 @@ export default class QuestionnaireForm extends Component {
                 currentItem.push(answerItem);
             }
         });
-        console.log(response);
-
-        // Note: code to test DMEOrders
-        if (dMEOrdersEnabled) 
-            SendDMEOrder(this, response);
+        console.log(response);     
 
         const priorAuthBundle = JSON.parse(JSON.stringify(this.props.bundle));
         priorAuthBundle.entry.unshift({ resource: this.props.deviceRequest })
@@ -531,6 +527,11 @@ export default class QuestionnaireForm extends Component {
                 console.log(this.responseText);                              
             }
         }
+
+        // DME Orders
+        // TODO: should also check to see if PA was OK
+        if (dMEOrdersEnabled) 
+            SendDMEOrder(this, response);
     }
 
     isEmptyAnswer(answer) {
