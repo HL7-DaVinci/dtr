@@ -156,14 +156,14 @@ function SendDMEOrder(qForm, response) {
                     display: "Brachial plexus disorder"
                 }
             ]
-        },
+        },       
 
-        // DME Orders V1.2.xlsx - Row 48 (?)
-        // TODO: determine which resource to use: Reference(Condition | Observation | DiagnosticReport | DocumentReference)
-        reasonReference: { reference: qForm.makeReference(dmeOrderBundle, "Observation") },
+        // DME Orders V1.2.xlsx - Row 48
+        // Note: this gets populated below
+        reasonReference: [],
 
-        // DME Orders V1.2.xlsx - Row 49 (?)
-        // TODO: determine which resource to use: Reference(Coverage | ClaimReponse)
+        // DME Orders V1.2.xlsx - Row 49
+        // Note: Bob said not to worry about ClaimResponse for now 
         insurance: { reference: qForm.makeReference(dmeOrderBundle, "Coverage") },
 
         // DME Orders V1.2.xlsx - Row 50
@@ -199,12 +199,12 @@ function SendDMEOrder(qForm, response) {
 
         // DME Orders V1.2.xlsx - Row 58-62  
         //
-        // Add Extension stuff when the DME Orders IG is done
+        // TODO: Add Extension stuff when the DME Orders IG is done
         //      
 
     };
 
-    // 
+    // Maps resources from DeviceRequest to ServiceRequest and checks for existence 
     dmeOrderBundle.entry.forEach(function (entry) {
         if (entry.resource.resourceType == "DeviceRequest") 
         {
@@ -234,29 +234,26 @@ function SendDMEOrder(qForm, response) {
                 serviceRequest.requisition.push(entry.resource.id);
              }         
         }
-
-        if (entry.resource.resourceType == "Encounter") {
+        else if (entry.resource.resourceType == "Encounter") {
             serviceRequest.encounter.push(entry.resource);
         }
-
-        if (entry.resource.resourceType == "PractitionerRole") {
+        else if (entry.resource.resourceType == "PractitionerRole") {
             serviceRequest.requester.push(entry.resource);
         }
-
-        if (entry.resource.resourceType == "Organization") {
+        else if (entry.resource.resourceType == "Organization") {
             serviceRequest.performer.push(entry.resource);
         }
-
-        if (entry.resource.resourceType == "Location") {
+        else if (entry.resource.resourceType == "Location") {
             serviceRequest.locationReference.push(entry.resource);
         }
-
-        if (entry.resource.resourceType == "Any") {
+        else if (entry.resource.resourceType == "Any") {
             serviceRequest.supportingInfo.push(entry.resource);
         }
-
-        if (entry.resource.resourceType == "Provenance") {
+        else if (entry.resource.resourceType == "Provenance") {
             serviceRequest.relevantHistory.push(entry.resource);
+        }
+        else if (entry.resource.resourceType == "DocumentReference") {
+            serviceRequest.reasonReference.push(entry.resource);
         }
     });
 
