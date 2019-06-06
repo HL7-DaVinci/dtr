@@ -121,7 +121,7 @@ export default class QuestionnaireForm extends Component {
             enableCriteria.forEach((rule) => {
                 const question = this.state.values[rule.question]
                 const answer = findValueByPrefix(rule, "answer");
-                if (typeof question === 'object' && typeof answer === 'object') {
+                if (typeof question === 'object' && typeof answer === 'object' && answer!== null && question!==null) {
                     if (rule.answerQuantity) {
                         // at the very least the unit and value need to be the same
                         results.push(this.evaluateOperator(rule.operator, question.value, answer.value.toString())
@@ -472,7 +472,7 @@ export default class QuestionnaireForm extends Component {
             created: authored,
             provider: { reference: this.makeReference(priorAuthBundle, "Practitioner") },
             priority: {coding: [{"code": "normal"}]},
-            presciption: { reference: this.makeReference(priorAuthBundle, "DeviceRequest") },
+            prescription: { reference: this.makeReference(priorAuthBundle, "DeviceRequest") },
             supportingInfo: [{
                 sequence: 1,
                 category: {coding: [{
