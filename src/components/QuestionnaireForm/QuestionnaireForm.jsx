@@ -367,7 +367,7 @@ export default class QuestionnaireForm extends Component {
 
         // create the DocumentReference and generate a PDF
         const pdfDocGenerator = pdfMake.createPdf(docDefinition);
-        pdfDocGenerator.open();
+        //pdfDocGenerator.open();
         pdfDocGenerator.getBase64((b64pdf) => {
             const documentReference = {
                 resourceType: "DocumentReference",
