@@ -457,6 +457,10 @@ export default class QuestionnaireForm extends Component {
         });
         console.log(response);     
 
+        // DME Orders                
+        if (dMEOrdersEnabled && this.status === 200) 
+            SendDMEOrder(this, response);
+
         const priorAuthBundle = JSON.parse(JSON.stringify(this.props.bundle));
         priorAuthBundle.entry.unshift({ resource: this.props.deviceRequest })
         priorAuthBundle.entry.unshift({ resource: response })
@@ -511,27 +515,27 @@ export default class QuestionnaireForm extends Component {
         // const priorAuthUrl = "http://localhost:9000/fhir/Claim/$submit";
         Http.open("POST", priorAuthUrl);
         Http.setRequestHeader("Content-Type", "application/fhir+json");
-        Http.send(JSON.stringify(priorAuthBundle));
+        Http.send(JSON.stringify(priorAuthBundle));          
+        var qForm = this;        
         Http.onreadystatechange = function() {
             if (this.readyState === XMLHttpRequest.DONE) {
                 var message = "";
-                if (this.status === 200) {
+                if (this.status === 200) {                   
                     var claimResponse = JSON.parse(this.responseText);
                     message = "Prior Authorization " + claimResponse.disposition + "\n";
-                    message += "Prior Authorization Number: " + claimResponse.preAuthRef;
+                    message += "Prior Authorization Number: " + claimResponse.preAuthRef;                 
                 } else {
                     message = "Prior Authorization Request Failed."
                 }
                 console.log(message);
                 alert(message);
-                console.log(this.responseText);                              
+                console.log(this.responseText);      
+                
+                // DME Orders                
+                if (dMEOrdersEnabled && this.status === 200) 
+                    SendDMEOrder(qForm, response);
             }
-        }
-
-        // DME Orders
-        // TODO: should also check to see if PA was OK
-        if (dMEOrdersEnabled) 
-            SendDMEOrder(this, response);
+        }      
     }
 
     isEmptyAnswer(answer) {

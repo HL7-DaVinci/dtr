@@ -282,7 +282,7 @@ function SendDMEOrder(qForm, response) {
                     message = "DME Order Request Success.";
                 }
                 else {
-                    message = "DME Order Request Failed.";
+                    message = "DME Order Request Failed.\n\nHint: Is your endpoint valid?";
                 }
 
                 console.log(message);
