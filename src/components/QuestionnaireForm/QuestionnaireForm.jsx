@@ -11,8 +11,8 @@ import { findValueByPrefix } from '../../util/util.js';
 import OpenChoice from '../Inputs/OpenChoiceInput/OpenChoice';
 import SendDMEOrder from "../../util/DMEOrders";
 
-// Note: code to enable/disable DMEOrders
-var dMEOrdersEnabled = true;   
+// Note: code to enable/disable DME Orders
+var dMEOrdersEnabled = false;   
 
 export default class QuestionnaireForm extends Component {
     constructor(props) {
