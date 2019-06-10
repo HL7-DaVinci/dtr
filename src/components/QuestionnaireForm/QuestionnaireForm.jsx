@@ -12,7 +12,7 @@ import OpenChoice from '../Inputs/OpenChoiceInput/OpenChoice';
 import SendDMEOrder from "../../util/DMEOrders";
 
 // Note: code to enable/disable DME Orders
-var dMEOrdersEnabled = true;   
+var dMEOrdersEnabled = false;   
 
 export default class QuestionnaireForm extends Component {
     constructor(props) {
