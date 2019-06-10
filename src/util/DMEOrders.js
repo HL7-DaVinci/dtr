@@ -4,11 +4,10 @@
 // DME Order begin
 //
 
-function SendDMEOrder(qForm, response) {
-    const dmeOrderBundle = JSON.parse(JSON.stringify(qForm.props.bundle));
-    dmeOrderBundle.entry.unshift({ resource: qForm.props.deviceRequest });
-    dmeOrderBundle.entry.unshift({ resource: response });
+function SendDMEOrder(qForm) {
 
+    const dmeOrderBundle = JSON.parse(JSON.stringify(qForm.props.bundle));
+  
     console.log(dmeOrderBundle);
 
     const serviceRequest =
@@ -17,12 +16,11 @@ function SendDMEOrder(qForm, response) {
         resourceType: "ServiceRequest",
 
         // DME Orders V1.2.xlsx - Row 5
-        // Note: This is like the placer order number in HL7 v2
-        // TODO: maybe get this another way moving forward
-        identifier: [{ "value": create_UUID() }],
+        // Note: this gets populated below
+        identifier: [],
 
         // DME Orders V1.2.xlsx - Row 9 (NYS)
-        // Note: Not Yet Supported (NYS) in the SoF App
+        // Note: DME Order updates are Not Yet Supported (NYS) in the SoF App
         replaces: { reference: "ServiceRequest/undefined" },
 
         // DME Orders V1.2.xlsx - Row 10
@@ -47,9 +45,8 @@ function SendDMEOrder(qForm, response) {
             }]
         },
 
-        // DME Orders V1.2.xlsx - Row 15 (NYS)
-        // Note: Not Yet Supported (NYS) in the SoF App
-        // TODO: When the DME Orders IG is done, get this from appropriate ValueSet  
+        // DME Orders V1.2.xlsx - Row 15 (NYS)        
+        // TODO: When the DME Orders IG is done, get this from the appropriate ValueSet  
         category: {
             coding: [
                 {
@@ -73,13 +70,11 @@ function SendDMEOrder(qForm, response) {
         // Note: this gets populated below
         code: { coding: [] },
 
-        // DME Orders V1.2.xlsx - Row 22 
-        // Note: Not Yet Supported (NYS) in the SoF App
+        // DME Orders V1.2.xlsx - Row 22         
         // Note: this gets populated below
         orderDetail: { coding: [] },
 
-        // DME Orders V1.2.xlsx - Row 25 
-        // TODO: get this from the SoF App moving forward          
+        // DME Orders V1.2.xlsx - Row 25             
         quantityQuantity: 1,
 
         // DME Orders V1.2.xlsx - Row 28
@@ -89,13 +84,11 @@ function SendDMEOrder(qForm, response) {
         // Note: this gets populated below, because we might not have one
         encounter: [],
 
-        // DME Orders V1.2.xlsx - Row 31
-        // TODO: get this from the SoF App moving forward 
+        // DME Orders V1.2.xlsx - Row 31       
         occurrenceDateTime: getISODateString(),
 
         // DME Orders V1.2.xlsx - Row 37 (NYS)
-        // Note: Not Yet Supported (NYS) in the SoF App
-        // TODO: When the DME Orders IG is done, get this from appropriate ValueSet 
+        // TODO: When the DME Orders IG is done, get this from the appropriate ValueSet  
         asNeededCodeableConcept: {
             coding: [{
                 system: "http://snomed.info/sct",
@@ -112,8 +105,7 @@ function SendDMEOrder(qForm, response) {
         requester: [],
 
         // DME Orders V1.2.xlsx - Row 40 (NYS)
-        // Note: Not Yet Supported (NYS) in the SoF App
-        // TODO: When the DME Orders IG is done, get this from appropriate ValueSet 
+        // TODO: When the DME Orders IG is done, get this from the appropriate ValueSet  
         performerType: {
             coding: [
                 {
@@ -129,8 +121,7 @@ function SendDMEOrder(qForm, response) {
         performer: [],
 
         // DME Orders V1.2.xlsx - Row 43 (NYS)
-        // Note: Not Yet Supported (NYS) in the SoF App
-        // TODO: When the DME Orders IG is done, get this from appropriate ValueSet  
+        // TODO: When the DME Orders IG is done, get this from the appropriate ValueSet  
         locationCode: {
             coding: [
                 {
@@ -146,8 +137,7 @@ function SendDMEOrder(qForm, response) {
         locationReference: [],
 
         // DME Orders V1.2.xlsx - Row 46 (NYS)
-        // Note: Not Yet Supported (NYS) in the SoF App
-        // TODO: When the DME Orders IG is done, get this from appropriate ValueSet  
+        // TODO: When the DME Orders IG is done, get this from the appropriate ValueSet  
         reasonCode: {
             coding: [
                 {
@@ -158,9 +148,8 @@ function SendDMEOrder(qForm, response) {
             ]
         },
 
-        // DME Orders V1.2.xlsx - Row 48
-        // Note: this gets populated below
-        reasonReference: [],
+        // DME Orders V1.2.xlsx - Row 48      
+        reasonReference: { reference: qForm.makeReference(dmeOrderBundle, "DocumentReference") },
 
         // DME Orders V1.2.xlsx - Row 49
         // Note: Bob said not to worry about ClaimResponse for now 
@@ -170,8 +159,7 @@ function SendDMEOrder(qForm, response) {
         // Note: this gets populated below, because we might not have one
         supportingInfo: [],
 
-        // DME Orders V1.2.xlsx - Row 52 (NYS)
-        // Note: Not Yet Supported (NYS) in the SoF App
+        // DME Orders V1.2.xlsx - Row 52 (NYS)       
         // TODO: When the DME Orders IG is done, get this from appropriate ValueSet  
         bodySite: {
             coding: [
@@ -203,7 +191,7 @@ function SendDMEOrder(qForm, response) {
                 url: "http://hl7.org/fhir/StructureDefinition/reviewtype",
                 coding: [
                     {
-                        // TODO: need codesystem?                         
+                        // TODO: need codesystem from IG?                         
                         code: "DRLS",
                         display: "Document Requirements Lookup Service (DRLS)"
                     }]
@@ -226,6 +214,12 @@ function SendDMEOrder(qForm, response) {
             // DME Orders V1.2.xlsx - Row 10 - requisition
             if (entry.resource.id !== undefined) {
                 serviceRequest.requisition.push(entry.resource.id);
+            }
+
+            // DME Orders V1.2.xlsx - Row 5
+            if (entry.resource.id !== undefined) {
+                // Note: just use the id for now since identifier is not required
+                serviceRequest.identifier.push(entry.resource.id);
             }
         }
         else if (entry.resource.resourceType == "Encounter") {
@@ -253,14 +247,19 @@ function SendDMEOrder(qForm, response) {
             //DME Orders V1.2.xlsx - Row 22 - orderDetail
             var serviceRequestTempRef1 = serviceRequest;
             entry.resource.item.forEach(function (item1) {
-                var serviceRequestTempRef12= serviceRequestTempRef1;
+                var serviceRequestTempRef12 = serviceRequestTempRef1;
                 item1.item.forEach(function (item2) {
-                    if (item2 !== undefined && item2.answer !== undefined && item2.answer[0] !== undefined && item2.answer[0].valueCoding !== undefined) {                       
-                        serviceRequestTempRef12.orderDetail.coding.push({                            
-                            system: item2.answer[0].valueCoding.system !== undefined ? item2.answer[0].valueCoding.system: "",                            
+                    if (item2 !== undefined && item2.answer !== undefined && item2.answer[0] !== undefined && item2.answer[0].valueCoding !== undefined) {
+                        serviceRequestTempRef12.orderDetail.coding.push({
+                            system: item2.answer[0].valueCoding.system !== undefined ? item2.answer[0].valueCoding.system : "",
                             code: item2.answer[0].valueCoding.code,
                             display: item2.answer[0].valueCoding.display
                         });
+                    }
+                    else if (item2 !== undefined && item2.answer !== undefined && item2.answer[0] !== undefined && item2.answer[0].valueDate !== undefined) {
+                        // TODO: use toLowerCase() here
+                        if (item2.answer[0].text == "start" || item2.answer[0].text == "Start")
+                            serviceRequestTempRef12.occurrenceDateTime.push(item2.answer[0].valueDate);
                     }
                 });
             });
@@ -276,8 +275,10 @@ function SendDMEOrder(qForm, response) {
     // send request
     //
     const Http = new XMLHttpRequest();
+    
     // Note: this URL does not exist 
     const dmeOrderUrl = "https://some-DME-Orders.domain.org/fhir/ServiceRequest/$submit";
+
     Http.open("POST", dmeOrderUrl);
     Http.setRequestHeader("Content-Type", "application/fhir+json");
     Http.send(JSON.stringify(dmeOrderBundle));
@@ -296,16 +297,6 @@ function SendDMEOrder(qForm, response) {
             console.log(this.responseText);
         }
     };
-
-    function create_UUID() {
-        var dt = new Date().getTime();
-        var uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-            var r = (dt + Math.random() * 16) % 16 | 0;
-            dt = Math.floor(dt / 16);
-            return (c == "x" ? r : (r & 0x3 | 0x8)).toString(16);
-        });
-        return uuid;
-    }
 
     function getISODateString() {
         var str = new Date().toISOString();

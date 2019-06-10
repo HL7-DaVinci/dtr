@@ -533,7 +533,7 @@ export default class QuestionnaireForm extends Component {
                 
                 // DME Orders                
                 if (dMEOrdersEnabled && this.status === 200) 
-                    SendDMEOrder(qForm, response);
+                    SendDMEOrder(qForm);
             }
         }      
     }
