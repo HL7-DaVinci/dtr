@@ -198,113 +198,119 @@ function SendDMEOrder(qForm, response) {
         relevantHistory: [],
 
         // TODO: When the DME Orders IG is done, validate this is OK
-        extension : [
+        extension: [
             {
-              url: "http://hl7.org/fhir/StructureDefinition/reviewtype",            
-              coding: [
-                {
-                   // TODO: need codesystem?                         
-                   code: "DRLS",
-                   display: "Document Requirements Lookup Service (DRLS)"
-                } ]
+                url: "http://hl7.org/fhir/StructureDefinition/reviewtype",
+                coding: [
+                    {
+                        // TODO: need codesystem?                         
+                        code: "DRLS",
+                        display: "Document Requirements Lookup Service (DRLS)"
+                    }]
             }
-          ]       
-            
-        };
+        ]
 
-        // Maps resources from DeviceRequest to ServiceRequest and checks for existence 
-        dmeOrderBundle.entry.forEach(function (entry) {
-            if (entry.resource.resourceType == "DeviceRequest") {
-                // DME Orders V1.2.xlsx - Row 20 - code
-                if (entry.resource.codeCodeableConcept !== undefined) {
-                    serviceRequest.code.coding.push({
-                        system: entry.resource.codeCodeableConcept.coding[0].system,
-                        code: entry.resource.codeCodeableConcept.coding[0].code,
-                        display: entry.resource.codeCodeableConcept.coding[0].display
-                    });
-                }
+    };
 
-                // DME Orders V1.2.xlsx - Row 22 - orderDetail
-                if (entry.resource.valueCodeableConcept !== undefined && entry.resource.codeCodeableConcept.code !== undefined) {
-                    serviceRequest.orderDetail.coding.push({
-                        system: entry.resource.valueCodeableConcept.system,
-                        code: entry.resource.codeCodeableConcept.code,
-                        display: entry.resource.codeCodeableConcept.display
-                    });
-                }
-
-                // DME Orders V1.2.xlsx - Row 10 - requisition
-                if (entry.resource.id !== undefined) {
-                    serviceRequest.requisition.push(entry.resource.id);
-                }
+    // Maps resources from DeviceRequest to ServiceRequest and checks for existence 
+    dmeOrderBundle.entry.forEach(function (entry) {
+        if (entry.resource.resourceType == "DeviceRequest") {
+            // DME Orders V1.2.xlsx - Row 20 - code
+            if (entry.resource.codeCodeableConcept !== undefined) {
+                serviceRequest.code.coding.push({
+                    system: entry.resource.codeCodeableConcept.coding[0].system,
+                    code: entry.resource.codeCodeableConcept.coding[0].code,
+                    display: entry.resource.codeCodeableConcept.coding[0].display
+                });
             }
-            else if (entry.resource.resourceType == "Encounter") {
-                serviceRequest.encounter.push(entry.resource);
+            // DME Orders V1.2.xlsx - Row 10 - requisition
+            if (entry.resource.id !== undefined) {
+                serviceRequest.requisition.push(entry.resource.id);
             }
-            else if (entry.resource.resourceType == "PractitionerRole") {
-                serviceRequest.requester.push(entry.resource);
-            }
-            else if (entry.resource.resourceType == "Organization") {
-                serviceRequest.performer.push(entry.resource);
-            }
-            else if (entry.resource.resourceType == "Location") {
-                serviceRequest.locationReference.push(entry.resource);
-            }
-            else if (entry.resource.resourceType == "Any") {
-                serviceRequest.supportingInfo.push(entry.resource);
-            }
-            else if (entry.resource.resourceType == "Provenance") {
-                serviceRequest.relevantHistory.push(entry.resource);
-            }
-            else if (entry.resource.resourceType == "DocumentReference") {
-                serviceRequest.reasonReference.push(entry.resource);
-            }
-        });
-
-        console.log(serviceRequest);
-        console.log(JSON.stringify(serviceRequest));
-
-        dmeOrderBundle.entry.unshift({ resource: serviceRequest });
-
-        //
-        // send request
-        //
-        const Http = new XMLHttpRequest();
-        // Note: this URL does not exist 
-        const dmeOrderUrl = "https://some-DME-Orders.domain.org/fhir/ServiceRequest/$submit";
-        Http.open("POST", dmeOrderUrl);
-        Http.setRequestHeader("Content-Type", "application/fhir+json");
-        Http.send(JSON.stringify(dmeOrderBundle));
-        Http.onreadystatechange = function () {
-            if (this.readyState === XMLHttpRequest.DONE) {
-                var message = "";
-                if (this.status === 200) {
-                    message = "DME Order Request Success.";
-                }
-                else {
-                    message = "DME Order Request Failed.\n\nHint: Is your endpoint valid?";
-                }
-
-                console.log(message);
-                alert(message);
-                console.log(this.responseText);
-            }
-        };
-
-        function create_UUID() {
-            var dt = new Date().getTime();
-    var uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-        var r = (dt + Math.random() * 16) % 16 | 0;
-        dt = Math.floor(dt / 16);
-        return (c == "x" ? r : (r & 0x3 | 0x8)).toString(16);
+        }
+        else if (entry.resource.resourceType == "Encounter") {
+            serviceRequest.encounter.push(entry.resource);
+        }
+        else if (entry.resource.resourceType == "PractitionerRole") {
+            serviceRequest.requester.push(entry.resource);
+        }
+        else if (entry.resource.resourceType == "Organization") {
+            serviceRequest.performer.push(entry.resource);
+        }
+        else if (entry.resource.resourceType == "Location") {
+            serviceRequest.locationReference.push(entry.resource);
+        }
+        else if (entry.resource.resourceType == "Any") {
+            serviceRequest.supportingInfo.push(entry.resource);
+        }
+        else if (entry.resource.resourceType == "Provenance") {
+            serviceRequest.relevantHistory.push(entry.resource);
+        }
+        else if (entry.resource.resourceType == "DocumentReference") {
+            serviceRequest.reasonReference.push(entry.resource);
+        }
+        else if (entry.resource.resourceType == "QuestionnaireResponse") {
+            //DME Orders V1.2.xlsx - Row 22 - orderDetail
+            var serviceRequestTempRef1 = serviceRequest;
+            entry.resource.item.forEach(function (item1) {
+                var serviceRequestTempRef12= serviceRequestTempRef1;
+                item1.item.forEach(function (item2) {
+                    if (item2 !== undefined && item2.answer !== undefined && item2.answer[0] !== undefined && item2.answer[0].valueCoding !== undefined) {                       
+                        serviceRequestTempRef12.orderDetail.coding.push({                            
+                            system: item2.answer[0].valueCoding.system !== undefined ? item2.answer[0].valueCoding.system: "",                            
+                            code: item2.answer[0].valueCoding.code,
+                            display: item2.answer[0].valueCoding.display
+                        });
+                    }
+                });
+            });
+        }
     });
-    return uuid;
-}
 
-function getISODateString() {
-    var str = new Date().toISOString();
-    return str;
-}
+    console.log(serviceRequest);
+    console.log(JSON.stringify(serviceRequest));
+
+    dmeOrderBundle.entry.unshift({ resource: serviceRequest });
+
+    //
+    // send request
+    //
+    const Http = new XMLHttpRequest();
+    // Note: this URL does not exist 
+    const dmeOrderUrl = "https://some-DME-Orders.domain.org/fhir/ServiceRequest/$submit";
+    Http.open("POST", dmeOrderUrl);
+    Http.setRequestHeader("Content-Type", "application/fhir+json");
+    Http.send(JSON.stringify(dmeOrderBundle));
+    Http.onreadystatechange = function () {
+        if (this.readyState === XMLHttpRequest.DONE) {
+            var message = "";
+            if (this.status === 200) {
+                message = "DME Order Request Success.";
+            }
+            else {
+                message = "DME Order Request Failed.\n\nHint: Is your endpoint valid?";
+            }
+
+            console.log(message);
+            alert(message);
+            console.log(this.responseText);
+        }
+    };
+
+    function create_UUID() {
+        var dt = new Date().getTime();
+        var uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+            var r = (dt + Math.random() * 16) % 16 | 0;
+            dt = Math.floor(dt / 16);
+            return (c == "x" ? r : (r & 0x3 | 0x8)).toString(16);
+        });
+        return uuid;
+    }
+
+    function getISODateString() {
+        var str = new Date().toISOString();
+        return str;
+    }
 
 }
 
