@@ -4,10 +4,12 @@
 // DME Order begin
 //
 
-function SendDMEOrder(qForm) {
+function SendDMEOrder(qForm, response) {
 
     const dmeOrderBundle = JSON.parse(JSON.stringify(qForm.props.bundle));
-  
+    dmeOrderBundle.entry.unshift({ resource: qForm.props.deviceRequest });
+    dmeOrderBundle.entry.unshift({ resource: response });
+
     console.log(dmeOrderBundle);
 
     const serviceRequest =
@@ -81,7 +83,7 @@ function SendDMEOrder(qForm) {
         subject: { reference: qForm.makeReference(dmeOrderBundle, "Patient") },
 
         // DME Orders V1.2.xlsx - Row 29
-        // Note: this gets populated below, because we might not have one
+        // Note: this gets populated below
         encounter: [],
 
         // DME Orders V1.2.xlsx - Row 31       
@@ -101,7 +103,7 @@ function SendDMEOrder(qForm) {
         authoredOn: getISODateString(),
 
         // DME Orders V1.2.xlsx - Row 39
-        // Note: this gets populated below, because we might not have one
+        // Note: this gets populated below
         requester: [],
 
         // DME Orders V1.2.xlsx - Row 40 (NYS)
@@ -117,7 +119,7 @@ function SendDMEOrder(qForm) {
         },
 
         // DME Orders V1.2.xlsx - Row 42
-        // Note: this gets populated below, because we might not have one
+        // Note: this gets populated below
         performer: [],
 
         // DME Orders V1.2.xlsx - Row 43 (NYS)
@@ -133,7 +135,7 @@ function SendDMEOrder(qForm) {
         },
 
         // DME Orders V1.2.xlsx - Row 42
-        // Note: this gets populated below, because we might not have one
+        // Note: this gets populated below
         locationReference: [],
 
         // DME Orders V1.2.xlsx - Row 46 (NYS)
@@ -149,14 +151,14 @@ function SendDMEOrder(qForm) {
         },
 
         // DME Orders V1.2.xlsx - Row 48      
-        reasonReference: { reference: qForm.makeReference(dmeOrderBundle, "DocumentReference") },
+        // Note: this gets populated below
+        reasonReference: [],
 
-        // DME Orders V1.2.xlsx - Row 49
-        // Note: Bob said not to worry about ClaimResponse for now 
+        // DME Orders V1.2.xlsx - Row 49        
         insurance: { reference: qForm.makeReference(dmeOrderBundle, "Coverage") },
 
         // DME Orders V1.2.xlsx - Row 50
-        // Note: this gets populated below, because we might not have one
+        // Note: this gets populated below
         supportingInfo: [],
 
         // DME Orders V1.2.xlsx - Row 52 (NYS)       
@@ -172,20 +174,20 @@ function SendDMEOrder(qForm) {
         },
 
         // DME Orders V1.2.xlsx - Row 54
-        // TODO: get this Markdown from the SoF App
+        // TODO: Add note to the the SoF App/DeviceRequest resource. Use this text below for testing only!
         note: {
             text: "It's very easy to make some words **bold** and other words *italic* with Markdown. You can even [link to Google!](http://google.com)"
         },
 
         // DME Orders V1.2.xlsx - Row 55  
-        // TODO: get this from the SoF App  
+        // TODO: Where does this come from? Use this text below for testing only!
         patientInstruction: "Test patient instruction",
 
         // DME Orders V1.2.xlsx - Row 50
-        // Note: this gets populated below, because we might not have one
+        // Note: this gets populated below
         relevantHistory: [],
 
-        // TODO: When the DME Orders IG is done, validate this is OK
+        // DME Orders V1.2.xlsx - Row 60
         extension: [
             {
                 url: "http://hl7.org/fhir/StructureDefinition/reviewtype",
@@ -216,11 +218,17 @@ function SendDMEOrder(qForm) {
                 serviceRequest.requisition.push(entry.resource.id);
             }
 
-            // DME Orders V1.2.xlsx - Row 5
+            // DME Orders V1.2.xlsx - Row 5 - id
             if (entry.resource.id !== undefined) {
                 // Note: just use the id for now since identifier is not required
                 serviceRequest.identifier.push(entry.resource.id);
             }
+
+            // DME Orders V1.2.xlsx - Row 54 - note
+            if (entry.resource.note !== undefined) {
+                serviceRequest.note.push(entry.resource.note);
+            }
+
         }
         else if (entry.resource.resourceType == "Encounter") {
             serviceRequest.encounter.push(entry.resource);
@@ -246,8 +254,9 @@ function SendDMEOrder(qForm) {
         else if (entry.resource.resourceType == "QuestionnaireResponse") {
             //DME Orders V1.2.xlsx - Row 22 - orderDetail
             var serviceRequestTempRef1 = serviceRequest;
+            var serviceRequestTempRef12;
             entry.resource.item.forEach(function (item1) {
-                var serviceRequestTempRef12 = serviceRequestTempRef1;
+                serviceRequestTempRef12 = serviceRequestTempRef1;
                 item1.item.forEach(function (item2) {
                     if (item2 !== undefined && item2.answer !== undefined && item2.answer[0] !== undefined && item2.answer[0].valueCoding !== undefined) {
                         serviceRequestTempRef12.orderDetail.coding.push({
@@ -263,19 +272,27 @@ function SendDMEOrder(qForm) {
                     }
                 });
             });
+            //serviceRequest = serviceRequestTempRef12;            
         }
     });
 
     console.log(serviceRequest);
     console.log(JSON.stringify(serviceRequest));
 
+    // remove 
+    dmeOrderBundle.entry.shift({ resource: qForm.props.deviceRequest });
+    dmeOrderBundle.entry.shift({ resource: response });
+
+    // add serviceRequest
     dmeOrderBundle.entry.unshift({ resource: serviceRequest });
 
+    console.log(JSON.stringify(dmeOrderBundle));
+
     //
-    // send request
+    // begin send request
     //
     const Http = new XMLHttpRequest();
-    
+
     // Note: this URL does not exist 
     const dmeOrderUrl = "https://some-DME-Orders.domain.org/fhir/ServiceRequest/$submit";
 
@@ -297,6 +314,9 @@ function SendDMEOrder(qForm) {
             console.log(this.responseText);
         }
     };
+    //
+    // end send request
+    //
 
     function getISODateString() {
         var str = new Date().toISOString();

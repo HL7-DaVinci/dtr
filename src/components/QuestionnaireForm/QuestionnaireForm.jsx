@@ -455,11 +455,7 @@ export default class QuestionnaireForm extends Component {
                 currentItem.push(answerItem);
             }
         });
-        console.log(response);     
-
-        // DME Orders                
-        if (dMEOrdersEnabled && this.status === 200) 
-            SendDMEOrder(this, response);
+        console.log(response);            
 
         const priorAuthBundle = JSON.parse(JSON.stringify(this.props.bundle));
         priorAuthBundle.entry.unshift({ resource: this.props.deviceRequest })
@@ -533,7 +529,7 @@ export default class QuestionnaireForm extends Component {
                 
                 // DME Orders                
                 if (dMEOrdersEnabled && this.status === 200) 
-                    SendDMEOrder(qForm);
+                    SendDMEOrder(qForm, response);
             }
         }      
     }
