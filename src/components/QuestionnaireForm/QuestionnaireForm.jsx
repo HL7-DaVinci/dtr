@@ -472,7 +472,7 @@ export default class QuestionnaireForm extends Component {
             created: authored,
             provider: { reference: this.makeReference(priorAuthBundle, "Practitioner") },
             priority: {coding: [{"code": "normal"}]},
-            presciption: { reference: this.makeReference(priorAuthBundle, "DeviceRequest") },
+            prescription: { reference: this.makeReference(priorAuthBundle, "DeviceRequest") },
             supportingInfo: [{
                 sequence: 1,
                 category: {coding: [{
