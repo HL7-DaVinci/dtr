@@ -15,6 +15,7 @@ const tokenUri = params.tokenUri;
 const clientId = params.clientId;
 const secret = params.secret;
 const serviceUri = params.serviceUri;
+sessionStorage["serviceUri"] = serviceUri;
 const redirectUri = params.redirectUri;
 // This endpoint available when deployed in CRD server, for development we have
 // the proxy set up in webpack.config.dev.js so the CRD server needs to be running

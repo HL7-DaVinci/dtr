@@ -336,6 +336,85 @@ export default class QuestionnaireForm extends Component {
         }
     }
 
+    generateAndStoreDocumentReference(questionnaireResponse, dataBundle) {
+        var pdfMake = require('pdfmake/build/pdfmake.js');
+        var pdfFonts = require('pdfmake/build/vfs_fonts.js');
+        pdfMake.vfs = pdfFonts.pdfMake.vfs;
+
+        var docDefinition = {
+            content: [
+                {
+                    text: 'QuestionnaireResponse: ' + questionnaireResponse.id + ' (' + questionnaireResponse.authored + ')\n',
+                    style: 'header'
+                },
+                {
+                    text: JSON.stringify(questionnaireResponse, undefined, 4),
+                    style: 'body'
+                }
+            ],
+            styles: {
+                header: {
+                    fontSize: 13,
+                    bold: true
+                },
+                body: {
+                    fontSize: 8,
+                    bold: false,
+                    preserveLeadingSpaces: true
+                }
+            }
+        };
+
+        // create the DocumentReference and generate a PDF
+        const pdfDocGenerator = pdfMake.createPdf(docDefinition);
+        //pdfDocGenerator.open();
+        pdfDocGenerator.getBase64((b64pdf) => {
+            const documentReference = {
+                resourceType: "DocumentReference",
+                status: "current",
+                type: {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "55107-7",
+                            "display": "Addendum Document"
+                        }
+                    ]
+                },
+                description: "PDF containing a QuestionnaireResponse",
+                indexed: new Date().toISOString(),
+                subject: { reference: this.makeReference(dataBundle, "Patient") },
+                author: { reference: this.makeReference(dataBundle, "Practitioner") },
+                content: [{
+                    "attachment" : {
+                        data: b64pdf,
+                        contentType: "application/pdf"
+                    }
+                }]
+            };
+            console.log(documentReference);
+
+            // send the DocumentReference to the EHR FHIR server
+            var docReferenceUrl = sessionStorage["serviceUri"] + "/DocumentReference";
+            console.log("Storing DocumentReference to: " + docReferenceUrl);
+
+            const Http = new XMLHttpRequest();
+            Http.open("POST", docReferenceUrl);
+            Http.setRequestHeader("Content-Type", "application/fhir+json");
+            Http.send(JSON.stringify(documentReference));
+            Http.onreadystatechange = function() {
+                if (this.readyState === XMLHttpRequest.DONE) {
+                    if (this.status == 201) {
+                        console.log("Successfully stored DocumentReference ID: " + JSON.parse(this.response).id);
+                    } else {
+                        console.log("WARNING: something may be wrong with the DocumentReference storage response:");
+                        console.log(this.response);
+                    }
+                }
+            }
+        });
+    }
+
     // create the questionnaire response based on the current state
     outputResponse(status) {
         console.log(this.state.sectionLinks);
@@ -458,6 +537,8 @@ export default class QuestionnaireForm extends Component {
         priorAuthBundle.entry.unshift({ resource: this.props.deviceRequest })
         priorAuthBundle.entry.unshift({ resource: response })
         console.log(priorAuthBundle);
+
+        this.generateAndStoreDocumentReference(response, priorAuthBundle);
 
         const priorAuthClaim = {
             resourceType: "Claim",
