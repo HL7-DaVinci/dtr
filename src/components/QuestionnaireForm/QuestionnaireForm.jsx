@@ -9,7 +9,10 @@ import BooleanInput from '../Inputs/BooleanInput/BooleanInput';
 import QuantityInput from '../Inputs/QuantityInput/QuantityInput';
 import { findValueByPrefix } from '../../util/util.js';
 import OpenChoice from '../Inputs/OpenChoiceInput/OpenChoice';
+import SendDMEOrder from "../../util/DMEOrders";
 
+// Note: code to enable/disable DME Orders
+var dMEOrdersEnabled = false;   
 
 export default class QuestionnaireForm extends Component {
     constructor(props) {
@@ -531,7 +534,7 @@ export default class QuestionnaireForm extends Component {
                 currentItem.push(answerItem);
             }
         });
-        console.log(response);
+        console.log(response);            
 
         const priorAuthBundle = JSON.parse(JSON.stringify(this.props.bundle));
         priorAuthBundle.entry.unshift({ resource: this.props.deviceRequest })
@@ -589,22 +592,27 @@ export default class QuestionnaireForm extends Component {
         // const priorAuthUrl = "http://localhost:9000/fhir/Claim/$submit";
         Http.open("POST", priorAuthUrl);
         Http.setRequestHeader("Content-Type", "application/fhir+json");
-        Http.send(JSON.stringify(priorAuthBundle));
+        Http.send(JSON.stringify(priorAuthBundle));          
+        var qForm = this;        
         Http.onreadystatechange = function() {
             if (this.readyState === XMLHttpRequest.DONE) {
                 var message = "";
-                if (this.status === 200) {
+                if (this.status === 200) {                   
                     var claimResponse = JSON.parse(this.responseText);
                     message = "Prior Authorization " + claimResponse.disposition + "\n";
-                    message += "Prior Authorization Number: " + claimResponse.preAuthRef;
+                    message += "Prior Authorization Number: " + claimResponse.preAuthRef;  
+                    
+                    // DME Orders                
+                    if (dMEOrdersEnabled) 
+                        SendDMEOrder(qForm, response);
                 } else {
                     message = "Prior Authorization Request Failed."
                 }
                 console.log(message);
                 alert(message);
-                console.log(this.responseText);
+                console.log(this.responseText);    
             }
-        }
+        }      
     }
 
     isEmptyAnswer(answer) {
