@@ -252,7 +252,7 @@ function SendDMEOrder(qForm, response) {
             serviceRequest.reasonReference.push(entry.resource);
         }
         else if (entry.resource.resourceType == "QuestionnaireResponse") {
-            //DME Orders V1.2.xlsx - Row 22 - orderDetail
+            // DME Orders V1.2.xlsx - Row 22 - orderDetail
             var serviceRequestTempRef1 = serviceRequest;
             var serviceRequestTempRef12;
             entry.resource.item.forEach(function (item1) {
@@ -271,8 +271,7 @@ function SendDMEOrder(qForm, response) {
                             serviceRequestTempRef12.occurrenceDateTime.push(item2.answer[0].valueDate);
                     }
                 });
-            });
-            //serviceRequest = serviceRequestTempRef12;            
+            });                   
         }
     });
 

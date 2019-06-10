@@ -12,7 +12,7 @@ import OpenChoice from '../Inputs/OpenChoiceInput/OpenChoice';
 import SendDMEOrder from "../../util/DMEOrders";
 
 // Note: code to enable/disable DME Orders
-var dMEOrdersEnabled = false;   
+var dMEOrdersEnabled = true;   
 
 export default class QuestionnaireForm extends Component {
     constructor(props) {
@@ -519,17 +519,17 @@ export default class QuestionnaireForm extends Component {
                 if (this.status === 200) {                   
                     var claimResponse = JSON.parse(this.responseText);
                     message = "Prior Authorization " + claimResponse.disposition + "\n";
-                    message += "Prior Authorization Number: " + claimResponse.preAuthRef;                 
+                    message += "Prior Authorization Number: " + claimResponse.preAuthRef;  
+                    
+                    // DME Orders                
+                    if (dMEOrdersEnabled) 
+                        SendDMEOrder(qForm, response);
                 } else {
                     message = "Prior Authorization Request Failed."
                 }
                 console.log(message);
                 alert(message);
-                console.log(this.responseText);      
-                
-                // DME Orders                
-                if (dMEOrdersEnabled && this.status === 200) 
-                    SendDMEOrder(qForm, response);
+                console.log(this.responseText);    
             }
         }      
     }
