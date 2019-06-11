@@ -25,7 +25,7 @@ if(storedJSON) {
         clientId = storedJSON["default"];
     }else{
         const errorMsg = "no client id found in local storage, please go to the /register page to register a client id, or verify that the default clientId string in the code is correctly typed.";
-        document.body.innerText = errorMsg;
+        console.log(errorMsg);
         console.log("The app could not find the appropriate client ID");
     }
 }else{
@@ -102,7 +102,7 @@ function redirect(conformanceStatement) {
     redirectUri: redirectUri,
     tokenUri: tokenUri
   });
-
+console.log(clientId);
   // finally, redirect the browser to the authorizatin server and pass the needed
   // parameters for the authorization request in the URL
   window.location.href =
