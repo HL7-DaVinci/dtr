@@ -12,9 +12,11 @@ Install [node.js](https://nodejs.org/en/).
 1. Clone the repository `git clone https://github.com/HL7-DaVinci/dtr.git`
 2. In a terminal, navigate to the directory the project was cloned into
 3. Run `npm install`
-4. Run `npm start`
+4. To Run:
+	* dev: `npm start`
+	* production: `npm run startProd`
 
-The service will run on port 3005. This can be changed in `package.json` and `webpack.dev.config.js`.
+The service will run on port 3005. This can be changed in `package.json` and the configuration file for the desired version. The dev version is configured with `webpack.dev.config.js` and does not use `https` by default.  The production version is configured through `webpack.prod.config.js` and does use `https` by default.  This can also be changed in desired config by changing the `https` boolean.  There is currently no redirection between `https` and `http`, so using the wrong scheme in the url will result in an empty response.
 
 ## Using the App
 
@@ -53,7 +55,20 @@ You should be able to send a request from the Request Generator's master branch 
 Official releases are built automatically, but you may test the process or roll your own similar to the following:
 
     docker build -t hspc/davinci-dtr:latest .
-    docker run -it --name davinci-dtr -p 3005:3005 --rm hspc/davinci-dtr:latest
+
+To run dev (https=false, port=3005, proxy=http://localhost:8090):
+
+	docker run -it --name davinci-dtr -p 3005:3005 --rm hspc/davinci-dtr:latest
+	
+To run production (https=true, port=3005, proxy=https://davinci-crd.logicahealth.org):
+
+	docker run -e VERSION='Prod' -it --name davinci-dtr -p 3005:3005 --rm hspc/davinci-dtr:latest
+	
+To run configurable template:
+
+	docker run -e VERSION='Template' -e PROXY_TARGET='http:\/\/localhost:8090' -e SERVER_PORT='3005' -e SERVER_HTTPS='false' -it --name davinci-dtr -p 3005:3005 --rm hspc/davinci-dtr:latest
+
+The configurable template will use the environment variables passed to the docker run command to replace the `PROXY_TARGET`, `SERVER_PORT`, and `SERVER_HTTPS` values in the webpack configuration file.
 
 # License
 

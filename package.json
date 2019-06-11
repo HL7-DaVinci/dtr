@@ -5,7 +5,9 @@
   "scripts": {
     "build": "webpack --config ./webpack.config.prod.js --progress --colors",
     "start": "webpack-dev-server --config ./webpack.config.dev.js --host 0.0.0.0 --public davinci-dtr.logicahealth.org",
-    "startReg": "webpack-dev-server --config ./webpack.config.dev.js --port 3005",
+    "startDev": "webpack-dev-server --config ./webpack.config.dev.js --host 0.0.0.0 --public davinci-dtr.logicahealth.org",
+    "startProd": "webpack-dev-server --config ./webpack.config.prod.js --host 0.0.0.0 --public davinci-dtr.logicahealth.org",
+    "startTemplate": "webpack-dev-server --config ./webpack.config.run.js --host 0.0.0.0 --public davinci-dtr.logicahealth.org",
     "lint": "node ./node_modules/.bin/eslint --ext .js ./"
   },
   "devDependencies": {
@@ -24,6 +26,7 @@
     "webpack-merge": "^4.1.4"
   },
   "dependencies": {
+    "@babel/polyfill": "^7.4.4",
     "axios": "^0.18.0",
     "bootstrap": "^4.3.1",
     "core-js": "^2.5.7",
@@ -33,6 +36,7 @@
     "fhirclient": "^0.1.12",
     "isomorphic-fetch": "^2.2.1",
     "node-fetch": "^2.5.0",
+    "pdfmake": "^0.1.56",
     "react": "^16.8.4",
     "react-bootstrap": "^1.0.0-beta.5",
     "react-dom": "^16.8.4",

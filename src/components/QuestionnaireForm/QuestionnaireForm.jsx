@@ -9,7 +9,10 @@ import BooleanInput from '../Inputs/BooleanInput/BooleanInput';
 import QuantityInput from '../Inputs/QuantityInput/QuantityInput';
 import { findValueByPrefix } from '../../util/util.js';
 import OpenChoice from '../Inputs/OpenChoiceInput/OpenChoice';
+import SendDMEOrder from "../../util/DMEOrders";
 
+// Note: code to enable/disable DME Orders
+var dMEOrdersEnabled = false;   
 
 export default class QuestionnaireForm extends Component {
     constructor(props) {
@@ -121,7 +124,7 @@ export default class QuestionnaireForm extends Component {
             enableCriteria.forEach((rule) => {
                 const question = this.state.values[rule.question]
                 const answer = findValueByPrefix(rule, "answer");
-                if (typeof question === 'object' && typeof answer === 'object') {
+                if (typeof question === 'object' && typeof answer === 'object' && answer!== null && question!==null) {
                     if (rule.answerQuantity) {
                         // at the very least the unit and value need to be the same
                         results.push(this.evaluateOperator(rule.operator, question.value, answer.value.toString())
@@ -336,6 +339,85 @@ export default class QuestionnaireForm extends Component {
         }
     }
 
+    generateAndStoreDocumentReference(questionnaireResponse, dataBundle) {
+        var pdfMake = require('pdfmake/build/pdfmake.js');
+        var pdfFonts = require('pdfmake/build/vfs_fonts.js');
+        pdfMake.vfs = pdfFonts.pdfMake.vfs;
+
+        var docDefinition = {
+            content: [
+                {
+                    text: 'QuestionnaireResponse: ' + questionnaireResponse.id + ' (' + questionnaireResponse.authored + ')\n',
+                    style: 'header'
+                },
+                {
+                    text: JSON.stringify(questionnaireResponse, undefined, 4),
+                    style: 'body'
+                }
+            ],
+            styles: {
+                header: {
+                    fontSize: 13,
+                    bold: true
+                },
+                body: {
+                    fontSize: 8,
+                    bold: false,
+                    preserveLeadingSpaces: true
+                }
+            }
+        };
+
+        // create the DocumentReference and generate a PDF
+        const pdfDocGenerator = pdfMake.createPdf(docDefinition);
+        //pdfDocGenerator.open();
+        pdfDocGenerator.getBase64((b64pdf) => {
+            const documentReference = {
+                resourceType: "DocumentReference",
+                status: "current",
+                type: {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "55107-7",
+                            "display": "Addendum Document"
+                        }
+                    ]
+                },
+                description: "PDF containing a QuestionnaireResponse",
+                indexed: new Date().toISOString(),
+                subject: { reference: this.makeReference(dataBundle, "Patient") },
+                author: { reference: this.makeReference(dataBundle, "Practitioner") },
+                content: [{
+                    "attachment" : {
+                        data: b64pdf,
+                        contentType: "application/pdf"
+                    }
+                }]
+            };
+            console.log(documentReference);
+
+            // send the DocumentReference to the EHR FHIR server
+            var docReferenceUrl = sessionStorage["serviceUri"] + "/DocumentReference";
+            console.log("Storing DocumentReference to: " + docReferenceUrl);
+
+            const Http = new XMLHttpRequest();
+            Http.open("POST", docReferenceUrl);
+            Http.setRequestHeader("Content-Type", "application/fhir+json");
+            Http.send(JSON.stringify(documentReference));
+            Http.onreadystatechange = function() {
+                if (this.readyState === XMLHttpRequest.DONE) {
+                    if (this.status == 201) {
+                        console.log("Successfully stored DocumentReference ID: " + JSON.parse(this.response).id);
+                    } else {
+                        console.log("WARNING: something may be wrong with the DocumentReference storage response:");
+                        console.log(this.response);
+                    }
+                }
+            }
+        });
+    }
+
     // create the questionnaire response based on the current state
     outputResponse(status) {
         console.log(this.state.sectionLinks);
@@ -452,12 +534,14 @@ export default class QuestionnaireForm extends Component {
                 currentItem.push(answerItem);
             }
         });
-        console.log(response);
+        console.log(response);            
 
         const priorAuthBundle = JSON.parse(JSON.stringify(this.props.bundle));
         priorAuthBundle.entry.unshift({ resource: this.props.deviceRequest })
         priorAuthBundle.entry.unshift({ resource: response })
         console.log(priorAuthBundle);
+
+        this.generateAndStoreDocumentReference(response, priorAuthBundle);
 
         const priorAuthClaim = {
             resourceType: "Claim",
@@ -472,7 +556,7 @@ export default class QuestionnaireForm extends Component {
             created: authored,
             provider: { reference: this.makeReference(priorAuthBundle, "Practitioner") },
             priority: {coding: [{"code": "normal"}]},
-            presciption: { reference: this.makeReference(priorAuthBundle, "DeviceRequest") },
+            prescription: { reference: this.makeReference(priorAuthBundle, "DeviceRequest") },
             supportingInfo: [{
                 sequence: 1,
                 category: {coding: [{
@@ -508,22 +592,27 @@ export default class QuestionnaireForm extends Component {
         // const priorAuthUrl = "http://localhost:9000/fhir/Claim/$submit";
         Http.open("POST", priorAuthUrl);
         Http.setRequestHeader("Content-Type", "application/fhir+json");
-        Http.send(JSON.stringify(priorAuthBundle));
+        Http.send(JSON.stringify(priorAuthBundle));          
+        var qForm = this;        
         Http.onreadystatechange = function() {
             if (this.readyState === XMLHttpRequest.DONE) {
                 var message = "";
-                if (this.status === 200) {
+                if (this.status === 200) {                   
                     var claimResponse = JSON.parse(this.responseText);
                     message = "Prior Authorization " + claimResponse.disposition + "\n";
-                    message += "Prior Authorization Number: " + claimResponse.preAuthRef;
+                    message += "Prior Authorization Number: " + claimResponse.preAuthRef;  
+                    
+                    // DME Orders                
+                    if (dMEOrdersEnabled) 
+                        SendDMEOrder(qForm, response);
                 } else {
                     message = "Prior Authorization Request Failed."
                 }
                 console.log(message);
                 alert(message);
-                console.log(this.responseText);
+                console.log(this.responseText);    
             }
-        }
+        }      
     }
 
     isEmptyAnswer(answer) {

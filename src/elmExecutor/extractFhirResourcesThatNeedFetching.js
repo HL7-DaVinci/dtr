@@ -2,9 +2,12 @@ function extractFhirResourcesThatNeedFetching(elm) {
   const resources = new Set();
   //TODO: why was this elm.source?! and how was it working?
   if ((((elm || {}).library || {}).statements || {}).def) {
-    for (const expDef of Object.values(elm.library.statements.def)) {
-      extractResourcesFromExpression(resources, expDef.expression);
-    }
+      Object.keys(elm.library.statements.def).forEach((e)=>{
+        extractResourcesFromExpression(resources, elm.library.statements.def[e].expression);
+      });
+    // for (const expDef of Object.keys(elm.library.statements.def)) {
+    //   extractResourcesFromExpression(resources, elm.library.statements.def[expDef].expression);
+    // }
   }
   return Array.from(resources);
 }
@@ -23,9 +26,12 @@ function extractResourcesFromExpression(resources, expression) {
         console.error("Cannot find resource for Retrieve w/ dataType: ", expression.dataType);
       }
     } else {
-      for (const val of Object.values(expression)) {
-        extractResourcesFromExpression(resources, val);
-      }
+        Object.keys(expression).forEach((e)=>{
+            extractResourcesFromExpression(resources, expression[e]);
+        });
+    //   for (const val of Object.keys(expression)) {
+    //     extractResourcesFromExpression(resources, expression[val]);
+    //   }
     }
   }
 }

@@ -1,19 +1,37 @@
 const merge = require("webpack-merge");
+const path = require("path");
+const webpack = require("webpack");
 const common = require("./webpack.config.common.js");
-const MinifyPlugin = require("babel-minify-webpack-plugin");
-const CompressionPlugin = require("compression-webpack-plugin");
 
 module.exports = merge(common, {
-  mode: "production",
+  mode: "development",
   module: {
-    rules: [
-        {
-            test: /\.js$/,
-            loader:'babel-loader'
-        }
-    ]
-},
-  // look into serving up the gzip version only in prod build
-  // plugins: [new MinifyPlugin({}, { sourceMap: false }), new CompressionPlugin()]
-  plugins: [new MinifyPlugin({}, { sourceMap: false })]
+      rules: [
+          {
+              test: /\.js$/,
+              loader:'babel-loader'
+          }
+      ]
+  },
+  devServer: {
+    contentBase: path.resolve(__dirname, "public"),
+    port: 3005,
+    https: true,
+    public: "0.0.0.0",
+    hotOnly: true,
+    historyApiFallback: {
+        rewrites: [
+          { from: /index/, to: '/index.html' },
+          { from: /launch/, to: '/launch.html' },
+          { from: /register/, to: '/register.html'}
+        ]
+      },
+    proxy: [{
+      context: ['/fetchFhirUri', '/getfile'],
+      target: 'https://davinci-crd.logicahealth.org',
+      changeOrigin: true,
+      secure: false
+    }]
+  },
+  plugins: [new webpack.HotModuleReplacementPlugin()]
 });

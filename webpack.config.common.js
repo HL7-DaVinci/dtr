@@ -3,7 +3,10 @@ const path = require("path");
 module.exports = {
   entry: {
     launch: path.resolve(__dirname, "src/launch.js"),
-    index: path.resolve(__dirname, "src/index.js")
+    index: path.resolve(__dirname, "src/index.js"),
+    register: path.resolve(__dirname, "src/register.js"),
+
+
   },
   output: {
     filename: "[name].bundle.js",
@@ -29,7 +32,8 @@ module.exports = {
               [
                 "@babel/env",
                 {
-                  useBuiltIns: "usage"
+                  corejs: "2.0.0",
+                  useBuiltIns: "entry"
                 }
               ]
             ]

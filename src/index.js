@@ -1,3 +1,4 @@
+import '@babel/polyfill'
 import "fhirclient"; // sets window.FHIR
 import urlUtils from "./util/url";
 
@@ -15,11 +16,11 @@ const tokenUri = params.tokenUri;
 const clientId = params.clientId;
 const secret = params.secret;
 const serviceUri = params.serviceUri;
+sessionStorage["serviceUri"] = serviceUri;
 const redirectUri = params.redirectUri;
 // This endpoint available when deployed in CRD server, for development we have
 // the proxy set up in webpack.config.dev.js so the CRD server needs to be running
 const FHIR_URI_PREFIX = "../../fetchFhirUri/";
-// const FHIR_URI_PREFIX = "https://dry-temple-63581.herokuapp.com/fetchFhirUri/";
 var data = `code=${code}&grant_type=authorization_code&redirect_uri=${redirectUri}`
 // const data = new URLSearchParams();
 // data.append("code", code);
@@ -53,7 +54,7 @@ tokenPost.onload = function() {
       const appContext = {
         template: appString.split("&")[0].split("=")[1],
         request: JSON.parse(appString.split("&")[1].split("=")[1].replace(/\\/g,"")),
-        filepath: auth_response.appContext.split("&")[2].split("=")[1]
+        filepath: appString.split("&")[2].split("=")[1]
       }
       
         var smart = FHIR.client({
