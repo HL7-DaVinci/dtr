@@ -74,7 +74,7 @@ function SendDMEOrder(qForm, response) {
 
         // DME Orders V1.2.xlsx - Row 22         
         // Note: this gets populated below
-        orderDetail: { coding: [] },
+        orderDetail: { coding: [], text: [] },
 
         // DME Orders V1.2.xlsx - Row 25             
         quantityQuantity: 1,
@@ -205,7 +205,20 @@ function SendDMEOrder(qForm, response) {
     // Maps resources from DeviceRequest to ServiceRequest and checks for existence 
     dmeOrderBundle.entry.forEach(function (entry) {
         if (entry.resource.resourceType == "DeviceRequest") {
-            // DME Orders V1.2.xlsx - Row 20 - code
+
+            // DME Orders V1.2.xlsx - Row 5 
+            // DME Orders V1.2.xlsx - Row 10 
+            // TODO: Add identifier to DeviceRequest    
+            if (entry.resource.identifier !== undefined) {
+                serviceRequest.identifier.push(entry.resource.identifier);
+                serviceRequest.requisition.push(entry.resource.identifier);
+            }
+            else {
+                serviceRequest.identifier.push(entry.resource.id);
+                serviceRequest.requisition.push(entry.resource.id);
+            }
+
+            // DME Orders V1.2.xlsx - Row 20 
             if (entry.resource.codeCodeableConcept !== undefined) {
                 serviceRequest.code.coding.push({
                     system: entry.resource.codeCodeableConcept.coding[0].system,
@@ -213,22 +226,11 @@ function SendDMEOrder(qForm, response) {
                     display: entry.resource.codeCodeableConcept.coding[0].display
                 });
             }
-            // DME Orders V1.2.xlsx - Row 10 - requisition
-            if (entry.resource.id !== undefined) {
-                serviceRequest.requisition.push(entry.resource.id);
-            }
 
-            // DME Orders V1.2.xlsx - Row 5 - id
-            if (entry.resource.id !== undefined) {
-                // Note: just use the id for now since identifier is not required
-                serviceRequest.identifier.push(entry.resource.id);
-            }
-
-            // DME Orders V1.2.xlsx - Row 54 - note
+            // DME Orders V1.2.xlsx - Row 54
             if (entry.resource.note !== undefined) {
                 serviceRequest.note.push(entry.resource.note);
             }
-
         }
         else if (entry.resource.resourceType == "Encounter") {
             serviceRequest.encounter.push(entry.resource);
@@ -264,6 +266,8 @@ function SendDMEOrder(qForm, response) {
                             code: item2.answer[0].valueCoding.code,
                             display: item2.answer[0].valueCoding.display
                         });
+
+                        serviceRequestTempRef12.orderDetail.text.push(item2.text);
                     }
                     else if (item2 !== undefined && item2.answer !== undefined && item2.answer[0] !== undefined && item2.answer[0].valueDate !== undefined) {
                         // TODO: use toLowerCase() here
@@ -271,7 +275,7 @@ function SendDMEOrder(qForm, response) {
                             serviceRequestTempRef12.occurrenceDateTime.push(item2.answer[0].valueDate);
                     }
                 });
-            });                   
+            });
         }
     });
 
