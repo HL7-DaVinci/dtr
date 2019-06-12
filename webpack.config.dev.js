@@ -17,7 +17,8 @@ module.exports = merge(common, {
     contentBase: path.resolve(__dirname, "public"),
     port: 3005,
     https: false,
-    public: "0.0.0.0",
+    host: '0.0.0.0',
+    public: '0.0.0.0',
     hotOnly: true,
     historyApiFallback: {
         rewrites: [
