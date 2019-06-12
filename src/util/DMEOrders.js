@@ -180,7 +180,7 @@ function SendDMEOrder(qForm, response) {
         },
 
         // DME Orders V1.2.xlsx - Row 55  
-        // TODO: Where does this come from? Use this text below for testing only!
+        // TODO: Add note to the the SoF App/DeviceRequest resource. Use this text below for testing only!
         patientInstruction: "Test patient instruction",
 
         // DME Orders V1.2.xlsx - Row 50
@@ -233,9 +233,11 @@ function SendDMEOrder(qForm, response) {
             }
         }
         else if (entry.resource.resourceType == "Encounter") {
+            // Not Yet Implemented (NYI)
             serviceRequest.encounter.push(entry.resource);
         }
         else if (entry.resource.resourceType == "PractitionerRole") {
+            // Bug: this was mapped wrong, needs to be remapped
             serviceRequest.requester.push(entry.resource);
         }
         else if (entry.resource.resourceType == "Organization") {
@@ -245,16 +247,20 @@ function SendDMEOrder(qForm, response) {
             serviceRequest.locationReference.push(entry.resource);
         }
         else if (entry.resource.resourceType == "Any") {
+            // Not Yet Implemented (NYI)
             serviceRequest.supportingInfo.push(entry.resource);
         }
         else if (entry.resource.resourceType == "Provenance") {
+            // Not Yet Implemented (NYI), it is not part of DSTU3
             serviceRequest.relevantHistory.push(entry.resource);
         }
         else if (entry.resource.resourceType == "DocumentReference") {
+            // Note: this is being created, but it is not yet coming through to the bundle
             serviceRequest.reasonReference.push(entry.resource);
         }
         else if (entry.resource.resourceType == "QuestionnaireResponse") {
             // DME Orders V1.2.xlsx - Row 22 - orderDetail
+            // TODO: realign array
             var serviceRequestTempRef1 = serviceRequest;
             var serviceRequestTempRef12;
             entry.resource.item.forEach(function (item1) {
@@ -266,13 +272,12 @@ function SendDMEOrder(qForm, response) {
                             code: item2.answer[0].valueCoding.code,
                             display: item2.answer[0].valueCoding.display
                         });
-
                         serviceRequestTempRef12.orderDetail.text.push(item2.text);
                     }
                     else if (item2 !== undefined && item2.answer !== undefined && item2.answer[0] !== undefined && item2.answer[0].valueDate !== undefined) {
-                        // TODO: use toLowerCase() here
-                        if (item2.answer[0].text == "start" || item2.answer[0].text == "Start")
-                            serviceRequestTempRef12.occurrenceDateTime.push(item2.answer[0].valueDate);
+                        // TODO: do this a better way
+                        if (item2.answer[0].text == "Start date") 
+                            serviceRequestTempRef12.occurrenceDateTime.push(item2.answer[0].valueDate);                       
                     }
                 });
             });
@@ -282,11 +287,11 @@ function SendDMEOrder(qForm, response) {
     console.log(serviceRequest);
     console.log(JSON.stringify(serviceRequest));
 
-    // remove 
+    // remove DeviceRequest and Response
     dmeOrderBundle.entry.shift({ resource: qForm.props.deviceRequest });
     dmeOrderBundle.entry.shift({ resource: response });
 
-    // add serviceRequest
+    // add ServiceRequest
     dmeOrderBundle.entry.unshift({ resource: serviceRequest });
 
     console.log(JSON.stringify(dmeOrderBundle));
@@ -296,7 +301,7 @@ function SendDMEOrder(qForm, response) {
     //
     const Http = new XMLHttpRequest();
 
-    // Note: this URL does not exist 
+    // Note: this URL does not really exist 
     const dmeOrderUrl = "https://some-DME-Orders.domain.org/fhir/ServiceRequest/$submit";
 
     Http.open("POST", dmeOrderUrl);
