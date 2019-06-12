@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "build": "webpack --config ./webpack.config.prod.js --progress --colors",
-    "start": "webpack-dev-server --config ./webpack.config.dev.js --host 0.0.0.0 --public davinci-dtr.logicahealth.org",
-    "startDev": "webpack-dev-server --config ./webpack.config.dev.js --host 0.0.0.0 --public davinci-dtr.logicahealth.org",
-    "startProd": "webpack-dev-server --config ./webpack.config.prod.js --host 0.0.0.0 --public davinci-dtr.logicahealth.org",
-    "startTemplate": "webpack-dev-server --config ./webpack.config.run.js --host 0.0.0.0 --public davinci-dtr.logicahealth.org",
+    "start": "webpack-dev-server --config ./webpack.config.dev.js",
+    "startDev": "webpack-dev-server --config ./webpack.config.dev.js",
+    "startProd": "webpack-dev-server --config ./webpack.config.prod.js",
+    "startTemplate": "webpack-dev-server --config ./webpack.config.run.js",
     "lint": "node ./node_modules/.bin/eslint --ext .js ./"
   },
   "devDependencies": {
