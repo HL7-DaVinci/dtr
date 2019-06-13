@@ -29,7 +29,7 @@ module.exports = merge(common, {
       },
     proxy: [{
       context: ['/fetchFhirUri', '/getfile'],
-      target: 'https://davinci-crd.logicahealth.org',
+      target: 'http://localhost:8090',
       changeOrigin: true,
       secure: false
     }]
