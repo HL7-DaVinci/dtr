@@ -44,7 +44,12 @@ _Note: If you have your own EHR the you should not need to run the EHR (FHIR) Se
 
 3. Make sure the **EHR** server has the data it needs by running `gradle loadData` to populate it.
 
-4. Then, run the **KeyCloak** server. Follow the guide in the KeyCloak readme if you have never set it up before, make the appropriate **realm/client/user**. _Note: You might need to modify the **frame-ancesters** setting in the KeyCloak admin: e.g. Realm | Security Defences | Content-Security-Policy = frame-src 'self'; **frame-ancesters http://localhost:***; object-src 'none';_     
+4. Then, run the **KeyCloak** server. Follow the guide in the KeyCloak readme if you have never set it up before, make the appropriate **realm/client/user**. 
+   
+   >Note: You might need to modify the **frame-ancesters** setting in the KeyCloak admin: e.g. Realm | Security Defences | Content-Security-Policy = frame-src 'self'; **frame-ancesters http://localhost:***; object-src 'none';_  
+   
+   >Note: You will need to visit localhost:3005/register to register the "app-client". If you don't, when you click the submit button to launch the app, it will not raise the username/password dialog.
+
 
 5. Then run the **CRD** server, **DTR** server, and **Request Generator**.
  
