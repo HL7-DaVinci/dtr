@@ -486,9 +486,9 @@ export default class QuestionnaireForm extends Component {
                                 }
                             })
                         }
-                        {/* <DocumentInput
+                        <DocumentInput
                             updateCallback={this.updateDocuments}
-                        /> */}
+                        />
                     </div>
                 </div>
                 <button className="btn submit-button" onClick={this.outputResponse}>Submit</button>
