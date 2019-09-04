@@ -14,7 +14,7 @@ import App from "./App.js";
 const FHIR_URI_PREFIX = "../fetchFhirUri/";
 
 async function getMessageDef(token, launchContextId) {
-  var tempURL = "http://3.92.187.150:8280/fhir/baseDstu3/MessageDefinition/"+launchContextId;
+  var tempURL = "http://cdex.mettles.com:8280/ehr-server/stu3/MessageDefinition/"+launchContextId;
   let req = fetch(tempURL, {
     method: 'GET',
     headers: {
@@ -33,7 +33,7 @@ async function getMessageDef(token, launchContextId) {
 export const appContext = {
   // template: "urn:hl7:davinci:crd:home-oxygen-questionnaire",
   template: "",
-  request: "http://3.92.187.150:8280/fhir/baseDstu3/DeviceRequest/10058/",
+  request: "http://cdex.mettles.com:8280/ehr-server/stu3/DeviceRequest/10058/",
   patientId: "",
   npi: ""
 }
