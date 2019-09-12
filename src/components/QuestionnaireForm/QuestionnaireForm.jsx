@@ -534,7 +534,7 @@ export default class QuestionnaireForm extends Component {
                 currentItem.push(answerItem);
             }
         });
-        console.log(response);            
+        console.log(response);
 
         const priorAuthBundle = JSON.parse(JSON.stringify(this.props.bundle));
         priorAuthBundle.entry.unshift({ resource: this.props.deviceRequest })
@@ -583,9 +583,9 @@ export default class QuestionnaireForm extends Component {
             }
         })
         console.log(priorAuthClaim);
-        console.log(JSON.stringify(priorAuthClaim));
 
         priorAuthBundle.entry.unshift({ resource: priorAuthClaim })
+        console.log(priorAuthBundle);
 
         const Http = new XMLHttpRequest();
         const priorAuthUrl = "https://davinci-prior-auth.logicahealth.org/fhir/Claim/$submit";
@@ -596,21 +596,30 @@ export default class QuestionnaireForm extends Component {
         var qForm = this;        
         Http.onreadystatechange = function() {
             if (this.readyState === XMLHttpRequest.DONE) {
-                var message = "";
+                var message = "Prior Authorization Failed.\nNo ClaimResponse found within bundle.";
                 if (this.status === 200) {                   
-                    var claimResponse = JSON.parse(this.responseText);
-                    message = "Prior Authorization " + claimResponse.disposition + "\n";
-                    message += "Prior Authorization Number: " + claimResponse.preAuthRef;  
+                    var claimResponseBundle = JSON.parse(this.responseText);
+                    console.log(claimResponseBundle);
+                    
+                    // find the ClaimResponse within the Bundle
+                    for (let item of claimResponseBundle.entry) {
+                        if (item.resource.resourceType == "ClaimResponse") {
+                            var claimResponse = item.resource;
+                            message = "Prior Authorization " + claimResponse.disposition + "\n";
+                            message += "Prior Authorization Number: " + claimResponse.preAuthRef;
+                            break;
+                        }
+                    }
                     
                     // DME Orders                
                     if (dMEOrdersEnabled) 
                         SendDMEOrder(qForm, response);
                 } else {
+                    console.log(this.responseText);
                     message = "Prior Authorization Request Failed."
                 }
                 console.log(message);
-                alert(message);
-                console.log(this.responseText);    
+                alert(message); 
             }
         }      
     }
