@@ -20,17 +20,17 @@ The service will run on port 3005. This can be changed in `package.json` and the
 
 ## Using the App
 
-Once the app is up and running you can use it manually by visiting the launch page and including the two required parameters:
+Once the app is up and running you can launch it manually by visiting the launch page and including the two required parameters:
 
 |Param|Description|
 |----|----|
 |`iss`|The base URL of the FHIR server|
-|`patientId`|The ID of the patient in context|
+|`launch`|The unique ID for this launch|
 
 The FHIR server must properly comply with the SMART on FHIR specification and have a conformace statement with a `security` section that contains the authorization endpoints that the app needs to request a token from.  
 
 For example, 
-http://localhost:3005/launch?iss=http://launch.smarthealthit.org/v/r2/fhir/&patientId=Patient/ab2931ba-6c2d-4110-8028-b5a95cd9f5c7 is an example of a valid launch url that will successfully open the app.  The app will display the name of the patient if it successfully authenticates and retrieves the patient resource.
+http://localhost:3005/launch?iss=http://launch.smarthealthit.org/v/r2/fhir/&launch=1234 is an example of a valid launch url that will successfully launch the app.  However, note that the actual app requires an `appContext` parameter that is only available through an EHR launch.  The app is not able to work with a standalone launch.  If you wish to test the actual DTR app, and not the SMART launch sequence, you will need to either use the EHR/CRD servers provided below or use an actual EHR that supports SMART launch with an `appContext`.
 
 ## Connecting with other subprojects:
 
@@ -44,14 +44,14 @@ _Note: If you have your own EHR the you should not need to run the EHR (FHIR) Se
 
 3. Make sure the **EHR** server has the data it needs by running `gradle loadData` to populate it.
 
-4. Then, run the **KeyCloak** server. Follow the guide in the KeyCloak readme if you have never set it up before, make the appropriate **realm/client/user**. 
+4. Then, run the **KeyCloak** server. Follow the guide in the CRD readme if you have never set it up before, make the appropriate **realm/client/user**. 
    
    >Note: You might need to modify the **frame-ancesters** setting in the KeyCloak admin: e.g. Realm | Security Defences | Content-Security-Policy = frame-src 'self'; **frame-ancesters http://localhost:***; object-src 'none';_  
-   
-   >Note: You will need to visit localhost:3005/register to register the "app-client". If you don't, when you click the submit button to launch the app, it will not raise the username/password dialog.
-
 
 5. Then run the **CRD** server, **DTR** server, and **Request Generator**.
+
+   >Note: The DTR app's authorization against the EHR server requires a `client_id` that is registered with the auth server of that EHR to work.  The DTR app has a `/register` endpoint that allows user entry of which `client_id` to use for a specific EHR server.  If following the KeyCloak guide provided in the CRD readme, the client would be called `app-login`.
+
  
 You should be able to send a request from the Request Generator's master branch for the SMART app launch by clicking the `Dara` button to pre-populate the inputs.  Check `include prefetch` and send the request, you should get a CDS Hooks Card back. Click the SMART link and you should see a login screen.  Login with whatever user you've registered, and the SMART App should proceed to launch.
 
