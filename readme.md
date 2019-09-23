@@ -25,12 +25,12 @@ Once the app is up and running you can launch it manually by visiting the launch
 |Param|Description|
 |----|----|
 |`iss`|The base URL of the FHIR server|
-|`patientId`|The ID of the patient in context|
+|`launch`|The unique ID for this launch|
 
 The FHIR server must properly comply with the SMART on FHIR specification and have a conformace statement with a `security` section that contains the authorization endpoints that the app needs to request a token from.  
 
 For example, 
-http://localhost:3005/launch?iss=http://launch.smarthealthit.org/v/r2/fhir/&patientId=Patient/ab2931ba-6c2d-4110-8028-b5a95cd9f5c7 is an example of a valid launch url that will successfully launch the app.  However, note that the actual app requires an `appContext` parameter that is only available through an EHR launch.  The app is not able to work with a standalone launch.  If you wish to test the actual DTR app, and not the SMART launch sequence, you will need to either use the EHR/CRD servers provided by below or use an actual EHR that supports SMART launch with an `appContext`.
+http://localhost:3005/launch?iss=http://launch.smarthealthit.org/v/r2/fhir/&launch=1234 is an example of a valid launch url that will successfully launch the app.  However, note that the actual app requires an `appContext` parameter that is only available through an EHR launch.  The app is not able to work with a standalone launch.  If you wish to test the actual DTR app, and not the SMART launch sequence, you will need to either use the EHR/CRD servers provided by below or use an actual EHR that supports SMART launch with an `appContext`.
 
 ## Connecting with other subprojects:
 
