@@ -534,7 +534,7 @@ export default class QuestionnaireForm extends Component {
                 currentItem.push(answerItem);
             }
         });
-        console.log(response);            
+        console.log(response);
 
         const priorAuthBundle = JSON.parse(JSON.stringify(this.props.bundle));
         priorAuthBundle.entry.unshift({ resource: this.props.deviceRequest })
@@ -583,9 +583,9 @@ export default class QuestionnaireForm extends Component {
             }
         })
         console.log(priorAuthClaim);
-        console.log(JSON.stringify(priorAuthClaim));
 
         priorAuthBundle.entry.unshift({ resource: priorAuthClaim })
+        console.log(priorAuthBundle);
 
         const Http = new XMLHttpRequest();
         // const priorAuthUrl = "https://davinci-prior-auth.logicahealth.org/fhir/Claim/$submit";
@@ -596,7 +596,7 @@ export default class QuestionnaireForm extends Component {
         var qForm = this;        
         Http.onreadystatechange = function() {
             if (this.readyState === XMLHttpRequest.DONE) {
-                var message = "";
+                var message = "Prior Authorization Failed.\nNo ClaimResponse found within bundle.";
                 if (this.status === 200) {                   
                     var claimResponseBundle = JSON.parse(this.responseText);
                     var claimResponse = claimResponseBundle.entry[0].resource;
@@ -607,11 +607,11 @@ export default class QuestionnaireForm extends Component {
                     if (dMEOrdersEnabled) 
                         SendDMEOrder(qForm, response);
                 } else {
+                    console.log(this.responseText);
                     message = "Prior Authorization Request Failed."
                 }
                 console.log(message);
-                alert(message);
-                console.log(this.responseText);    
+                alert(message); 
             }
         }      
     }
