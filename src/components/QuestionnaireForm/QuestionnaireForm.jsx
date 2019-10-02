@@ -598,7 +598,8 @@ export default class QuestionnaireForm extends Component {
             if (this.readyState === XMLHttpRequest.DONE) {
                 var message = "";
                 if (this.status === 200) {                   
-                    var claimResponse = JSON.parse(this.responseText);
+                    var claimResponseBundle = JSON.parse(this.responseText);
+                    var claimResponse = claimResponseBundle.entry[0].resource;
                     message = "Prior Authorization " + claimResponse.disposition + "\n";
                     message += "Prior Authorization Number: " + claimResponse.preAuthRef;  
                     
