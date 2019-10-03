@@ -1,0 +1,26 @@
+.raw-claim-response {
+  padding: 30px;
+  background-color: #bebebe;
+  overflow-wrap: break-word;
+}
+
+.right {
+  margin-top: 20px;
+}
+
+.inline {
+  display: inline;
+}
+
+.btn {
+  margin-top: 10px;
+  margin-right: 10px;
+}
+
+.hidden {
+  display: none;
+}
+
+label {
+  margin-top: 10px;
+}
