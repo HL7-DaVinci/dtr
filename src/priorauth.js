@@ -5,10 +5,12 @@ import PriorAuth from "./components/PriorAuth/PriorAuth";
 
 // Prior Auth server params
 const PRIORAUTH_SERVICE = {
-  BASE: "http://localhost:9000/fhir",
+  // BASE: "http://localhost:9000/fhir",
+  BASE: "https://davinci-prior-auth.logicahealth.org/fhir",
   CLAIM_RESPONSE: "/ClaimResponse",
   SUBSCRIPTION: "/Subscription",
-  WS_BASE: "ws://localhost:9000/fhir",
+  // WS_BASE: "ws://localhost:9000/fhir",
+  WS_BASE: "wss://davinci-prior-auth.logicahealth.org/fhir",
   WS_CONNECT: "/connect",
   WS_SUBSCRIBE: "/private/notification",
   WS_BIND: "/subscribe"

@@ -588,8 +588,8 @@ export default class QuestionnaireForm extends Component {
         console.log(priorAuthBundle);
 
         const Http = new XMLHttpRequest();
-        // const priorAuthUrl = "https://davinci-prior-auth.logicahealth.org/fhir/Claim/$submit";
-        const priorAuthUrl = "http://localhost:9000/fhir/Claim/$submit";
+        const priorAuthUrl = "https://davinci-prior-auth.logicahealth.org/fhir/Claim/$submit";
+        // const priorAuthUrl = "http://localhost:9000/fhir/Claim/$submit";
         Http.open("POST", priorAuthUrl);
         Http.setRequestHeader("Content-Type", "application/fhir+json");
         Http.send(JSON.stringify(priorAuthBundle));          
