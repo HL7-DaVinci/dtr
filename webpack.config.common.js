@@ -5,13 +5,12 @@ module.exports = {
     launch: path.resolve(__dirname, "src/launch.js"),
     index: path.resolve(__dirname, "src/index.js"),
     register: path.resolve(__dirname, "src/register.js"),
-
-
+    priorauth: path.resolve(__dirname, "src/priorauth.js")
   },
   output: {
     filename: "[name].bundle.js",
     path: path.resolve(__dirname, "public"),
-    publicPath: "/",
+    publicPath: "/"
   },
   resolve: { extensions: ["*", ".js", ".jsx"] },
   module: {

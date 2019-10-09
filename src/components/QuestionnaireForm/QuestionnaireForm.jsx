@@ -599,17 +599,9 @@ export default class QuestionnaireForm extends Component {
                 var message = "Prior Authorization Failed.\nNo ClaimResponse found within bundle.";
                 if (this.status === 200) {                   
                     var claimResponseBundle = JSON.parse(this.responseText);
-                    console.log(claimResponseBundle);
-                    
-                    // find the ClaimResponse within the Bundle
-                    for (let item of claimResponseBundle.entry) {
-                        if (item.resource.resourceType == "ClaimResponse") {
-                            var claimResponse = item.resource;
-                            message = "Prior Authorization " + claimResponse.disposition + "\n";
-                            message += "Prior Authorization Number: " + claimResponse.preAuthRef;
-                            break;
-                        }
-                    }
+                    var claimResponse = claimResponseBundle.entry[0].resource;
+                    message = "Prior Authorization " + claimResponse.disposition + "\n";
+                    message += "Prior Authorization Number: " + claimResponse.preAuthRef;  
                     
                     // DME Orders                
                     if (dMEOrdersEnabled) 
@@ -619,7 +611,14 @@ export default class QuestionnaireForm extends Component {
                     message = "Prior Authorization Request Failed."
                 }
                 console.log(message);
-                alert(message); 
+
+                // TODO pass the message to the PriorAuth page instead of having it query again
+                var patientEntry = claimResponseBundle.entry.find(function(entry) {
+                    return (entry.resource.resourceType == "Patient");
+                });
+                let priorAuthUri = "priorauth?identifier=" + claimResponse.preAuthRef + "&patient.identifier=" + patientEntry.resource.id;
+                console.log(priorAuthUri)
+                window.location.href = priorAuthUri;
             }
         }      
     }
