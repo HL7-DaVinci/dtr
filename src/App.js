@@ -89,8 +89,10 @@ class App extends Component {
     }
     else {
       return (
-        <p>Loading...</p>
-        <Testing logs = {this.state.logs}/>
+        <div>
+          <p>Loading...</p>
+          <Testing logs = {this.state.logs}/>
+        </div>
       )
     }
   }
