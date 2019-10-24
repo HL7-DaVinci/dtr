@@ -6,7 +6,10 @@ import executeElm from "./elmExecutor/executeElm";
 import fetchArtifacts from "./util/fetchArtifacts";
 import QuestionnaireForm from "./components/QuestionnaireForm/QuestionnaireForm";
 import Testing from "./components/ConsoleBox/Testing";
+import UserMessage from "./components/UserMessage/UserMessage";
+
 // import sample from './sample_questionnaire.json';
+
 class App extends Component {
   constructor(props) {
     super(props);
@@ -15,7 +18,8 @@ class App extends Component {
       cqlPrepoulationResults: null,
       deviceRequest: null,
       bundle: null,
-      logs: []
+      logs: [],
+      errors: []
     }
     this.smart = props.smart;
     this.consoleLog = this.consoleLog.bind(this);
@@ -42,18 +46,27 @@ class App extends Component {
       this.consoleLog("executed cql, result:"+JSON.stringify(cqlResults),"infoClass");
       this.setState({bundle: cqlResults.bundle})
       this.setState({cqlPrepoulationResults: cqlResults.elmResults})
-    });
+      // console.log( `cqlResults= `, cqlResults );
+    })
   }
 
-  consoleLog(content, type) {
+  consoleLog(content, type, details=null) {
     let jsonContent = {
-        content: content,
-        type: type
+        content,
+        details,
+        type
     }
     this.setState(prevState => ({
         logs: [...prevState.logs, jsonContent]
-    }))
-   }
+    }));
+    if ( type==="errorClass" ) {
+      this.setState(prevState => ({
+        errors: [...prevState.errors, jsonContent]
+      }));
+    }
+    // console.log("this.state.logs:", this.state.logs)
+    // console.log("this.state.errors:", this.state.errors)
+  }
 
   render() {
     if (this.state.questionnaire && this.state.cqlPrepoulationResults && this.state.bundle){
@@ -62,13 +75,23 @@ class App extends Component {
           <QuestionnaireForm qform = {this.state.questionnaire} cqlPrepoulationResults= {this.state.cqlPrepoulationResults} deviceRequest = {this.state.deviceRequest} bundle = {this.state.bundle} />
         </div>
       );
-    } else {
+    }
+    else if ( this.state.errors.length > 0 ) {
+      let errs = _.map( this.state.errors, 'details');  // new array of only the details
       return (
         <div className="App">
-            <p>Loading...</p>
-            <Testing logs = {this.state.logs}/>
+          <UserMessage variant={'danger'}
+                        title={'Error!'}
+                        message={'An error occurred while processing the request.  You will need to fill out a paper form.'}
+                        details={errs} />
         </div>
       );
+    }
+    else {
+      return (
+        <p>Loading...</p>
+        <Testing logs = {this.state.logs}/>
+      )
     }
   }
 }

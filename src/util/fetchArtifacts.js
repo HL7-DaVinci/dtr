@@ -4,8 +4,10 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, filepath, consol
   return new Promise(function(resolve, reject) {
     function handleFetchErrors(response) {
       if (!response.ok) {
-          consoleLog("failed to get resource","errorClass");
-        reject("Failure when fetching resource.");
+        let msg = `Failure when fetching resource`;
+        let details = `${msg}: ${response.url}: the server responded with a status of ${response.status} (${response.statusText})`;
+        consoleLog(msg, "errorClass", details);
+        reject(msg);
       }
       return response;
     }
@@ -43,6 +45,7 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, filepath, consol
     fetch(questionnaireUrl).then(handleFetchErrors).then(r => r.json())
     .then(questionnaire => {
       consoleLog("fetched questionnaire successfully","infoClass");
+      // consoleLog(JSON.stringify(questionnaire),"infoClass");
       retVal.questionnaire = questionnaire;
       fetchedUris.add(questionnaireUri)
       const mainElmUri = questionnaire.extension.filter(ext => ext.url == "http://hl7.org/fhir/StructureDefinition/cqif-library")[0].valueReference.reference;
@@ -51,7 +54,10 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, filepath, consol
       consoleLog("fetched elms", "infoClass");
 
     })
-    .catch(err => reject(err));
+    .catch(err => {
+      console.log("error doing fetch():", err);
+      reject(err)
+    });
 
     // fetch device request
     // if (deviceRequestIdOrUrl.includes("DeviceRequest/")){
@@ -81,9 +87,13 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, filepath, consol
         fetchRelatedElms(libraryResource);
         fetchElmFile(libraryResource, isMain);
         consoleLog("fetched Elm","infoClass");
+        // consoleLog(JSON.stringify(libraryResource),"infoClass")
         pendingFetches -= 1;
       })
-      .catch(err => reject(err));
+      .catch(err => {
+        console.log("error fetching ELM:", err);
+        reject(err)
+      });
     }
 
     function fetchRelatedElms(libraryResource){
@@ -101,15 +111,29 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, filepath, consol
       }
 
       pendingFetches += 1;
+      console.log("about to fetchElmFile:",elmUrl)
       fetch(elmUrl).then(handleFetchErrors).then(r => r.json())
       .then(elm => {
+        if ( elm.library.annotation ) {
+          let msg = `CQL to ELM translation resulted in errors.`;
+          let details = { "ELM annotation": elm.library.annotation };
+          consoleLog(msg, "errorClass", details);
+          reject(msg);
+        }
         pendingFetches -= 1;
         fetchedUris.add(elmUri);
-        if (isMain) retVal.mainLibraryElm = elm;
-        else retVal.dependentElms.push(elm);
+        if (isMain) {
+          retVal.mainLibraryElm = elm;
+        }
+        else {
+          retVal.dependentElms.push(elm);
+        }
         resolveIfDone();
       })
-      .catch(err => reject(err));
+      .catch(err => {
+        console.log("error in fetchElmFile:  ", err);
+        reject(err)
+      });
     }
   });
 }
