@@ -7,10 +7,15 @@ class PriorAuth extends Component {
     super(props);
     this.state = {
       claimResponseBundle: props.claimResponseBundle,
-      subscriptionType: "",
+      subscriptionType: null,
       subscribeMsg: "",
       showRestHookForm: false,
       showLink: false
+    };
+    this.subscriptionType = {
+      WEBSOCKET: "WebSocket",
+      RESTHOOK: "Rest-Hook",
+      POLLING: "Polling"
     };
   }
 
@@ -18,20 +23,60 @@ class PriorAuth extends Component {
    * Subscription select dropdown handler to update the subscription type of the form
    * Changes the subscriptionType and showRestHookForm in this.state
    *
-   * @param subscriptionType - the selected subscription type either 'Rest-Hook' or 'WebSocket'
+   * @param subscriptionType - the selected subscription type
    */
   handleSubscribeTypeSelect(subscriptionType) {
+    console.log("Subscription Type: " + subscriptionType);
     this.setState({
       subscriptionType: subscriptionType,
-      showRestHookForm: subscriptionType === "Rest-Hook" ? true : false
+      showRestHookForm:
+        subscriptionType === this.subscriptionType.RESTHOOK ? true : false
     });
   }
 
   /**
-   * Poll the PriorAuth server for the ClaimRespnose
+   * Poll for a pended claim based on the IG specification
+   * Specification: no more than 4 times in first hour
+   *                no more than once per hour after that
+   *                at least once every 12 hours
+   */
+  polling() {
+    // let hourInSec = 3600;
+    let hourInSec = 32; // For testing purposes make an hour 16 seconds
+
+    // Poll every 15 minutes in the first hour
+    this.getLatestResponse();
+    let numPolls = 1;
+    let context = this;
+    let polling = setInterval(function() {
+      context.getLatestResponse();
+      numPolls += 1;
+      if (numPolls >= 4 || context.getClaimResponse().outcome != "queued") {
+        clearInterval(polling);
+        context.poll(hourInSec * 1000);
+      }
+    }, (hourInSec * 1000) / 4);
+  }
+
+  /**
+   * Poll constantly at given interval until the final disposition comes back
+   * @param interval - time in ms to delay between polling
+   */
+  poll(interval) {
+    let context = this;
+    let polling = setInterval(function() {
+      context.getLatestResponse();
+      if (context.getClaimResponse().outcome != "queued") {
+        clearInterval(polling);
+      }
+    }, interval);
+  }
+
+  /**
+   * Query the PriorAuth server for the most updated ClaimRespnose
    * Sets this.state.claimResponseBundle
    */
-  poll() {
+  getLatestResponse() {
     let priorAuth = this; // Save this context to use in the onload function
     const claimResponseUri =
       this.props.priorAuthService.BASE +
@@ -41,6 +86,9 @@ class PriorAuth extends Component {
       "&patient.identifier=" +
       this.props.patientId;
     console.log("polling: " + claimResponseUri);
+    this.setState({
+      subscribeMsg: "Last updated " + new Date()
+    });
     const claimResponseGet = new XMLHttpRequest();
     claimResponseGet.open("GET", claimResponseUri, false);
     claimResponseGet.setRequestHeader("Accept", "application/json");
@@ -77,24 +125,22 @@ class PriorAuth extends Component {
    */
   handleSubscribe() {
     let claimResponse = this.getClaimResponse();
-    if (this.state.subscriptionType == "") {
+    if (this.state.subscriptionType == null) {
       this.setState({
         subscribeMsg: "Unable to subscribe. Select a subscription type"
       });
-    } else if (
-      claimResponse.outcome === "complete" ||
-      claimResponse.outcome === "error"
-    ) {
+    } else if (claimResponse.outcome !== "queued") {
       this.setState({
         subscribeMsg:
           "Unable to subscribe. ClaimResponse outcome is " +
           claimResponse.outcome
       });
-    } else {
-      this.state.subscriptionType === "Rest-Hook"
-        ? this.handleRestHookSubscribe()
-        : this.handleWebSocketSubscribe();
-    }
+    } else if (this.state.subscriptionType === this.subscriptionType.RESTHOOK)
+      this.handleRestHookSubscribe();
+    else if (this.state.subscriptionType === this.subscriptionType.WEBSOCKET)
+      this.handleWebSocketSubscribe();
+    else if (this.state.subscriptionType === this.subscriptionType.POLLING)
+      this.polling();
   }
 
   handleRestHookSubscribe() {
@@ -251,7 +297,7 @@ class PriorAuth extends Component {
   }
 
   /**
-   * Get the current ClaimResponse resource from the bundle
+   * Get the current ClaimResponse resource from the bundle loaded
    */
   getClaimResponse() {
     return this.state.claimResponseBundle.entry[0].resource;
@@ -259,12 +305,9 @@ class PriorAuth extends Component {
 
   render() {
     const claimResponse = this.getClaimResponse();
-    const disabled =
-      claimResponse.outcome === "complete" || claimResponse.outcome === "error"
-        ? "disabled"
-        : "";
+    const disabled = claimResponse.outcome !== "queued" ? "disabled" : "";
     const dropdownLabel =
-      this.state.subscriptionType === ""
+      this.state.subscriptionType === null
         ? "Select Type"
         : this.state.subscriptionType;
     return (
@@ -274,7 +317,7 @@ class PriorAuth extends Component {
         </div>
         <div className="right col col-md-6">
           <div>
-            <h4 className="inline">Prior Auhtorization: </h4>
+            <h4 className="inline">Prior Authorization: </h4>
             <p className="inline">{claimResponse.id}</p>
           </div>
           <div>
@@ -292,7 +335,7 @@ class PriorAuth extends Component {
           <button
             type="button"
             className="btn btn-secondary"
-            onClick={() => this.poll()}
+            onClick={() => this.getLatestResponse()}
           >
             Refresh
           </button>
@@ -338,6 +381,13 @@ class PriorAuth extends Component {
                 onClick={() => this.handleSubscribeTypeSelect("WebSocket")}
               >
                 WebSocket
+              </a>
+              <a
+                className="dropdown-item"
+                href="#"
+                onClick={() => this.handleSubscribeTypeSelect("Polling")}
+              >
+                Polling
               </a>
             </div>
           </div>
