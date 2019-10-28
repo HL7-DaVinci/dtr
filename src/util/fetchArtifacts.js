@@ -17,13 +17,13 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, filepath, consol
 
     const retVal = {
       questionnaire: null,
-      mainLibraryElm: null,
+      mainLibraryElms: [],
       dependentElms: []
     }
 
     function resolveIfDone(){
       if (pendingFetches != 0) return;
-      if (retVal.questionnaire && retVal.mainLibraryElm) resolve(retVal)
+      if (retVal.questionnaire && retVal.mainLibraryElms) resolve(retVal)
       else reject("Failed to fetch all artifacts.")
     }
 
@@ -48,8 +48,11 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, filepath, consol
       // consoleLog(JSON.stringify(questionnaire),"infoClass");
       retVal.questionnaire = questionnaire;
       fetchedUris.add(questionnaireUri)
-      const mainElmUri = questionnaire.extension.filter(ext => ext.url == "http://hl7.org/fhir/StructureDefinition/cqif-library")[0].valueReference.reference;
-      fetchElm(mainElmUri, true)
+      // grab all main elm urls
+      const mainElmUris = questionnaire.extension.filter(ext => ext.url == "http://hl7.org/fhir/StructureDefinition/cqif-library").map(lib => lib.valueReference.reference);
+      mainElmUris.forEach((mainElmUri) => {
+        fetchElm(mainElmUri, true)
+      });
       pendingFetches -= 1;
       consoleLog("fetched elms", "infoClass");
 
@@ -123,9 +126,8 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, filepath, consol
         pendingFetches -= 1;
         fetchedUris.add(elmUri);
         if (isMain) {
-          retVal.mainLibraryElm = elm;
-        }
-        else {
+          retVal.mainLibraryElms.push(elm);
+        } else {
           retVal.dependentElms.push(elm);
         }
         resolveIfDone();

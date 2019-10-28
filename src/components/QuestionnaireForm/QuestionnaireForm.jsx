@@ -167,7 +167,29 @@ export default class QuestionnaireForm extends Component {
                         if (e.url === "http://hl7.org/fhir/StructureDefinition/cqif-calculatedValue") {
                             // stu3 
                             const value = findValueByPrefix(e, "value");
-                            this.updateQuestionValue(item.linkId, this.props.cqlPrepoulationResults[value], 'values')
+
+                            // split library designator from statement
+                            const valueComponents = value.split('.')
+                            let libraryName;
+                            let statementName;
+                            if (valueComponents.length > 1) {
+                                libraryName = valueComponents[0].substring(1, valueComponents[0].length-1);
+                                statementName = valueComponents[1];
+                            } else { // if there is not library name grab the first library name
+                                statementName = value
+                                libraryName = Object.keys(this.props.cqlPrepoulationResults)[0]
+                            }
+
+                            // grab the population result
+                            let prepopulationResult;
+                            if (this.props.cqlPrepoulationResults[libraryName] != null) {
+                                prepopulationResult = this.props.cqlPrepoulationResults[libraryName][statementName]
+                            } else {
+                                prepopulationResult = null
+                                console.log(`Couldn't find library "${libraryName}"`)
+                            }
+
+                            this.updateQuestionValue(item.linkId, prepopulationResult, 'values')
                         }
                     })
                 }

@@ -17,6 +17,7 @@ function executeElm(smart, fhirVersion, executionInputs, consoleLog) {
       patientSource.loadBundles([resourceBundle]);
       const elmResults = executeElmAgainstPatientSource(executionInputs, patientSource);
       const results = {
+        libraryName: executionInputs.elm.library.identifier.id,
         bundle: resourceBundle,
         elmResults: elmResults
       }
