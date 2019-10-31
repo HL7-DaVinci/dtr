@@ -35,6 +35,7 @@
     "es6-promise": "^4.2.6",
     "fhirclient": "^0.1.12",
     "isomorphic-fetch": "^2.2.1",
+    "lodash": "^4.17.15",
     "node-fetch": "^2.5.0",
     "pdfmake": "^0.1.56",
     "react": "^16.8.4",
