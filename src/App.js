@@ -46,7 +46,10 @@ class App extends Component {
           }),
           valueSetDB: {},
           parameters: {device_request: fhirWrapper.wrap(this.props.deviceRequest)}
-        }
+        };
+
+        // add the required value sets to the valueSetDB
+        this.fillValueSetDB(executionInputs, artifacts);
 
         this.consoleLog("executing elm", "infoClass");
         return executeElm(this.smart, "stu3", executionInputs, this.consoleLog);
@@ -70,6 +73,44 @@ class App extends Component {
 
       this.setState({bundle: largestBundle})
       this.setState({cqlPrepoulationResults: allLibrariesResults})
+    });
+  }
+
+  // fill the valueSetDB in executionInputs with the required valuesets from their artifact source
+  fillValueSetDB(executionInputs, artifacts) {
+    // create list of all ELMs that will be used
+    let allElms = executionInputs.elmDependencies.slice()
+    allElms.push(executionInputs.elm)
+
+    // iterate over all elms
+    allElms.forEach((elm) => {
+      // leave if this elm has no value set references
+      if (elm.library.valueSets == null) return;
+
+      // iterate over valueSet definitions
+      elm.library.valueSets.def.forEach((valueSetDef) => {
+        // find FHIR value set artifact
+        let valueSet = artifacts.valueSets.find(valueSet => valueSet.id == valueSetDef.id)
+        if (valueSet != null) {
+          // make sure it has an expansion
+          if (valueSet.expansion != null) {
+            // add all codes to the the value set db. it is a map in a map, where the first layer key
+            // is the value set id and second layer key is the value set version. for this purpose we are using un-versioned valuesets
+            executionInputs.valueSetDB[valueSet.id] = {}
+            executionInputs.valueSetDB[valueSet.id][''] = valueSet.expansion.contains.map((code) => {
+              return {
+                code: code.code,
+                system: code.system,
+                version: code.version
+              }
+            })
+          } else {
+            console.error(`Valueset ${valueSet.id} does not have an expansion.`)
+          }
+        } else {
+          console.error(`Could not find valueset ${valueSetDef.id}.`)
+        }
+      });
     });
   }
 

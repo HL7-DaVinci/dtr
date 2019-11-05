@@ -18,7 +18,8 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, filepath, consol
     const retVal = {
       questionnaire: null,
       mainLibraryElms: [],
-      dependentElms: []
+      dependentElms: [],
+      valueSets: []
     }
 
     function resolveIfDone(){
@@ -88,6 +89,7 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, filepath, consol
       .then(libraryResource => {
         fetchedUris.add(libraryUri);
         fetchRelatedElms(libraryResource);
+        fetchRequiredValueSets(libraryResource);
         fetchElmFile(libraryResource, isMain);
         consoleLog("fetched Elm","infoClass");
         // consoleLog(JSON.stringify(libraryResource),"infoClass")
@@ -103,6 +105,40 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, filepath, consol
       if (libraryResource.relatedArtifact == null) return
       const libUris = libraryResource.relatedArtifact.filter(a => a.type == "depends-on").map(a => a.resource.reference);
       libUris.forEach(libUri => fetchElm(libUri));
+    }
+
+    // Fetch any valuesets required for this library
+    function fetchRequiredValueSets(libraryResource) {
+      if (libraryResource.dataRequirement == null) return;
+      // look at the dataRequirement attribute in the library if it exists. This explains the resources it requires
+      // for evaluation and one or more code filters that may be used.
+      // TODO: allow this to look at multiple code filters.
+      const dataRequirementsWithValuesets = libraryResource.dataRequirement.filter(dr => dr.codeFilter != null && dr.codeFilter[0].valueSetReference != null);
+      const valueSetUris = dataRequirementsWithValuesets.map(dr => dr.codeFilter[0].valueSetReference.reference);
+      valueSetUris.forEach(valueSetUri => fetchValueSet(valueSetUri));
+    }
+
+    // Fetch a FHIR value set
+    function fetchValueSet(valueSetUri) {
+      if (valueSetUri in fetchedUris) return;
+      let valueSetUrl = fhirUriPrefix+encodeURIComponent(valueSetUri);
+      if (!fhirResources) {
+        valueSetUrl = filepath + "/" + stripFilenameFromURI(valueSetUri) + '.json';
+      }
+
+      pendingFetches += 1;
+      console.log("about to fetchValueSet:",valueSetUrl)
+      fetch(valueSetUrl).then(handleFetchErrors).then(r => r.json())
+      .then(valueSet => {
+        pendingFetches -= 1;
+        fetchedUris.add(valueSetUri);
+        retVal.valueSets.push(valueSet);
+        resolveIfDone();
+      })
+      .catch(err => {
+        console.log("error in fetchValueSet:  ", err);
+        reject(err)
+      });
     }
 
     function fetchElmFile(libraryResource, isMain){
