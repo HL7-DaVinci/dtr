@@ -33,21 +33,85 @@ class App extends Component {
       console.log("fetched needed artifacts:", artifacts)
       this.setState({questionnaire: artifacts.questionnaire})
       this.setState({deviceRequest: this.props.deviceRequest})
-      const executionInputs = {
-        elm: artifacts.mainLibraryElm,
-        elmDependencies: artifacts.dependentElms,
-        valueSetDB: {},
-        parameters: {device_request: fhirWrapper.wrap(this.props.deviceRequest)}
-      }
-      this.consoleLog("executing elm", "infoClass");
-      return executeElm(this.smart, "stu3", executionInputs, this.consoleLog);
+      // execute for each main library
+      return Promise.all(artifacts.mainLibraryElms.map((mainLibraryElm) => {
+        const executionInputs = {
+          elm: mainLibraryElm,
+          // look at main library elms to determine dependent elms to include
+          elmDependencies: mainLibraryElm.library.includes.def.map((includeStatement) => {
+            return artifacts.dependentElms.find((elm) => {
+              return (elm.library.identifier.id == includeStatement.path &&
+                elm.library.identifier.version == includeStatement.version)
+            });
+          }),
+          valueSetDB: {},
+          parameters: {device_request: fhirWrapper.wrap(this.props.deviceRequest)}
+        };
+
+        // add the required value sets to the valueSetDB
+        this.fillValueSetDB(executionInputs, artifacts);
+
+        this.consoleLog("executing elm", "infoClass");
+        return executeElm(this.smart, "stu3", executionInputs, this.consoleLog);
+      }));
     })
     .then(cqlResults => {
       this.consoleLog("executed cql, result:"+JSON.stringify(cqlResults),"infoClass");
-      this.setState({bundle: cqlResults.bundle})
-      this.setState({cqlPrepoulationResults: cqlResults.elmResults})
-      // console.log( `cqlResults= `, cqlResults );
-    })
+
+      // Collect all library results and grab the largest FHIR resource bundle
+      let allLibrariesResults = {};
+      let largestBundle = null;
+      cqlResults.forEach((libraryResult) => {
+        // add results to hash indexed by library name
+        allLibrariesResults[libraryResult.libraryName] = libraryResult.elmResults
+        // set this result's bundle as the largest one if it is
+        if (largestBundle == null) {
+          largestBundle = libraryResult.bundle
+        } else if (libraryResult.bundle.entry.length > largestBundle.entry.length)
+          largestBundle = libraryResult.bundle
+      });
+
+      this.setState({bundle: largestBundle})
+      this.setState({cqlPrepoulationResults: allLibrariesResults})
+    });
+  }
+
+  // fill the valueSetDB in executionInputs with the required valuesets from their artifact source
+  fillValueSetDB(executionInputs, artifacts) {
+    // create list of all ELMs that will be used
+    let allElms = executionInputs.elmDependencies.slice()
+    allElms.push(executionInputs.elm)
+
+    // iterate over all elms
+    allElms.forEach((elm) => {
+      // leave if this elm has no value set references
+      if (elm.library.valueSets == null) return;
+
+      // iterate over valueSet definitions
+      elm.library.valueSets.def.forEach((valueSetDef) => {
+        // find FHIR value set artifact
+        let valueSet = artifacts.valueSets.find(valueSet => valueSet.id == valueSetDef.id)
+        if (valueSet != null) {
+          // make sure it has an expansion
+          if (valueSet.expansion != null) {
+            // add all codes to the the value set db. it is a map in a map, where the first layer key
+            // is the value set id and second layer key is the value set version. for this purpose we are using un-versioned valuesets
+            executionInputs.valueSetDB[valueSet.id] = {}
+            executionInputs.valueSetDB[valueSet.id][''] = valueSet.expansion.contains.map((code) => {
+              return {
+                code: code.code,
+                system: code.system,
+                version: code.version
+              }
+            })
+          } else {
+            console.error(`Valueset ${valueSet.id} does not have an expansion.`)
+          }
+        } else {
+          console.error(`Could not find valueset ${valueSetDef.id}.`)
+        }
+      });
+    });
   }
 
   consoleLog(content, type, details=null) {
