@@ -154,10 +154,13 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, filepath, consol
       fetch(elmUrl).then(handleFetchErrors).then(r => r.json())
       .then(elm => {
         if ( elm.library.annotation ) {
-          let msg = `CQL to ELM translation resulted in errors.`;
-          let details = { "ELM annotation": elm.library.annotation };
-          consoleLog(msg, "errorClass", details);
-          reject(msg);
+          let errors = elm.library.annotation.filter(a => a.errorSeverity != 'warning')
+          if (errors.length > 0) {
+            let msg = `CQL to ELM translation resulted in errors.`;
+            let details = { "ELM annotation": elm.library.annotation };
+            consoleLog(msg, "errorClass", details);
+            reject(msg);
+          }
         }
         pendingFetches -= 1;
         fetchedUris.add(elmUri);
