@@ -40,6 +40,7 @@ function executeElmAgainstPatientSource(executionInputs, patientSource) {
 function getPatientSource(fhirVersion) {
   if (fhirVersion == "dstu2") return cqlfhir.PatientSource.FHIRv102();
   if (fhirVersion == "stu3") return cqlfhir.PatientSource.FHIRv300();
+  if (fhirVersion == "r4") return cqlfhir.PatientSource.FHIRv400();
 }
 
 

@@ -26,7 +26,7 @@ class App extends Component {
   }
 
   componentDidMount(){
-    const fhirWrapper = cqlfhir.FHIRWrapper.FHIRv300();
+    const fhirWrapper = cqlfhir.FHIRWrapper.FHIRv400();
     this.consoleLog("fetching artifacts", "infoClass");
     fetchArtifacts(this.props.FHIR_URI_PREFIX, this.props.questionnaireUri, this.smart, this.props.filepath, this.consoleLog)
     .then(artifacts => {
@@ -52,7 +52,7 @@ class App extends Component {
         this.fillValueSetDB(executionInputs, artifacts);
 
         this.consoleLog("executing elm", "infoClass");
-        return executeElm(this.smart, "stu3", executionInputs, this.consoleLog);
+        return executeElm(this.smart, "r4", executionInputs, this.consoleLog);
       }));
     })
     .then(cqlResults => {
