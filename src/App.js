@@ -31,6 +31,13 @@ class App extends Component {
     fetchArtifacts(this.props.FHIR_URI_PREFIX, this.props.questionnaireUri, this.smart, this.props.filepath, this.consoleLog)
     .then(artifacts => {
       console.log("fetched needed artifacts:", artifacts)
+
+      // default to STU3 unless R4 is indicated
+      let fhirVersion = 'stu3';
+      if (artifacts.questionnaire.meta.profile.includes("http://hl7.org/fhir/us/davinci-dtr/StructureDefinition/dtr-questionnaire-r4")) {
+        fhirVersion = 'r4';
+      }
+
       this.setState({questionnaire: artifacts.questionnaire})
       this.setState({deviceRequest: this.props.deviceRequest})
       // execute for each main library
@@ -52,7 +59,7 @@ class App extends Component {
         this.fillValueSetDB(executionInputs, artifacts);
 
         this.consoleLog("executing elm", "infoClass");
-        return executeElm(this.smart, "r4", executionInputs, this.consoleLog);
+        return executeElm(this.smart, fhirVersion, executionInputs, this.consoleLog);
       }));
     })
     .then(cqlResults => {
