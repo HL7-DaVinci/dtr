@@ -645,7 +645,7 @@ export default class QuestionnaireForm extends Component {
                 var patientEntry = claimResponseBundle.entry.find(function(entry) {
                     return (entry.resource.resourceType == "Patient");
                 });
-                let priorAuthUri = "priorauth?identifier=" + claimResponse.preAuthRef + "&patient.identifier=" + patientEntry.resource.id;
+                let priorAuthUri = "priorauth?identifier=" + claimResponse.preAuthRef + "&patient.identifier=" + patientEntry.resource.identifier[0].value;
                 console.log(priorAuthUri)
                 window.location.href = priorAuthUri;
             }
