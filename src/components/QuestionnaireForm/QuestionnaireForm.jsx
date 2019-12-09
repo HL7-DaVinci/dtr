@@ -626,7 +626,7 @@ export default class QuestionnaireForm extends Component {
         Http.onreadystatechange = function() {
             if (this.readyState === XMLHttpRequest.DONE) {
                 var message = "Prior Authorization Failed.\nNo ClaimResponse found within bundle.";
-                if (this.status === 200) {                   
+                if (this.status === 201) {                   
                     var claimResponseBundle = JSON.parse(this.responseText);
                     var claimResponse = claimResponseBundle.entry[0].resource;
                     message = "Prior Authorization " + claimResponse.disposition + "\n";
@@ -666,6 +666,10 @@ export default class QuestionnaireForm extends Component {
         var entry = bundle.entry.find(function(entry) {
             return (entry.resource.resourceType == resourceType);
         });
+        // TODO: This is just a temporary fix. Coverage is referenced in the Claim but does not exist in the Bundle, causing
+        // entry.resource.id to throw an error and the Bundle is never sent to PAS
+        if (entry == undefined || entry == null)
+            return resourceType + "/NotFound";
         return resourceType + "/" + entry.resource.id;
     }
 
