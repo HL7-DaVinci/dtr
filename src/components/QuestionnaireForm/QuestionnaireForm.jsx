@@ -646,9 +646,11 @@ export default class QuestionnaireForm extends Component {
                     return (entry.resource.resourceType == "Patient");
                 });
 
-                // support multiple places to pull the patient ID from (FHIR STU3 and R4)
-                var patientId = patientEntry.resource.id;
-                if (patientId == null) {
+                // fall back to resource.id if resource.identifier is not populated
+                var patientId;
+                if (patientEntry.resource.identifier == null) {
+                    patientId = patientEntry.resource.id;
+                } else {
                     patientId = patientEntry.resource.identifier[0].value;
                 }
                 let priorAuthUri = "priorauth?identifier=" + claimResponse.preAuthRef + "&patient.identifier=" + patientId;
