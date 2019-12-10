@@ -645,7 +645,15 @@ export default class QuestionnaireForm extends Component {
                 var patientEntry = claimResponseBundle.entry.find(function(entry) {
                     return (entry.resource.resourceType == "Patient");
                 });
-                let priorAuthUri = "priorauth?identifier=" + claimResponse.preAuthRef + "&patient.identifier=" + patientEntry.resource.identifier[0].value;
+
+                // fall back to resource.id if resource.identifier is not populated
+                var patientId;
+                if (patientEntry.resource.identifier == null) {
+                    patientId = patientEntry.resource.id;
+                } else {
+                    patientId = patientEntry.resource.identifier[0].value;
+                }
+                let priorAuthUri = "priorauth?identifier=" + claimResponse.preAuthRef + "&patient.identifier=" + patientId;
                 console.log(priorAuthUri)
                 window.location.href = priorAuthUri;
             }
@@ -659,7 +667,7 @@ export default class QuestionnaireForm extends Component {
                 (answer[0].hasOwnProperty("valueDateTime") && (answer[0].valueDateTime == null || answer[0].valueDateTime == "")) ||
                 (answer[0].hasOwnProperty("valueDate") && (answer[0].valueDate == null || answer[0].valueDate == "")) ||
                 (answer[0].hasOwnProperty("valueBoolean") && (answer[0].valueBoolean == null || answer[0].valueBoolean == "")) ||
-                (answer[0].hasOwnProperty("valueQuantity") && (answer[0].valueQuantity.value == null || answer[0].valueQuantity.value == "")));
+                (answer[0].hasOwnProperty("valueQuantity") && (answer[0].valueQuantity == null || answer[0].valueQuantity.value == null || answer[0].valueQuantity.value == "")));
     }
 
     makeReference(bundle, resourceType) {
