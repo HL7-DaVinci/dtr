@@ -1,5 +1,5 @@
 # DTR SMART on FHIR App
-This subproject contains a SMART on FHIR app, which provides a standardized way to interact with FHIR servers. This Reference Impementation (RI) supports the **[Documents Templates and Rules (DTR) IG](http://build.fhir.org/ig/HL7/davinci-dtr/)** which specifies how payer rules can be executed in a provider context to ensure that documentation requirements are met. This RI and IG are companions to the **[Coverage Requirements Discovery (CRD) IG](http://build.fhir.org/ig/HL7/davinci-dtr/)** and **[Coverage Requirements Discovery (CRD) RI](https://github.com/HL7-DaVinci/CRD)**.
+This subproject contains a SMART on FHIR app, which provides a standardized way to interact with FHIR servers. This Reference Impementation (RI) supports the **[Documents Templates and Rules (DTR) IG](http://build.fhir.org/ig/HL7/davinci-dtr/)** which specifies how payer rules can be executed in a provider context to ensure that documentation requirements are met. This RI and IG are companions to the **[Coverage Requirements Discovery (CRD) IG](https://build.fhir.org/ig/HL7/davinci-crd/)** and **[Coverage Requirements Discovery (CRD) RI](https://github.com/HL7-DaVinci/CRD)**.
 
 # Getting Started
 
@@ -16,39 +16,48 @@ Install [node.js](https://nodejs.org/en/).
 	* dev: `npm start`
 	* production: `npm run startProd`
 
-The service will run on port 3005. This can be changed in `package.json` and the configuration file for the desired version. The dev version is configured with `webpack.dev.config.js` and does not use `https` by default.  The production version is configured through `webpack.prod.config.js` and does use `https` by default.  This can also be changed in desired config by changing the `https` boolean.  There is currently no redirection between `https` and `http`, so using the wrong scheme in the url will result in an empty response.
+The service will run on port 3005. This can be changed in `package.json` and the configuration file for the desired version. The dev version is configured with `webpack.dev.config.js` and does not use `https` by default.  The production version is configured through `webpack.prod.config.js` and does use `https` by default.  This can also be changed in the desired config by changing the `https` boolean.  There is currently no redirection between `https` and `http`, so using the wrong scheme in the url will result in an empty response.
 
 ## Using the App
 
-Once the app is up and running you can use it manually by visiting the launch page and including the two required parameters:
+Once the app is up and running you can launch it manually by visiting the launch page and including the two required parameters:
 
 |Param|Description|
 |----|----|
 |`iss`|The base URL of the FHIR server|
-|`patientId`|The ID of the patient in context|
+|`launch`|The unique ID for this launch|
 
 The FHIR server must properly comply with the SMART on FHIR specification and have a conformace statement with a `security` section that contains the authorization endpoints that the app needs to request a token from.  
 
 For example, 
-http://localhost:3005/launch?iss=http://launch.smarthealthit.org/v/r2/fhir/&patientId=Patient/ab2931ba-6c2d-4110-8028-b5a95cd9f5c7 is an example of a valid launch url that will successfully open the app.  The app will display the name of the patient if it successfully authenticates and retrieves the patient resource.
+http://localhost:3005/launch?iss=http://launch.smarthealthit.org/v/r2/fhir/&launch=1234 is an example of a valid launch url that will successfully launch the app.  However, note that the actual app requires an `appContext` parameter that is only available through an EHR launch.  The app is not able to work with a standalone launch.  If you wish to test the actual DTR app, and not the SMART launch sequence, you will need to either use the EHR/CRD servers provided below or use an actual EHR that supports SMART launch with an `appContext`.
 
 ## Connecting with other subprojects:
 
-Make sure you have all five applications running (**[Request Generator](https://github.com/HL7-DaVinci/crd-request-generator), [EHR (FHIR) Server](https://github.com/HL7-DaVinci/CRD/tree/master/ehr-server), [CRD Server](https://github.com/HL7-DaVinci/CRD), [DTR Server](https://github.com/HL7-DaVinci/dtr),** and **[KeyCloak  Server](https://github.com/HL7-DaVinci/CRD#setting-up-a-keycloak-instance)**) to test the full SMART on FHIR App launch sequence. 
+It is recommmended when first starting out you have all five applications running (**[Request Generator](https://github.com/HL7-DaVinci/crd-request-generator), [EHR (FHIR) Server](https://github.com/HL7-DaVinci/CRD/tree/master/ehr-server), [CRD Server](https://github.com/HL7-DaVinci/CRD), [DTR Server](https://github.com/HL7-DaVinci/dtr),** and **[KeyCloak  Server](https://github.com/HL7-DaVinci/CRD#setting-up-a-keycloak-instance)**) to test the full SMART on FHIR App launch sequence. After getting these applications up and running you can swap your appliaction if desired.  
 
-_Note: If you have your own EHR the you should not need to run the EHR (FHIR) Server, KeyCloak and the Request Generator._ 
+_Note: If you have your own EHR then you should not need to run the EHR (FHIR) Server, KeyCloak and the Request Generator. Otherwise please follow the below steps._
+
+Steps to prepare local EHR server, Keycloak server, and Request Generator:
 
 1. Remove the **target** folder (if it exists) in the **EHR** server folder.
    
 2. Start the **EHR** server.
 
-3. Make sure the **EHR** server has the data it needs by running `gradle loadData` to populate it.
+3. Make sure the **EHR** server has the data it needs, by running `gradle loadData` to populate it.
 
-4. Then, run the **KeyCloak** server. Follow the guide in the KeyCloak readme if you have never set it up before, make the appropriate **realm/client/user**. _Note: You might need to modify the **frame-ancesters** setting in the KeyCloak admin: e.g. Realm | Security Defences | Content-Security-Policy = frame-src 'self'; **frame-ancesters http://localhost:***; object-src 'none';_     
+4. Then, run the **KeyCloak** server. Follow the guide in the CRD readme if you have never set it up before, make the appropriate **realm/client/user**. 
+   
+   Note: You might need to modify the **frame-ancesters** setting in the KeyCloak admin: e.g. Realm | Security Defences | Content-Security-Policy = frame-src 'self'; **frame-ancesters http://localhost:***; object-src 'none';  
 
 5. Then run the **CRD** server, **DTR** server, and **Request Generator**.
- 
-You should be able to send a request from the Request Generator's master branch for the SMART app launch by clicking the `Dara` button to pre-populate the inputs.  Check `include prefetch` and send the request, you should get a CDS Hooks Card back. Click the SMART link and you should see a login screen.  Login with whatever user you've registered, and the SMART App should proceed to launch.
+
+   Note: The DTR app's authorization against the EHR server requires a `client_id` that is registered with the auth server of that EHR to work.  The DTR app has a `/register` endpoint that allows user entry of which `client_id` to use for a specific EHR server.  If following the KeyCloak guide provided in the CRD readme, the client would be called `app-login`.
+
+
+>Test it!
+
+>Assuming you have completed the above. You should be able to send a request from the Request Generator in order for the SMART app to launch by clicking the `Dara` button to pre-populate the inputs. Check `include prefetch` and send the request, you should get a CDS Hooks Card back. Click the SMART link and you should see a login screen. Login with whatever user you've registered, and the SMART App should proceed to launch.
 
 ## Building Releases
 
@@ -72,4 +81,5 @@ The configurable template will use the environment variables passed to the docke
 
 # License
 
-This project is licensed under the Apache License 2.0.  See [LICENSE](/LICENSE) for more details.
+This project is licensed under the Apache License 2.0. See [LICENSE](/LICENSE) for more details.
+

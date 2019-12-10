@@ -1,0 +1,18 @@
+.usermessage {
+    margin: 10%;
+    padding: 2em;
+}
+
+.usermessage .details {
+    padding: 1em;
+    background-color: white;
+    color: #6c757d;
+}
+
+.detail {
+    color: #6c757d;
+}
+
+.detail-line {
+    border: 0.4pt solid #efefef;
+}

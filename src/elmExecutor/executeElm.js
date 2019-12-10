@@ -6,6 +6,7 @@ import buildPopulatedResourceBundle from "./buildPopulatedResourceBundle";
 
 function executeElm(smart, fhirVersion, executionInputs, consoleLog) {
   return new Promise(function(resolve, reject){
+    console.log("about to executeElm()")
     const patientSource = getPatientSource(fhirVersion)
     const neededResources = extractFhirResourcesThatNeedFetching(executionInputs.elm);
     consoleLog("need to fetch resources","infoClass");
@@ -16,6 +17,7 @@ function executeElm(smart, fhirVersion, executionInputs, consoleLog) {
       patientSource.loadBundles([resourceBundle]);
       const elmResults = executeElmAgainstPatientSource(executionInputs, patientSource);
       const results = {
+        libraryName: executionInputs.elm.library.identifier.id,
         bundle: resourceBundle,
         elmResults: elmResults
       }
@@ -38,6 +40,7 @@ function executeElmAgainstPatientSource(executionInputs, patientSource) {
 function getPatientSource(fhirVersion) {
   if (fhirVersion == "dstu2") return cqlfhir.PatientSource.FHIRv102();
   if (fhirVersion == "stu3") return cqlfhir.PatientSource.FHIRv300();
+  if (fhirVersion == "r4") return cqlfhir.PatientSource.FHIRv400();
 }
 
 

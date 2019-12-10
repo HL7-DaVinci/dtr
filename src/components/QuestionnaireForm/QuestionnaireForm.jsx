@@ -164,11 +164,40 @@ export default class QuestionnaireForm extends Component {
                 // }
                 if (item.extension) {
                     item.extension.forEach((e) => {
+                        let value;
                         if (e.url === "http://hl7.org/fhir/StructureDefinition/cqif-calculatedValue") {
                             // stu3 
-                            const value = findValueByPrefix(e, "value");
-                            this.updateQuestionValue(item.linkId, this.props.cqlPrepoulationResults[value], 'values')
+                            value = findValueByPrefix(e, "value");
+                        } else if(e.url === "http://hl7.org/fhir/StructureDefinition/cqf-expression") {
+                            // r4
+                            value = findValueByPrefix(e, "value");
+                            value = value.expression;
+                        } else {
+                            // not a cql statement reference
+                            return;
                         }
+
+                        // split library designator from statement
+                        const valueComponents = value.split('.')
+                        let libraryName;
+                        let statementName;
+                        if (valueComponents.length > 1) {
+                            libraryName = valueComponents[0].substring(1, valueComponents[0].length-1);
+                            statementName = valueComponents[1];
+                        } else { // if there is not library name grab the first library name
+                            statementName = value
+                            libraryName = Object.keys(this.props.cqlPrepoulationResults)[0]
+                        }
+                        // grab the population result
+                        let prepopulationResult;
+                        if (this.props.cqlPrepoulationResults[libraryName] != null) {
+                            prepopulationResult = this.props.cqlPrepoulationResults[libraryName][statementName]
+                        } else {
+                            prepopulationResult = null
+                            console.log(`Couldn't find library "${libraryName}"`)
+                        }
+
+                        this.updateQuestionValue(item.linkId, prepopulationResult, 'values')
                     })
                 }
             }
@@ -597,19 +626,11 @@ export default class QuestionnaireForm extends Component {
         Http.onreadystatechange = function() {
             if (this.readyState === XMLHttpRequest.DONE) {
                 var message = "Prior Authorization Failed.\nNo ClaimResponse found within bundle.";
-                if (this.status === 200) {                   
+                if (this.status === 201) {                   
                     var claimResponseBundle = JSON.parse(this.responseText);
-                    console.log(claimResponseBundle);
-                    
-                    // find the ClaimResponse within the Bundle
-                    for (let item of claimResponseBundle.entry) {
-                        if (item.resource.resourceType == "ClaimResponse") {
-                            var claimResponse = item.resource;
-                            message = "Prior Authorization " + claimResponse.disposition + "\n";
-                            message += "Prior Authorization Number: " + claimResponse.preAuthRef;
-                            break;
-                        }
-                    }
+                    var claimResponse = claimResponseBundle.entry[0].resource;
+                    message = "Prior Authorization " + claimResponse.disposition + "\n";
+                    message += "Prior Authorization Number: " + claimResponse.preAuthRef;  
                     
                     // DME Orders                
                     if (dMEOrdersEnabled) 
@@ -619,7 +640,22 @@ export default class QuestionnaireForm extends Component {
                     message = "Prior Authorization Request Failed."
                 }
                 console.log(message);
-                alert(message); 
+
+                // TODO pass the message to the PriorAuth page instead of having it query again
+                var patientEntry = claimResponseBundle.entry.find(function(entry) {
+                    return (entry.resource.resourceType == "Patient");
+                });
+
+                // fall back to resource.id if resource.identifier is not populated
+                var patientId;
+                if (patientEntry.resource.identifier == null) {
+                    patientId = patientEntry.resource.id;
+                } else {
+                    patientId = patientEntry.resource.identifier[0].value;
+                }
+                let priorAuthUri = "priorauth?identifier=" + claimResponse.preAuthRef + "&patient.identifier=" + patientId;
+                console.log(priorAuthUri)
+                window.location.href = priorAuthUri;
             }
         }      
     }
@@ -631,13 +667,17 @@ export default class QuestionnaireForm extends Component {
                 (answer[0].hasOwnProperty("valueDateTime") && (answer[0].valueDateTime == null || answer[0].valueDateTime == "")) ||
                 (answer[0].hasOwnProperty("valueDate") && (answer[0].valueDate == null || answer[0].valueDate == "")) ||
                 (answer[0].hasOwnProperty("valueBoolean") && (answer[0].valueBoolean == null || answer[0].valueBoolean == "")) ||
-                (answer[0].hasOwnProperty("valueQuantity") && (answer[0].valueQuantity.value == null || answer[0].valueQuantity.value == "")));
+                (answer[0].hasOwnProperty("valueQuantity") && (answer[0].valueQuantity == null || answer[0].valueQuantity.value == null || answer[0].valueQuantity.value == "")));
     }
 
     makeReference(bundle, resourceType) {
         var entry = bundle.entry.find(function(entry) {
             return (entry.resource.resourceType == resourceType);
         });
+        // TODO: This is just a temporary fix. Coverage is referenced in the Claim but does not exist in the Bundle, causing
+        // entry.resource.id to throw an error and the Bundle is never sent to PAS
+        if (entry == undefined || entry == null)
+            return resourceType + "/NotFound";
         return resourceType + "/" + entry.resource.id;
     }
 

@@ -6,33 +6,36 @@ const common = require("./webpack.config.common.js");
 module.exports = merge(common, {
   mode: "development",
   module: {
-      rules: [
-          {
-              test: /\.js$/,
-              loader:'babel-loader'
-          }
-      ]
+    rules: [
+      {
+        test: /\.js$/,
+        loader: "babel-loader"
+      }
+    ]
   },
   devServer: {
     contentBase: path.resolve(__dirname, "public"),
     port: 3005,
     https: false,
-    host: '0.0.0.0',
-    public: '0.0.0.0',
+    host: "0.0.0.0",
+    public: "0.0.0.0",
     hotOnly: true,
     historyApiFallback: {
-        rewrites: [
-          { from: /index/, to: '/index.html' },
-          { from: /launch/, to: '/launch.html' },
-          { from: /register/, to: '/register.html'}
-        ]
-      },
-    proxy: [{
-      context: ['/fetchFhirUri', '/getfile'],
-      target: 'http://localhost:8090',
-      changeOrigin: true,
-      secure: false
-    }]
+      rewrites: [
+        { from: /index/, to: "/index.html" },
+        { from: /launch/, to: "/launch.html" },
+        { from: /register/, to: "/register.html" },
+        { from: /priorauth/, to: "/priorauth.html" }
+      ]
+    },
+    proxy: [
+      {
+        context: ["/fetchFhirUri", "/getfile"],
+        target: "http://localhost:8090",
+        changeOrigin: true,
+        secure: false
+      }
+    ]
   },
   plugins: [new webpack.HotModuleReplacementPlugin()]
 });
