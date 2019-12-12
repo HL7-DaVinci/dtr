@@ -368,6 +368,27 @@ export default class QuestionnaireForm extends Component {
         }
     }
 
+    storeQuestionnaireResponse(questionnaireReponse) {
+        // send the QuestionnaireResponse to the EHR FHIR server
+        var questionnaireUrl = sessionStorage["serviceUri"] + "/QuestionnaireResponse";
+        console.log("Storing QuestionnaireResponse to: " + questionnaireUrl);
+
+        const Http = new XMLHttpRequest();
+        Http.open("POST", questionnaireUrl);
+        Http.setRequestHeader("Content-Type", "application/fhir+json");
+        Http.send(JSON.stringify(questionnaireReponse));
+        Http.onreadystatechange = function() {
+            if (this.readyState === XMLHttpRequest.DONE) {
+                if (this.status == 201) {
+                    console.log("Successfully stored QuestionnaireResponse ID: " + JSON.parse(this.response).id);
+                } else {
+                    console.log("WARNING: something may be wrong with the QuestionnaireResponse storage response:");
+                    console.log(this.response);
+                }
+            }
+        }
+    }
+
     generateAndStoreDocumentReference(questionnaireResponse, dataBundle) {
         var pdfMake = require('pdfmake/build/pdfmake.js');
         var pdfFonts = require('pdfmake/build/vfs_fonts.js');
@@ -564,6 +585,8 @@ export default class QuestionnaireForm extends Component {
             }
         });
         console.log(response);
+
+        this.storeQuestionnaireResponse(response);
 
         const priorAuthBundle = JSON.parse(JSON.stringify(this.props.bundle));
         priorAuthBundle.entry.unshift({ resource: this.props.deviceRequest })
