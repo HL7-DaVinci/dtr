@@ -4,6 +4,7 @@ import "./App.css";
 import cqlfhir from "cql-exec-fhir";
 import executeElm from "./elmExecutor/executeElm";
 import fetchArtifacts from "./util/fetchArtifacts";
+import fetchFhirVersion from "./util/fetchFhirVersion";
 import QuestionnaireForm from "./components/QuestionnaireForm/QuestionnaireForm";
 import Testing from "./components/ConsoleBox/Testing";
 import UserMessage from "./components/UserMessage/UserMessage";
@@ -23,58 +24,83 @@ class App extends Component {
     }
     this.smart = props.smart;
     this.consoleLog = this.consoleLog.bind(this);
+    this.fhirVersion = "unknown";
   }
 
   componentDidMount(){
-    const fhirWrapper = cqlfhir.FHIRWrapper.FHIRv300();
     this.consoleLog("fetching artifacts", "infoClass");
-    fetchArtifacts(this.props.FHIR_URI_PREFIX, this.props.questionnaireUri, this.smart, this.props.filepath, this.consoleLog)
-    .then(artifacts => {
-      console.log("fetched needed artifacts:", artifacts)
-      this.setState({questionnaire: artifacts.questionnaire})
-      this.setState({deviceRequest: this.props.deviceRequest})
-      // execute for each main library
-      return Promise.all(artifacts.mainLibraryElms.map((mainLibraryElm) => {
-        const executionInputs = {
-          elm: mainLibraryElm,
-          // look at main library elms to determine dependent elms to include
-          elmDependencies: mainLibraryElm.library.includes.def.map((includeStatement) => {
-            return artifacts.dependentElms.find((elm) => {
-              return (elm.library.identifier.id == includeStatement.path &&
-                elm.library.identifier.version == includeStatement.version)
-            });
-          }),
-          valueSetDB: {},
-          parameters: {device_request: fhirWrapper.wrap(this.props.deviceRequest)}
-        };
+    
+    fetchFhirVersion(this.props.smart.server.serviceUrl)
+    .then(fhirVersion => {
+      this.fhirVersion = fhirVersion;
 
-        // add the required value sets to the valueSetDB
-        this.fillValueSetDB(executionInputs, artifacts);
+      fetchArtifacts(this.props.FHIR_URI_PREFIX, this.props.questionnaireUri, this.smart, this.props.filepath, this.consoleLog)
+      .then(artifacts => {
+        console.log("fetched needed artifacts:", artifacts)
 
-        this.consoleLog("executing elm", "infoClass");
-        return executeElm(this.smart, "stu3", executionInputs, this.consoleLog);
-      }));
-    })
-    .then(cqlResults => {
-      this.consoleLog("executed cql, result:"+JSON.stringify(cqlResults),"infoClass");
+        let fhirWrapper = this.getFhirWrapper(this.fhirVersion);
 
-      // Collect all library results and grab the largest FHIR resource bundle
-      let allLibrariesResults = {};
-      let largestBundle = null;
-      cqlResults.forEach((libraryResult) => {
-        // add results to hash indexed by library name
-        allLibrariesResults[libraryResult.libraryName] = libraryResult.elmResults
-        // set this result's bundle as the largest one if it is
-        if (largestBundle == null) {
-          largestBundle = libraryResult.bundle
-        } else if (libraryResult.bundle.entry.length > largestBundle.entry.length)
-          largestBundle = libraryResult.bundle
+        this.setState({questionnaire: artifacts.questionnaire})
+        this.setState({deviceRequest: this.props.deviceRequest})
+        // execute for each main library
+        return Promise.all(artifacts.mainLibraryElms.map((mainLibraryElm) => {
+          const executionInputs = {
+            elm: mainLibraryElm,
+            // look at main library elms to determine dependent elms to include
+            elmDependencies: mainLibraryElm.library.includes.def.map((includeStatement) => {
+              return artifacts.dependentElms.find((elm) => {
+                return (elm.library.identifier.id == includeStatement.path &&
+                  elm.library.identifier.version == includeStatement.version)
+              });
+            }),
+            valueSetDB: {},
+            parameters: {device_request: fhirWrapper.wrap(this.props.deviceRequest)}
+          };
+
+          // add the required value sets to the valueSetDB
+          this.fillValueSetDB(executionInputs, artifacts);
+
+          this.consoleLog("executing elm", "infoClass");
+          return executeElm(this.smart, this.fhirVersion, executionInputs, this.consoleLog);
+        }));
+      })
+      .then(cqlResults => {
+        this.consoleLog("executed cql, result:"+JSON.stringify(cqlResults),"infoClass");
+
+        // Collect all library results and grab the largest FHIR resource bundle
+        let allLibrariesResults = {};
+        let largestBundle = null;
+        cqlResults.forEach((libraryResult) => {
+          // add results to hash indexed by library name
+          allLibrariesResults[libraryResult.libraryName] = libraryResult.elmResults
+          // set this result's bundle as the largest one if it is
+          if (largestBundle == null) {
+            largestBundle = libraryResult.bundle
+          } else if (libraryResult.bundle.entry.length > largestBundle.entry.length)
+            largestBundle = libraryResult.bundle
+        });
+
+        this.setState({bundle: largestBundle})
+        this.setState({cqlPrepoulationResults: allLibrariesResults})
       });
-
-      this.setState({bundle: largestBundle})
-      this.setState({cqlPrepoulationResults: allLibrariesResults})
     });
   }
+
+  getFhirWrapper(fhirVersion) {
+    if (fhirVersion == 'r4') {
+      return cqlfhir.FHIRWrapper.FHIRv400();
+    } else if (fhirVersion == 'stu3') {
+      return cqlfhir.FHIRWrapper.FHIRv300();
+    } else if (fhirVersion == 'dstu2') {
+      return cqlfhir.FHIRWrapper.FHIRv200();
+    } else if (fhirVersion == 'dstu1') {
+      return cqlfhir.FHIRWrapper.FHIRv100();
+    } else {
+      console.log("ERROR: unknown FHIR version");
+      return null;
+    }
+  }
+    
 
   // fill the valueSetDB in executionInputs with the required valuesets from their artifact source
   fillValueSetDB(executionInputs, artifacts) {
