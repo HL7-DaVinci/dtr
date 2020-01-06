@@ -745,7 +745,10 @@ export default class QuestionnaireForm extends Component {
                         })
                     }
                 </div>
-                <button className="btn submit-button" onClick={this.outputResponse}>Submit</button>
+                <div className="submit-button-panel">
+                <button className="btn submit-button" onClick={this.outputResponse('in-progress')}>Save</button>
+                <button className="btn submit-button" onClick={this.outputResponse('completed')}>Submit</button>
+                </div>
             </div>
         );
     }
