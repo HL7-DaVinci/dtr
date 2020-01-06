@@ -46,8 +46,12 @@ html {
     color:white;
 }
 
-.submit-button {
+.submit-button-panel {
   margin-left: 55px;
+}
+
+.submit-button {
+  margin-left: 5px;
   border-width: 1px 1px 1px 5px;
   border-style:solid;
   border-color:#333;
