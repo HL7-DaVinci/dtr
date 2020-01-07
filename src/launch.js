@@ -100,6 +100,8 @@ function redirect(conformanceStatement) {
     redirectUri: redirectUri,
     tokenUri: tokenUri
   });
+console.log(clientId);
+alert("redirecting to auth URL with client id: " + clientId);
 
   // finally, redirect the browser to the authorizatin server and pass the needed
   // parameters for the authorization request in the URL
