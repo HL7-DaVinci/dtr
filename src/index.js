@@ -37,6 +37,8 @@ const headers = {
 if (secret) headers["Authorization"] = "Basic " + btoa(clientId + ":" + secret);
 
 // obtain authorization token from the authorization service using the authorization code
+alert("getting token");
+
 const tokenPost = new XMLHttpRequest();
 var auth_response;
 tokenPost.open("POST", tokenUri);
@@ -47,34 +49,20 @@ tokenPost.onload = function() {
   
         auth_response = JSON.parse(tokenPost.responseText);
         console.log(auth_response);
+        alert("retrieved token");
       } catch (e) {
         const errorMsg = "Failed to parse auth response";
         document.body.innerText = errorMsg;
         console.error(errorMsg);
         return;
       }
-
-      let appContext = {};
-      try {
-        const appString = decodeURIComponent(auth_response.appContext);
-        // Could switch to this later
-        appString.split("&").map((e)=>{
-            const temp = e.split("=");
-            appContext[temp[0]] = temp[1];
-        })
-        // appContext = {
-        //     template: appString.split("&")[0].split("=")[1],
-        //     request: JSON.parse(appString.split("&")[1].split("=")[1].replace(/\\/g,"")),
-        //   }
-      } catch (e) {
-          console.log(e);
-          alert("error parsing app context, using default")
-          appContext = {
-            template: "urn:hl7:davinci:crd:home-oxygen-questionnaire",
-            request: JSON.parse('{\\"resourceType\\":\\"DeviceRequest\\",\\"id\\":\\"ecea4560-e72c-4f69-8efd-b0f240ecef40\\",\\"meta\\":{\\"profile\\":[\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/STU3\\/StructureDefinition\\/profile-devicerequest-stu3\\"]},\\"status\\":\\"draft\\",\\"codeCodeableConcept\\":{\\"coding\\":[{\\"system\\":\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\",\\"code\\":\\"E0424\\"}]},\\"subject\\":{\\"reference\\":\\"Patient\\/e3uD6HlZwY69BYkprsNDh2Du7KroLDCIzX8uiCuKkahM3\\"},\\"authoredOn\\":\\"2019-12-30\\",\\"performer\\":{\\"reference\\":\\"PractitionerRole\\/100163717310\\"}}'.replace(/\\/g,"")),
-            }
-        }
-
+      const appString = decodeURIComponent(auth_response.appContext);
+      alert(appString);
+      const appContext = {
+        template: appString.split("&")[0].split("=")[1],
+        request: JSON.parse(appString.split("&")[1].split("=")[1].replace(/\\/g,"")),
+        filepath: appString.split("&")[2].split("=")[1]
+      }
       
         var smart = FHIR.client({
         serverUrl: serviceUri,
@@ -85,6 +73,7 @@ tokenPost.onload = function() {
             patient: auth_response.patient,
         }
         });
+        alert("rendering app");
         ReactDOM.render(
         <App
           FHIR_PREFIX={FHIR_PREFIX}
