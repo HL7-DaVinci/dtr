@@ -56,9 +56,9 @@ tokenPost.onload = function() {
       const appString = decodeURIComponent(auth_response.appContext);
       alert(appString);
       const appContext = {
-        template: appString.split("&")[0].split("=")[1],
-        request: JSON.parse(appString.split("&")[1].split("=")[1].replace(/\\/g,"")),
-        filepath: appString.split("&")[2].split("=")[1]
+        template: appString.split("&")[0].split("$")[1],
+        request: JSON.parse(appString.split("&")[1].split("$")[1].replace(/\\/g,"")),
+        filepath: appString.split("&")[2].split("$")[1]
       }
       
         var smart = FHIR.client({
