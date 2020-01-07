@@ -34,6 +34,8 @@ const headers = {
 if (secret) headers["Authorization"] = "Basic " + btoa(clientId + ":" + secret);
 
 // obtain authorization token from the authorization service using the authorization code
+alert("getting token");
+
 const tokenPost = new XMLHttpRequest();
 var auth_response;
 tokenPost.open("POST", tokenUri);
