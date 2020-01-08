@@ -52,6 +52,7 @@ class App extends Component {
 
   componentDidMount() {
     this.consoleLog("fetching artifacts", "infoClass");
+    console.log(this.props.smart);
     fetchFhirVersion(this.props.smart.state.serverUrl)
     .then(fhirVersion => {
       this.fhirVersion = fhirVersion;
