@@ -1,5 +1,4 @@
 import '@babel/polyfill'
-import 'react-app-polyfill/ie11';
 import FHIR from "fhirclient"
  // sets window.FHIR
 import urlUtils from "./util/url";
@@ -55,21 +54,32 @@ tokenPost.onload = function() {
         console.error(errorMsg);
         return;
       }
-      const appString = decodeURIComponent(auth_response.appContext);
-      alert(appString);
-      const appContext = {
-        template: appString.split("&")[0].split("=")[1],
-        request: JSON.parse(appString.split("&")[1].split("=")[1].replace(/\\/g,"")),
-        filepath: appString.split("&")[2].split("=")[1]
-      }
+
+      let appContext;
+      try {
+        const appString = decodeURIComponent(auth_response.appContext);
+        alert(appString);
+        appContext = {
+            template: appString.split("&")[0].split("=")[1],
+            request: JSON.parse(appString.split("&")[1].split("=")[1].replace(/\\/g,"")),
+            filepath: appString.split("&")[2].split("=")[1]
+          }
+      } catch (e) {
+          alert("error parsing app context, using default")
+          appContext = {
+            template: "urn:hl7:davinci:crd:home-oxygen-questionnaire",
+            request: JSON.parse('{\\"resourceType\\":\\"DeviceRequest\\",\\"id\\":\\"ecea4560-e72c-4f69-8efd-b0f240ecef40\\",\\"meta\\":{\\"profile\\":[\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/STU3\\/StructureDefinition\\/profile-devicerequest-stu3\\"]},\\"status\\":\\"draft\\",\\"codeCodeableConcept\\":{\\"coding\\":[{\\"system\\":\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\",\\"code\\":\\"E0424\\"}]},\\"subject\\":{\\"reference\\":\\"Patient\\/e3uD6HlZwY69BYkprsNDh2Du7KroLDCIzX8uiCuKkahM3\\"},\\"authoredOn\\":\\"2019-12-30\\",\\"performer\\":{\\"reference\\":\\"PractitionerRole\\/100163717310\\"}}'.replace(/\\/g,"")),
+            filepath: '../../getfile/cms/hcpcs/E0424'
+            }
+        }
+
       
         var smart = FHIR.client({
         serverUrl: serviceUri,
         patientId: auth_response.patient,
         tokenResponse: {
             type: "bearer",
-            access_token: auth_response.access_token,
-            patient: auth_response.patient,
+            token: auth_response.access_token
         }
         });
         alert("rendering app");
