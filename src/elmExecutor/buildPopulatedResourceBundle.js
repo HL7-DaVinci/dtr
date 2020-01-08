@@ -100,23 +100,21 @@ function doSearch(smart, type, fhirVersion, request, callback) {
 
 function processSuccess(smart, resources, callback) {
   return response => {
-    if (response.data && response.data.resourceType === "Bundle") {
-      if (response.data.entry) {
-        response.data.entry.forEach(function(e) {
+      console.log(response);
+    if (response && response.resourceType === "Bundle") {
+      if (response.entry) {
+        response.entry.forEach(function(e) {
           resources.push(e.resource);
         });
       }
       if (
-        response.data.link &&
-        response.data.link.some(l => l.relation === "next" && l.url != null)
+        response.link &&
+        response.link.some(l => l.relation === "next" && l.url != null)
       ) {
         // There is a next page, so recursively process that before we do the callback
         smart.patient.api
-          .nextPage({ bundle: response.data })
-          .then(
-            processSuccess(smart, resources, callback),
-            processError(smart, callback)
-          );
+          .nextPage({ bundle: response })
+          .then(processSuccess(smart, resources, callback), processError(smart, callback));
       } else {
         callback(resources);
       }
@@ -143,8 +141,6 @@ function buildPopulatedResourceBundle(
     console.log("waiting for patient");
     consoleLog("waiting for patient", "infoClass");
 
-    console.log(smart.patient);
-    console.log(smart.patient.read());
     consoleLog(smart.patient.id, "infoClass");
     smart.patient.read().then(
       pt => {
