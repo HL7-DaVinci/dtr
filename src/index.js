@@ -79,7 +79,8 @@ tokenPost.onload = function() {
         patientId: auth_response.patient,
         tokenResponse: {
             type: "bearer",
-            token: auth_response.access_token
+            access_token: auth_response.access_token,
+            patient: auth_response.patient,
         }
         });
         alert("rendering app");
