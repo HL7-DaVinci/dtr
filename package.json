@@ -33,7 +33,7 @@
     "cql-exec-fhir": "^1.3.0",
     "cql-execution": "~1.4.1",
     "es6-promise": "^4.2.6",
-    "fhirclient": "^2.1.0",
+    "fhirclient": "2.1.0",
     "isomorphic-fetch": "^2.2.1",
     "lodash": "^4.17.15",
     "node-fetch": "^2.5.0",
