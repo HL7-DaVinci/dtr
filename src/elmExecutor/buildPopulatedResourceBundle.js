@@ -107,6 +107,7 @@ function doSearch(smart, type, fhirVersion, request, callback) {
 
 function processSuccess(smart, resources, callback) {
   return response => {
+      console.log(response);
     if (response && response.resourceType === "Bundle") {
       if (response.entry) {
         response.entry.forEach(function(e) {
@@ -147,8 +148,6 @@ function buildPopulatedResourceBundle(
     console.log("waiting for patient");
     consoleLog("waiting for patient", "infoClass");
 
-    console.log(smart.patient);
-    console.log(smart.patient.read());
     consoleLog(smart.patient.id, "infoClass");
     smart.patient.read().then(
       pt => {
