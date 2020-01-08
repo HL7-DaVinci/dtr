@@ -77,9 +77,10 @@ tokenPost.onload = function() {
         var smart = FHIR.client({
         serverUrl: serviceUri,
         patientId: auth_response.patient,
-        auth: {
+        tokenResponse: {
             type: "bearer",
-            token: auth_response.access_token
+            access_token: auth_response.access_token,
+            patient: auth_response.patient,
         }
         });
         alert("rendering app");
