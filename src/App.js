@@ -62,7 +62,6 @@ class App extends Component {
 
           this.consoleLog("executing elm", "infoClass");
           alert(this.fhirVersion);
-          alert(JSON.stringify(executionInputs));
           return executeElm(this.smart, this.fhirVersion, executionInputs, this.consoleLog);
         }));
       })
