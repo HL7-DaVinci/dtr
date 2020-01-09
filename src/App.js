@@ -162,7 +162,7 @@ class App extends Component {
     if (this.state.questionnaire && this.state.cqlPrepoulationResults && this.state.bundle){
       return (
         <div className="App">
-          <QuestionnaireForm qform = {this.state.questionnaire} cqlPrepoulationResults= {this.state.cqlPrepoulationResults} deviceRequest = {this.state.deviceRequest} bundle = {this.state.bundle} />
+          <QuestionnaireForm smart={this.smart} qform = {this.state.questionnaire} cqlPrepoulationResults= {this.state.cqlPrepoulationResults} deviceRequest = {this.state.deviceRequest} bundle = {this.state.bundle} />
         </div>
       );
     }
