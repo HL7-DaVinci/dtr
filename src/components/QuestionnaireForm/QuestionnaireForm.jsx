@@ -466,7 +466,7 @@ export default class QuestionnaireForm extends Component {
       author: {
         reference: "Practitioner/" + this.props.cqlPrepoulationResults.BasicPractitionerInfo.OrderingProvider.id.value
       },
-      questionnaire: 'Questionnaire/9963'
+      questionnaire: this.props.qform.id
     }
 
     let currentItem = response.item;
@@ -572,28 +572,9 @@ export default class QuestionnaireForm extends Component {
     console.log(response);
 
     if (status == 'in-progress') {
-      var smart = this.smart;
-      smart.api.read({ type: 'QuestionnaireResponse', id: response.id })
-        .then(function() {
-          console.log('Updating QuestionnaireResponse/' + response.id + ' ...');
-          smart.api.update({
-            type: "QuestionnaireResponse",
-            id: response.id,
-            resource: response
-          }).done(function onSuccess(entry) {
-            alert('Partial QuestionnaireResponse saved');
-            console.log('Partial from saved. ' + entry.id);
-          });
-        })
-        .catch(function() {
-            console.log('Creating new QuestionnaireRsponse ...');
-            smart.api.create({ resource: response })
-              .done(function onSuccess(entry) {
-                alert('Partial QuestionnaireResponse saved');
-                console.log('Partial from saved. ' + entry.id)
-              });
-
-          });
+      localStorage.setItem(response.questionnaire, JSON.stringify(response))
+      alert('Partial QuestionnaireResponse saved');
+      console.log('Partial QuestionnaireResponse saved.')
       return;
     }
 
@@ -694,6 +675,8 @@ export default class QuestionnaireForm extends Component {
         window.location.href = priorAuthUri;
       }
     }
+
+    localStorage.removeItem(response.questionnaire);
   }
 
   isEmptyAnswer(answer) {
