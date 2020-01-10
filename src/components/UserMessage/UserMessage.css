@@ -1,8 +1,7 @@
 .usermessage {
-    margin: 10%;
-    padding: 2em;
+    margin: 0 10em 2em 1em;
+    padding: 1em 1em 1em 1.5em;
 }
-
 .usermessage .details {
     padding: 1em;
     background-color: white;

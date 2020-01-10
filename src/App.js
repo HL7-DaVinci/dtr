@@ -11,6 +11,22 @@ import UserMessage from "./components/UserMessage/UserMessage";
 
 // import sample from './sample_questionnaire.json';
 
+// comment out for testing UserMessage
+// let sampleError = {
+//   "annotation" : [
+//     {
+//       "startLine" : 74,
+//       "startChar" : 11,
+//       "endLine" : 74,
+//       "endChar" : 48,
+//       "message" : "Could not resolve type name Diagn]osis.",
+//       "errorType" : "semantic",
+//       "errorSeverity" : "error",
+//       "type" : "CqlToElmError"
+//     }
+//   ]
+// }
+
 class App extends Component {
   constructor(props) {
     super(props);
@@ -20,7 +36,14 @@ class App extends Component {
       deviceRequest: null,
       bundle: null,
       logs: [],
-      errors: []
+      errors: [
+        // comment out the following for testing UserMessage
+      //   {
+      //     content: "error for testing",
+      //     details: sampleError,
+      //     infoClass: "error"
+      //   }
+      ]
     }
     this.smart = props.smart;
     this.consoleLog = this.consoleLog.bind(this);
@@ -29,7 +52,7 @@ class App extends Component {
 
   componentDidMount(){
     this.consoleLog("fetching artifacts", "infoClass");
-    
+
     fetchFhirVersion(this.props.smart.server.serviceUrl)
     .then(fhirVersion => {
       this.fhirVersion = fhirVersion;
@@ -100,7 +123,7 @@ class App extends Component {
       return null;
     }
   }
-    
+
 
   // fill the valueSetDB in executionInputs with the required valuesets from their artifact source
   fillValueSetDB(executionInputs, artifacts) {
@@ -159,27 +182,31 @@ class App extends Component {
   }
 
   render() {
-    if (this.state.questionnaire && this.state.cqlPrepoulationResults && this.state.bundle){
-      return (
+    // set up messages, if any are needed
+    let messages;
+    if ( this.state.errors.length > 0 ) {
+      let errs = _.map( this.state.errors, 'details');  // new array of only the details
+      messages = (
         <div className="App">
-          <QuestionnaireForm qform = {this.state.questionnaire} cqlPrepoulationResults= {this.state.cqlPrepoulationResults} deviceRequest = {this.state.deviceRequest} bundle = {this.state.bundle} />
+          <UserMessage variant={'warning'}
+                        title={'Warning!'}
+                        message={'Problems(s) occurred while prefilling this request.  You will need to manually fill out the necessary information.'}
+                        details={errs} />
         </div>
       );
     }
-    else if ( this.state.errors.length > 0 ) {
-      let errs = _.map( this.state.errors, 'details');  // new array of only the details
+
+    if (this.state.questionnaire && this.state.cqlPrepoulationResults && this.state.bundle){
       return (
         <div className="App">
-          <UserMessage variant={'danger'}
-                        title={'Error!'}
-                        message={'An error occurred while processing the request.  You will need to fill out a paper form.'}
-                        details={errs} />
+          {messages}
+          <QuestionnaireForm qform = {this.state.questionnaire} cqlPrepoulationResults= {this.state.cqlPrepoulationResults} deviceRequest = {this.state.deviceRequest} bundle = {this.state.bundle} />
         </div>
       );
     }
     else {
       return (
-        <div>
+        <div className="App">
           <p>Loading...</p>
           <Testing logs = {this.state.logs}/>
         </div>

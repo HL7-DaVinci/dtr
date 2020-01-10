@@ -694,16 +694,30 @@ export default class QuestionnaireForm extends Component {
             this.setState({ turnOffValues: returnArray });
         }
     }
+
     render() {
         return (
-            <div>
-                <div className="floating-tools">
-                    <p className="filter-filled" >filter: <input type="checkbox" onClick={() => {
-                        this.removeFilledFields();
-                    }}></input></p>
-                </div>
-                <h2 className="document-header">{this.props.qform.title}
+            <div className="questionaire-form">
+                {/* <Container className="fluid">
+                    <Row>
+                        <Col xs={12}> */}
+                            <div className="floating-tools float-right">
+                                <p className="filter-filled" >filter: <input type="checkbox" onClick={() => {
+                                    this.removeFilledFields();
+                                }}></input></p>
+                            </div>
+                        {/* </Col>
+                    </Row>
+                    <Row>
+                        <Col xs={1}>
+                            left
+                        </Col>
+                        <Col xs={11}>(wider)</Col>
+                    </Row>
+                </Container> */}
 
+
+                <h2 className="document-header">{this.props.qform.title}
                 </h2>
 
                 <div className="sidenav">

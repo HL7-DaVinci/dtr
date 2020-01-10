@@ -1,12 +1,24 @@
+.questionaire-form {
+  margin-left: 55px;
+  margin-top: 1em;
+}
+
+.questionaire-form .section {
+  margin-left: 15px;
+}
+
 .wrapper{
-  display:block;
-  margin-left:15px;
+  /* display:block; */
+  /* margin-left:-55px; */
+  /* top:50px; */
+  padding-left: 0;
 }
 html {
   scroll-behavior: smooth;
 }
-.sidenav { 
-  height:100%;
+.sidenav {
+  float: left;
+  height:100vh;
   width:55px;
   position: fixed;
   z-index: 1;
@@ -17,12 +29,12 @@ html {
   overflow-wrap: break-word;
 }
 .document-header {
-  margin-left:55px;
+  /* margin-left:55px; */
 }
 
 .sidenav-box {
   color:#888;
-  width:100%;
+  /* width:100%; */
   border-top:1px solid #555;
   padding-left: 3px;
   padding-right:3px;
@@ -47,7 +59,7 @@ html {
 }
 
 .submit-button {
-  margin-left: 55px;
+  /* margin-left: 55px; */
   border-width: 1px 1px 1px 5px;
   border-style:solid;
   border-color:#333;
@@ -60,23 +72,20 @@ html {
 
 .filled {
     color:white;
-
 }
 
-.filter-filled { 
+.filter-filled {
     font-family: monospace;
-    margin:0;
-    padding:5px;
-
 }
 
 .floating-tools {
+    padding: 8px 15px 0px 15px;
     right:10px;
     top:0;
-    width: 100px;
     border-width: 0px 1px 1px 1px;
     border-style: solid;
     border-color:black;
+    border-radius: 0 0 5px 5px;
     position:fixed;
     background-color:white;
     z-index: 5;
