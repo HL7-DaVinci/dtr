@@ -534,7 +534,9 @@ export default class QuestionnaireForm extends Component {
                     case "valueDateTime":
                     case "valueDate":
                         const date = this.state.values[item];
-                        answerItem.answer.push({ [itemType.valueType]: date.toString() });
+                        if(date) {
+                            answerItem.answer.push({ [itemType.valueType]: date.toString() });
+                        }
                         break;
                     default:
                         const answer = this.state.values[item];
