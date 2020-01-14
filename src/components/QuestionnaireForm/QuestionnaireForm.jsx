@@ -27,7 +27,9 @@ export default class QuestionnaireForm extends Component {
       orderedLinks: [],
       sectionLinks: {},
       fullView: true,
-      turnOffValues: []
+      turnOffValues: [],
+      useSavedResponse: false,
+      savedResponse: null
     };
     this.updateQuestionValue = this.updateQuestionValue.bind(this);
     this.updateNestedQuestionValue = this.updateNestedQuestionValue.bind(this);
@@ -42,12 +44,22 @@ export default class QuestionnaireForm extends Component {
   componentWillMount() {
     // setup
     // get all contained resources
+    let partialResponse = localStorage.getItem(this.props.qform.id);
+    let responseItems = null;
+
+    if (partialResponse) {
+      if (confirm('Found previously saved form. Do you want to load existing data from saved from?')) {
+        this.state.savedResponse = JSON.parse(partialResponse);
+        responseItems = this.state.savedResponse.item;
+      }
+    }
+
     if (this.props.qform.contained) {
       this.distributeContained(this.props.qform.contained)
     }
     const items = this.props.qform.item;
     this.setState({ items });
-    const links = this.prepopulate(items, []);
+    const links = this.prepopulate(items, [], responseItems);
     this.setState({ orderedLinks: links });
   }
 
@@ -151,19 +163,36 @@ export default class QuestionnaireForm extends Component {
   }
 
 
-  prepopulate(items, links) {
+  prepopulate(items, links, responseItems) {
     items.map((item) => {
       if (item.item) {
         // its a section/group
         links.push(item.linkId);
-        this.prepopulate(item.item, links);
+
+        let responseChildItems = null;
+
+        if (responseItems) {
+          let matchedItem = responseItems.filter(i => i.linkId == item.linkId)
+
+          if (matchedItem.length > 0) 
+            responseChildItems = matchedItem[0].item
+        }
+
+        this.prepopulate(item.item, links, responseChildItems);
       } else {
         // autofill fields
         links.push(item.linkId);
-        // if (item.enableWhen) {
-        //   console.log(item.enableWhen);
-        // }
-        if (item.extension) {
+
+        if (responseItems)  {
+          let matchedItem = responseItems.filter(i =>  i.linkId == item.linkId);
+        
+          if (matchedItem.length > 0 && matchedItem[0].answer && matchedItem[0].answer.length > 0) {
+            let answer = matchedItem[0].answer[0];
+            let keys = Object.keys(answer);
+            this.updateQuestionValue(item.linkId, answer[keys[0]], 'values')
+          }
+        }
+        else if (item.extension) {
           item.extension.forEach((e) => {
             let value;
             if (e.url === "http://hl7.org/fhir/StructureDefinition/cqif-calculatedValue") {
