@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import cql from "cql-execution";
 
 import './QuestionnaireForm.css';
 
@@ -186,10 +187,54 @@ export default class QuestionnaireForm extends Component {
         if (responseItems)  {
           let matchedItem = responseItems.filter(i =>  i.linkId == item.linkId);
         
-          if (matchedItem.length > 0 && matchedItem[0].answer && matchedItem[0].answer.length > 0) {
-            let answer = matchedItem[0].answer[0];
-            let keys = Object.keys(answer);
-            this.updateQuestionValue(item.linkId, answer[keys[0]], 'values')
+          if (matchedItem.length > 0 && matchedItem[0].answer) {
+            let values = [];
+
+            matchedItem[0].answer.forEach(answer => {
+              let keys = Object.keys(answer);
+
+              if (keys.length > 0) {
+                let key = keys[0]
+                let value = null
+
+                switch(key) {
+                  case 'valueCoding':
+                    if (answer[key].code) {
+                      value = answer[key].code;
+                    } else if (answer[key].display) {
+                      value = answer[key].display;
+                    }
+                    break;
+
+                  case 'valueDate':
+                    value = new cql.Date.parse(answer[key]);
+                    break;
+
+                  case 'valueDateTime':
+                    value = new cql.DateTime.parse(answer[key]);
+                    break;
+
+                    case 'valueBoolean':
+                      value = answer[key]
+                      break;
+
+                  default:
+                    value = answer[key];
+                    break;
+                }
+
+                if (value != null) {
+                  values.push(value)
+                }
+              }
+            });
+
+            if (values.length == 1){
+              this.updateQuestionValue(item.linkId, values[0], 'values');
+            }
+            else if (values.length > 1){
+              this.updateQuestionValue(item.linkId, values, 'values');
+            }
           }
         }
         else if (item.extension) {
@@ -714,7 +759,7 @@ export default class QuestionnaireForm extends Component {
       (answer[0].hasOwnProperty("valueString") && (answer[0].valueString == null || answer[0].valueString == "")) ||
       (answer[0].hasOwnProperty("valueDateTime") && (answer[0].valueDateTime == null || answer[0].valueDateTime == "")) ||
       (answer[0].hasOwnProperty("valueDate") && (answer[0].valueDate == null || answer[0].valueDate == "")) ||
-      (answer[0].hasOwnProperty("valueBoolean") && (answer[0].valueBoolean == null || answer[0].valueBoolean == "")) ||
+      (answer[0].hasOwnProperty("valueBoolean") && answer[0].valueBoolean == null ) ||
       (answer[0].hasOwnProperty("valueQuantity") && (answer[0].valueQuantity == null || answer[0].valueQuantity.value == null || answer[0].valueQuantity.value == "")));
   }
 
