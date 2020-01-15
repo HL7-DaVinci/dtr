@@ -199,11 +199,7 @@ export default class QuestionnaireForm extends Component {
 
                                 switch(key) {
                                     case 'valueCoding':
-                                        if (answer[key].code) {
-                                            value = answer[key].code;
-                                        } else if (answer[key].display) {
-                                            value = answer[key].display;
-                                        }
+                                        value = answer[key].code;
                                         break;
 
                                     case 'valueDate':
@@ -214,9 +210,12 @@ export default class QuestionnaireForm extends Component {
                                         value = new cql.DateTime.parse(answer[key]);
                                         break;
 
-                                        case 'valueBoolean':
-                                            value = answer[key]
-                                            break;
+                                    case 'valueString':
+                                        value = answer[key]
+                                        if (value.display != null) {
+                                            value.valueTypeFinal = 'valueString';
+                                        }
+                                        break;
 
                                     default:
                                         value = answer[key];
@@ -229,11 +228,11 @@ export default class QuestionnaireForm extends Component {
                             }
                         });
 
-                        if (values.length == 1){
-                            this.updateQuestionValue(item.linkId, values[0], 'values');
-                        }
-                        else if (values.length > 1){
+                        if (values.length > 1 || item.type == 'open-choice'){
                             this.updateQuestionValue(item.linkId, values, 'values');
+                        }
+                        else if (values.length == 1){
+                            this.updateQuestionValue(item.linkId, values[0], 'values');
                         }
                     }
                 }
