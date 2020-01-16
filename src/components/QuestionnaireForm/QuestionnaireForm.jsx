@@ -38,8 +38,6 @@ export default class QuestionnaireForm extends Component {
         this.renderComponent = this.renderComponent.bind(this);
         this.retrieveValue = this.retrieveValue.bind(this);
         this.outputResponse = this.outputResponse.bind(this);
-        this.smart = props.smart;
-
     }
 
     componentWillMount() {
@@ -49,9 +47,13 @@ export default class QuestionnaireForm extends Component {
         let responseItems = null;
 
         if (partialResponse) {
-            if (confirm('Found previously saved form. Do you want to load existing data from saved from?')) {
+            let result = confirm('Found previously saved form. Do you want to load existing data from saved from?');
+
+            if (result) {
                 this.state.savedResponse = JSON.parse(partialResponse);
                 responseItems = this.state.savedResponse.item;
+            } else {
+                localStorage.removeItem(this.props.qform.id);
             }
         }
 
