@@ -1,4 +1,5 @@
 import '@babel/polyfill'
+import 'react-app-polyfill/ie11';
 import FHIR from "fhirclient"
  // sets window.FHIR
 import urlUtils from "./util/url";
