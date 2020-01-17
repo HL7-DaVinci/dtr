@@ -43,12 +43,13 @@
     "react-dom": "^16.8.4",
     "react-scripts": "^2.1.8",
     "regenerator-runtime": "^0.12.1",
+    "url-search-params-polyfill": "^7.0.1",
     "whatwg-fetch": "^3.0.0"
   },
   "browsersList": [
     "last 4 firefox versions",
     "last 4 chrome versions",
-    "ie >= 10",
+    "ie 11",
     "last 2 edge versions"
   ]
 }

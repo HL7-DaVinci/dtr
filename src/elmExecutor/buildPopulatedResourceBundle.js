@@ -1,3 +1,4 @@
+import 'url-search-params-polyfill';
 function doSearch(smart, type, fhirVersion, request, callback) {
   const q = {};
 
