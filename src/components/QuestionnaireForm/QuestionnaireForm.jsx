@@ -201,7 +201,7 @@ export default class QuestionnaireForm extends Component {
 
                                 switch(key) {
                                     case 'valueCoding':
-                                        value = answer[key].code;
+                                        value = answer[key];
                                         break;
 
                                     case 'valueDate':
