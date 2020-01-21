@@ -70,7 +70,15 @@ export default class OpenChoice extends Component {
                 options.push(value);
             }
         })
-        this.addOption(options);
+
+        if (options.length > 0) {
+            if (this.props.item.repeats){
+                this.addOption(options);
+            } else {
+                this.addOption(options[0]);
+            }
+        }
+        
     }
 
     onInputChange(event) {
@@ -108,13 +116,30 @@ export default class OpenChoice extends Component {
 
     addOption(e) {
         let newArray;
-        if (Array.isArray(e)) {
-            newArray = [...this.state.values, ...e];
-        } else {
-            newArray = [...this.state.values, e];
+        if (this.props.item.repeats) {
+            if (Array.isArray(e)) {
+                newArray = [...this.state.values, ...e];
+            } else {
+                newArray = [...this.state.values, e];
+            }
+        }  else {
+            newArray = [e];
         }
+
         this.setState({ values: newArray });
         this.props.updateCallback(this.props.item.linkId, newArray, "values");
+
+        if (!this.props.item.repeats) {
+            this.setState({ "display": e.display });
+            this.props.updateCallback(this.props.item.linkId,
+                {
+                    "type": this.props.inputTypeDisplay,
+                    "text": this.props.item.text,
+                    "valueType": "valueCoding",
+                    "ref": this.ref,
+                    "enabled": true
+                }, "itemTypes");
+        }
 
         return newArray;
     }
