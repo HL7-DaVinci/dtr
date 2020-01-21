@@ -60,7 +60,7 @@ export default class OpenChoice extends Component {
         const options = []
         values && values.forEach((value) => {
             let found = choices.some((choice) => {
-                if (choice.code === value.code) {
+                if (choice.code === value || choice.code === value.code) {
                     options.push(choice);
                     return true;
                 }
