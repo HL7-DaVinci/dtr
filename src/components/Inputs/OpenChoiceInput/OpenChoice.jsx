@@ -72,39 +72,20 @@ export default class OpenChoice extends Component {
         })
 
         if (options.length > 0) {
-            if (this.props.item.repeats){
+            if (this.props.item.repeats) {
                 this.addOption(options);
             } else {
                 this.addOption(options[0]);
             }
         }
-        
+
     }
 
     onInputChange(event) {
-        this.setState({ display: event.target.value })
         if (!this.props.item.repeats) {
-            this.setState({ "values": [{ display: event.target.value }] })
-        }
-        this.props.updateCallback(this.props.item.linkId, event.target.value, "values")
-        if (this.state.choices.findIndex(p => p.code == event.target.value) === -1 && !this.props.item.repeats) {
-            this.props.updateCallback(this.props.item.linkId,
-                {
-                    "type": this.props.inputTypeDisplay,
-                    "text": this.props.item.text,
-                    "valueType": "valueString",
-                    "ref": this.ref,
-                    "enabled": true
-                }, "itemTypes");
+            this.addOption({ display: event.target.value });
         } else {
-            this.props.updateCallback(this.props.item.linkId,
-                {
-                    "type": this.props.inputTypeDisplay,
-                    "text": this.props.item.text,
-                    "valueType": "valueCoding",
-                    "ref": this.ref,
-                    "enabled": true
-                }, "itemTypes");
+            this.setState({ display: event.target.value })
         }
     }
 
@@ -126,7 +107,7 @@ export default class OpenChoice extends Component {
             } else {
                 newArray = [...this.state.values, e];
             }
-        }  else {
+        } else {
             newArray = [e];
         }
 
@@ -220,26 +201,9 @@ export default class OpenChoice extends Component {
                             {this.state.choices.map((e) => {
                                 if (this.state.values.filter((el) => { return el.display === e.display }).length === 0) {
                                     return (
-                                        <div key={e.code} className="unselected-option" onClick={() => {
-                                            if (this.props.item.repeats) {
-                                                const newArray = this.addOption(e);
-                                                this.props.updateCallback(this.props.item.linkId, newArray, "values");
-                                            } else {
-
-                                                this.setState({ "values": [e] });
-                                                this.setState({ "display": e.display });
-                                                this.props.updateCallback(this.props.item.linkId, [e], "values");
-                                                this.props.updateCallback(this.props.item.linkId,
-                                                    {
-                                                        "type": this.props.inputTypeDisplay,
-                                                        "text": this.props.item.text,
-                                                        "valueType": "valueCoding",
-                                                        "ref": this.ref,
-                                                        "enabled": true
-                                                    }, "itemTypes");
-                                            }
-
-                                        }}
+                                        <div key={e.code} className="unselected-option" onClick={() =>
+                                            this.addOption(e)
+                                        }
                                             // prevent the dropdown from stealing focus and closing
                                             onMouseDown={(event) => { event.preventDefault() }}>
                                             {e.display}
