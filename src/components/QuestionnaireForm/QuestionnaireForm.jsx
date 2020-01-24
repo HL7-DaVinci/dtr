@@ -201,7 +201,7 @@ export default class QuestionnaireForm extends Component {
 
                                 switch(key) {
                                     case 'valueCoding':
-                                        value = answer[key].code;
+                                        value = answer[key];
                                         break;
 
                                     case 'valueDate':
@@ -230,7 +230,7 @@ export default class QuestionnaireForm extends Component {
                             }
                         });
 
-                        if (values.length > 1 || item.type == 'open-choice'){
+                        if (values.length > 1 || item.type == 'open-choice' || item.type == 'choice'){
                             this.updateQuestionValue(item.linkId, values, 'values');
                         }
                         else if (values.length == 1){
