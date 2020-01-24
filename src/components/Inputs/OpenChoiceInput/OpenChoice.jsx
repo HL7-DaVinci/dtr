@@ -89,10 +89,6 @@ export default class OpenChoice extends Component {
         }
     }
 
-    checkStateForValue(value) {
-        return;
-    }
-
     setChoice(pair) {
         this.setState(previousState => ({
             choices: [...previousState.choices, pair]
@@ -153,17 +149,10 @@ export default class OpenChoice extends Component {
                             this.saveToDisplay(e);
                         }}
                         onClick={() => {
-                            if (this.props.item.repeats) {
-                                this.myInp.focus();
-                                this.setState(prevState => ({
-                                    open: true
-                                }))
-                            } else {
-                                this.setState(prevState => ({
-                                    open: !prevState.open
-                                }))
-                            }
-
+                            this.myInp.focus();
+                            this.setState(prevState => ({
+                                open: true
+                            }))
                         }}
                     >
                         {this.props.item.repeats ? this.state.values.map((value) => {
