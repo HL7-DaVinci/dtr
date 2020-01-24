@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import cql from "cql-execution";
 
 import './QuestionnaireForm.css';
 
@@ -12,7 +13,7 @@ import OpenChoice from '../Inputs/OpenChoiceInput/OpenChoice';
 import SendDMEOrder from "../../util/DMEOrders";
 
 // Note: code to enable/disable DME Orders
-var dMEOrdersEnabled = false;   
+var dMEOrdersEnabled = false;
 
 export default class QuestionnaireForm extends Component {
     constructor(props) {
@@ -25,9 +26,11 @@ export default class QuestionnaireForm extends Component {
                 "1.1": "henlo"
             },
             orderedLinks: [],
-            sectionLinks:{},
+            sectionLinks: {},
             fullView: true,
-            turnOffValues: []
+            turnOffValues: [],
+            useSavedResponse: false,
+            savedResponse: null
         };
         this.updateQuestionValue = this.updateQuestionValue.bind(this);
         this.updateNestedQuestionValue = this.updateNestedQuestionValue.bind(this);
@@ -35,18 +38,31 @@ export default class QuestionnaireForm extends Component {
         this.renderComponent = this.renderComponent.bind(this);
         this.retrieveValue = this.retrieveValue.bind(this);
         this.outputResponse = this.outputResponse.bind(this);
-
     }
 
     componentWillMount() {
         // setup
         // get all contained resources
+        let partialResponse = localStorage.getItem(this.props.qform.id);
+        let responseItems = null;
+
+        if (partialResponse) {
+            let result = confirm('Found previously saved form. Do you want to load existing data from saved from?');
+
+            if (result) {
+                this.state.savedResponse = JSON.parse(partialResponse);
+                responseItems = this.state.savedResponse.item;
+            } else {
+                localStorage.removeItem(this.props.qform.id);
+            }
+        }
+
         if (this.props.qform.contained) {
             this.distributeContained(this.props.qform.contained)
         }
         const items = this.props.qform.item;
         this.setState({ items });
-        const links = this.prepopulate(items, []);
+        const links = this.prepopulate(items, [], responseItems);
         this.setState({ orderedLinks: links });
     }
 
@@ -124,7 +140,7 @@ export default class QuestionnaireForm extends Component {
             enableCriteria.forEach((rule) => {
                 const question = this.state.values[rule.question]
                 const answer = findValueByPrefix(rule, "answer");
-                if (typeof question === 'object' && typeof answer === 'object' && answer!== null && question!==null) {
+                if (typeof question === 'object' && typeof answer === 'object' && answer !== null && question !== null) {
                     if (rule.answerQuantity) {
                         // at the very least the unit and value need to be the same
                         results.push(this.evaluateOperator(rule.operator, question.value, answer.value.toString())
@@ -150,25 +166,85 @@ export default class QuestionnaireForm extends Component {
     }
 
 
-    prepopulate(items, links) {
+    prepopulate(items, links, responseItems) {
         items.map((item) => {
             if (item.item) {
                 // its a section/group
                 links.push(item.linkId);
-                this.prepopulate(item.item, links);
+
+                let responseChildItems = null;
+
+                if (responseItems) {
+                    let matchedItem = responseItems.filter(i => i.linkId == item.linkId)
+
+                    if (matchedItem.length > 0) 
+                        responseChildItems = matchedItem[0].item
+                }
+
+                this.prepopulate(item.item, links, responseChildItems);
             } else {
                 // autofill fields
                 links.push(item.linkId);
-                // if (item.enableWhen) {
-                //     console.log(item.enableWhen);
-                // }
-                if (item.extension) {
+
+                if (responseItems)    {
+                    let matchedItem = responseItems.filter(i =>    i.linkId == item.linkId);
+                
+                    if (matchedItem.length > 0 && matchedItem[0].answer) {
+                        let values = [];
+
+                        matchedItem[0].answer.forEach(answer => {
+                            let keys = Object.keys(answer);
+
+                            if (keys.length > 0) {
+                                let key = keys[0]
+                                let value = null
+
+                                switch(key) {
+                                    case 'valueCoding':
+                                        value = answer[key].code;
+                                        break;
+
+                                    case 'valueDate':
+                                        value = new cql.Date.parse(answer[key]);
+                                        break;
+
+                                    case 'valueDateTime':
+                                        value = new cql.DateTime.parse(answer[key]);
+                                        break;
+
+                                    case 'valueString':
+                                        value = answer[key]
+                                        if (value.display != null) {
+                                            value.valueTypeFinal = 'valueString';
+                                        }
+                                        break;
+
+                                    default:
+                                        value = answer[key];
+                                        break;
+                                }
+
+                                if (value != null) {
+                                    values.push(value)
+                                }
+                            }
+                        });
+
+                        if (values.length > 1 || item.type == 'open-choice'){
+                            this.updateQuestionValue(item.linkId, values, 'values');
+                        }
+                        else if (values.length == 1){
+                            this.updateQuestionValue(item.linkId, values[0], 'values');
+                        }
+                    }
+                }
+                else if (item.extension) {
                     item.extension.forEach((e) => {
                         let value;
                         if (e.url === "http://hl7.org/fhir/StructureDefinition/cqif-calculatedValue") {
                             // stu3 
                             value = findValueByPrefix(e, "value");
-                        } else if(e.url === "http://hl7.org/fhir/StructureDefinition/cqf-expression") {
+                        } else if (e.url === "http://hl7.org/fhir/StructureDefinition/cqf-expression") {
                             // r4
                             value = findValueByPrefix(e, "value");
                             value = value.expression;
@@ -182,7 +258,7 @@ export default class QuestionnaireForm extends Component {
                         let libraryName;
                         let statementName;
                         if (valueComponents.length > 1) {
-                            libraryName = valueComponents[0].substring(1, valueComponents[0].length-1);
+                            libraryName = valueComponents[0].substring(1, valueComponents[0].length - 1);
                             statementName = valueComponents[1];
                         } else { // if there is not library name grab the first library name
                             statementName = value
@@ -418,7 +494,7 @@ export default class QuestionnaireForm extends Component {
                 subject: { reference: this.makeReference(dataBundle, "Patient") },
                 author: { reference: this.makeReference(dataBundle, "Practitioner") },
                 content: [{
-                    "attachment" : {
+                    "attachment": {
                         data: b64pdf,
                         contentType: "application/pdf"
                     }
@@ -434,7 +510,7 @@ export default class QuestionnaireForm extends Component {
             Http.open("POST", docReferenceUrl);
             Http.setRequestHeader("Content-Type", "application/fhir+json");
             Http.send(JSON.stringify(documentReference));
-            Http.onreadystatechange = function() {
+            Http.onreadystatechange = function () {
                 if (this.readyState === XMLHttpRequest.DONE) {
                     if (this.status == 201) {
                         console.log("Successfully stored DocumentReference ID: " + JSON.parse(this.response).id);
@@ -455,26 +531,30 @@ export default class QuestionnaireForm extends Component {
         const mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
         const yyyy = today.getFullYear();
         const authored = `${yyyy}-${mm}-${dd}`
+        // TODO: Update Questionnaire.id and QuestionnaireResponse.id with real id from server
         const response = {
             resourceType: "QuestionnaireResponse",
-            id: "response1",
+            id: "9964",
             authored: authored,
-            status: "completed", //TODO: Get status from somewhere
-            item: []
-
+            status: status,
+            item: [],
+            author: {
+                reference: "Practitioner/" + this.props.cqlPrepoulationResults.BasicPractitionerInfo.OrderingProvider.id.value
+            },
+            questionnaire: this.props.qform.id
         }
 
         let currentItem = response.item;
         let currentLevel = 0;
         let currentValues = [];
-        const chain = {0: {currentItem, currentValues}};
+        const chain = { 0: { currentItem, currentValues } };
         this.state.orderedLinks.map((item) => {
             const itemType = this.state.itemTypes[item];
 
-            if(Object.keys(this.state.sectionLinks).indexOf(item)>=0) {
-                currentValues = currentValues.filter((e)=>{return e!==item});
-                if(chain[currentLevel+1]){
-                    chain[currentLevel+1].currentValues = currentValues;
+            if (Object.keys(this.state.sectionLinks).indexOf(item) >= 0) {
+                currentValues = currentValues.filter((e) => { return e !== item });
+                if (chain[currentLevel + 1]) {
+                    chain[currentLevel + 1].currentValues = currentValues;
                 }
                 const section = this.state.sectionLinks[item];
                 currentValues = section.values;
@@ -490,27 +570,27 @@ export default class QuestionnaireForm extends Component {
                 currentLevel = section.level;
 
                 // filter out this section
-                chain[section.level+1] = {currentItem, currentValues};
-            }else{
+                chain[section.level + 1] = { currentItem, currentValues };
+            } else {
                 // not a new section, so it's an item
-                if(currentValues.indexOf(item)<0 && itemType && itemType.enabled) {
+                if (currentValues.indexOf(item) < 0 && itemType && itemType.enabled) {
                     // item not in this section, drop a level
                     const tempLevel = currentLevel;
 
-                    while(chain[currentLevel].currentValues.length === 0 && currentLevel > 0) {
+                    while (chain[currentLevel].currentValues.length === 0 && currentLevel > 0) {
                         // keep dropping levels until we find an unfinished section
                         currentLevel--;
                     }
 
                     // check off current item
-                    chain[tempLevel].currentValues = currentValues.filter((e)=>{return e!==item});
+                    chain[tempLevel].currentValues = currentValues.filter((e) => { return e !== item });
 
                     currentValues = chain[currentLevel].currentValues;
                     currentItem = chain[currentLevel].currentItem;
                 } else {
                     // item is in this section, check it off
 
-                    currentValues = currentValues.filter((e)=>{return e!==item});
+                    currentValues = currentValues.filter((e) => { return e !== item });
                     chain[currentLevel + 1].currentValues = currentValues;
                 }
             }
@@ -534,7 +614,7 @@ export default class QuestionnaireForm extends Component {
                     case "valueDateTime":
                     case "valueDate":
                         const date = this.state.values[item];
-                        if(date) {
+                        if (date) {
                             answerItem.answer.push({ [itemType.valueType]: date.toString() });
                         }
                         break;
@@ -557,8 +637,7 @@ export default class QuestionnaireForm extends Component {
                         }
                 }
                 // FHIR fields are not allowed to be empty or null, so we must prune
-                if (this.isEmptyAnswer(answerItem.answer))
-                {
+                if (this.isEmptyAnswer(answerItem.answer)) {
                     // console.log("Removing empty answer: ", answerItem);
                     delete answerItem.answer;
                 }
@@ -566,6 +645,13 @@ export default class QuestionnaireForm extends Component {
             }
         });
         console.log(response);
+
+        if (status == 'in-progress') {
+            localStorage.setItem(response.questionnaire, JSON.stringify(response))
+            alert('Partial QuestionnaireResponse saved');
+            console.log('Partial QuestionnaireResponse saved.')
+            return;
+        }
 
         const priorAuthBundle = JSON.parse(JSON.stringify(this.props.bundle));
         priorAuthBundle.entry.unshift({ resource: this.props.deviceRequest })
@@ -577,24 +663,28 @@ export default class QuestionnaireForm extends Component {
         const priorAuthClaim = {
             resourceType: "Claim",
             status: "active",
-            type: {coding: [{
-                system: "http://terminology.hl7.org/CodeSystem/claim-type",
-                code: "professional",
-                display: "Professional"
-            }]},
+            type: {
+                coding: [{
+                    system: "http://terminology.hl7.org/CodeSystem/claim-type",
+                    code: "professional",
+                    display: "Professional"
+                }]
+            },
             use: "preauthorization",
             patient: { reference: this.makeReference(priorAuthBundle, "Patient") },
             created: authored,
             provider: { reference: this.makeReference(priorAuthBundle, "Practitioner") },
-            priority: {coding: [{"code": "normal"}]},
+            priority: { coding: [{ "code": "normal" }] },
             prescription: { reference: this.makeReference(priorAuthBundle, "DeviceRequest") },
             supportingInfo: [{
                 sequence: 1,
-                category: {coding: [{
-                    system: "http://terminology.hl7.org/CodeSystem/claiminformationcategory",
-                    code: "info",
-                    display: "Information"
-                }]},
+                category: {
+                    coding: [{
+                        system: "http://terminology.hl7.org/CodeSystem/claiminformationcategory",
+                        code: "info",
+                        display: "Information"
+                    }]
+                },
                 valueReference: { reference: this.makeReference(priorAuthBundle, "QuestionnaireResponse") }
             }],
             diagnosis: [],
@@ -605,7 +695,7 @@ export default class QuestionnaireForm extends Component {
             }]
         }
         var sequence = 1;
-        priorAuthBundle.entry.forEach(function(entry, index) {
+        priorAuthBundle.entry.forEach(function (entry, index) {
             if (entry.resource.resourceType == "Condition") {
                 priorAuthClaim.diagnosis.push({
                     sequence: sequence++,
@@ -623,19 +713,19 @@ export default class QuestionnaireForm extends Component {
         // const priorAuthUrl = "http://localhost:9000/fhir/Claim/$submit";
         Http.open("POST", priorAuthUrl);
         Http.setRequestHeader("Content-Type", "application/fhir+json");
-        Http.send(JSON.stringify(priorAuthBundle));          
-        var qForm = this;        
-        Http.onreadystatechange = function() {
+        Http.send(JSON.stringify(priorAuthBundle));
+        var qForm = this;
+        Http.onreadystatechange = function () {
             if (this.readyState === XMLHttpRequest.DONE) {
                 var message = "Prior Authorization Failed.\nNo ClaimResponse found within bundle.";
-                if (this.status === 201) {                   
+                if (this.status === 201) {
                     var claimResponseBundle = JSON.parse(this.responseText);
                     var claimResponse = claimResponseBundle.entry[0].resource;
                     message = "Prior Authorization " + claimResponse.disposition + "\n";
-                    message += "Prior Authorization Number: " + claimResponse.preAuthRef;  
-                    
+                    message += "Prior Authorization Number: " + claimResponse.preAuthRef;
+
                     // DME Orders                
-                    if (dMEOrdersEnabled) 
+                    if (dMEOrdersEnabled)
                         SendDMEOrder(qForm, response);
                 } else {
                     console.log(this.responseText);
@@ -644,7 +734,7 @@ export default class QuestionnaireForm extends Component {
                 console.log(message);
 
                 // TODO pass the message to the PriorAuth page instead of having it query again
-                var patientEntry = claimResponseBundle.entry.find(function(entry) {
+                var patientEntry = claimResponseBundle.entry.find(function (entry) {
                     return (entry.resource.resourceType == "Patient");
                 });
 
@@ -659,21 +749,23 @@ export default class QuestionnaireForm extends Component {
                 console.log(priorAuthUri)
                 window.location.href = priorAuthUri;
             }
-        }      
+        }
+
+        localStorage.removeItem(response.questionnaire);
     }
 
     isEmptyAnswer(answer) {
         return ((answer.length < 1) ||
-                (JSON.stringify(answer[0]) == "{}") ||
-                (answer[0].hasOwnProperty("valueString") && (answer[0].valueString == null || answer[0].valueString == "")) ||
-                (answer[0].hasOwnProperty("valueDateTime") && (answer[0].valueDateTime == null || answer[0].valueDateTime == "")) ||
-                (answer[0].hasOwnProperty("valueDate") && (answer[0].valueDate == null || answer[0].valueDate == "")) ||
-                (answer[0].hasOwnProperty("valueBoolean") && (answer[0].valueBoolean == null || answer[0].valueBoolean == "")) ||
-                (answer[0].hasOwnProperty("valueQuantity") && (answer[0].valueQuantity == null || answer[0].valueQuantity.value == null || answer[0].valueQuantity.value == "")));
+            (JSON.stringify(answer[0]) == "{}") ||
+            (answer[0].hasOwnProperty("valueString") && (answer[0].valueString == null || answer[0].valueString == "")) ||
+            (answer[0].hasOwnProperty("valueDateTime") && (answer[0].valueDateTime == null || answer[0].valueDateTime == "")) ||
+            (answer[0].hasOwnProperty("valueDate") && (answer[0].valueDate == null || answer[0].valueDate == "")) ||
+            (answer[0].hasOwnProperty("valueBoolean") && answer[0].valueBoolean == null ) ||
+            (answer[0].hasOwnProperty("valueQuantity") && (answer[0].valueQuantity == null || answer[0].valueQuantity.value == null || answer[0].valueQuantity.value == "")));
     }
 
     makeReference(bundle, resourceType) {
-        var entry = bundle.entry.find(function(entry) {
+        var entry = bundle.entry.find(function (entry) {
             return (entry.resource.resourceType == resourceType);
         });
         // TODO: This is just a temporary fix. Coverage is referenced in the Claim but does not exist in the Bundle, causing
@@ -710,7 +802,7 @@ export default class QuestionnaireForm extends Component {
 
                 <div className="sidenav">
                     {this.state.orderedLinks.map((e) => {
-                        if(Object.keys(this.state.sectionLinks).indexOf(e)<0) {
+                        if (Object.keys(this.state.sectionLinks).indexOf(e) < 0) {
                             const value = this.state.values[e];
                             let extraClass;
                             let indicator;
@@ -725,7 +817,7 @@ export default class QuestionnaireForm extends Component {
                                 } else {
                                     extraClass = "sidenav-disabled"
                                 }
-    
+
                             }
                             return <div
                                 key={e}
@@ -747,7 +839,10 @@ export default class QuestionnaireForm extends Component {
                         })
                     }
                 </div>
-                <button className="btn submit-button" onClick={this.outputResponse}>Submit</button>
+                <div className="submit-button-panel">
+                    <button className="btn submit-button" onClick={this.outputResponse.bind(this, 'in-progress')}>Save</button>
+                    <button className="btn submit-button" onClick={this.outputResponse.bind(this, 'completed')}>Submit</button>
+                </div>
             </div>
         );
     }
