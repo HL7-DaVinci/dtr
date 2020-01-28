@@ -47,11 +47,9 @@ function doSearch(smart, type, fhirVersion, request, callback) {
 
   // If this is for Epic, there are some specific modifications needed for the queries to work properly
   if (
-      true
-    // process.env.REACT_APP_EPIC_SUPPORTED_QUERIES &&
-    // process.env.REACT_APP_EPIC_SUPPORTED_QUERIES.toLowerCase() === "true"
+    process.env.REACT_APP_EPIC_SUPPORTED_QUERIES &&
+    process.env.REACT_APP_EPIC_SUPPORTED_QUERIES.toLowerCase() === "true"
   ) {
-      console.log("USING EPIC epic");
     switch (type) {
       case "Observation":
         // Epic requires you to specify a category or code search parameter, so search on all categories
@@ -87,21 +85,16 @@ function doSearch(smart, type, fhirVersion, request, callback) {
       //nothing
     }
   }
-  console.log(type);
-  console.log(q);
   const query = new URLSearchParams();
   Object.keys(q).forEach((parameter)=>{
       query.set(parameter, q[parameter]);
   });
-  console.log(query);
-
   smart.patient.request(`${type}?${query}`)
     .then(processSuccess(smart, [], callback), processError(smart, callback));
 }
 
 function processSuccess(smart, resources, callback) {
   return response => {
-      console.log(response);
     if (response && response.resourceType === "Bundle") {
       if (response.entry) {
         response.entry.forEach(function(e) {

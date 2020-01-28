@@ -6,7 +6,7 @@ function fetchFhirVersion(fhirServer) {
 
         function handleFetchErrors(response) {
             if (!response.ok) {
-            let msg = `Failure when fetching CapabilityStatement to find FHIR version`;
+            let msg = "Failure when fetching CapabilityStatement to find FHIR version";
             let details = `${msg}: ${response.url}: the server responded with a status of ${response.status} (${response.statusText})`;
             console.log(msg + ": errorClass: " + details);
             reject(msg);
@@ -16,10 +16,10 @@ function fetchFhirVersion(fhirServer) {
 
         fetch(fhirServer + "/metadata?_format=json").then(handleFetchErrors).then(r => r.json())
         .then(capabilityStatement => {
-            let fhirV4 = ['4.0.1', '4.0.0', '3.5a.0', '3.5.0', '3.3.0', '3.2.0'];
-            let fhirStu3 = ['3.0.2', '3.0.1', '3.0.0', '1.8.0', '1.6.0', '1.4.0', '1.2.0', '1.1.0'];
-            let fhirDstu2 = ['1.0.2', '1.0.1', '1.0.0', '0.5.0', '0.4.0'];
-            let fhirDstu1 = ['0.0.82', '0.11', '0.06', '0.05'];
+            let fhirV4 = ["4.0.1", "4.0.0", "3.5a.0", "3.5.0", "3.3.0", "3.2.0"];
+            let fhirStu3 = ["3.0.2", "3.0.1", "3.0.0", "1.8.0", "1.6.0", "1.4.0", "1.2.0", "1.1.0"];
+            let fhirDstu2 = ["1.0.2", "1.0.1", "1.0.0", "0.5.0", "0.4.0"];
+            let fhirDstu1 = ["0.0.82", "0.11", "0.06", "0.05"];
             
             let fhirVersion = "unknown";
             if (fhirV4.includes(capabilityStatement.fhirVersion)) {
@@ -37,7 +37,7 @@ function fetchFhirVersion(fhirServer) {
         })
         .catch(err => {
             console.log("error doing fetch():" + err);
-            reject(err)
+            reject(err);
         });
     });
 }

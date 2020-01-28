@@ -118,7 +118,6 @@ export default class PriorAuth extends Component {
         message += "Uri: " + claimResponseUri;
         console.log(e);
         console.log(message);
-        alert(message);
         return;
       }
     };

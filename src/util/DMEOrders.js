@@ -318,7 +318,6 @@ function SendDMEOrder(qForm, response) {
             }
 
             console.log(message);
-            alert(message);
             console.log(this.responseText);
         }
     };
