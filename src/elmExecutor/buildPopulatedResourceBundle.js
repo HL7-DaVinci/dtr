@@ -1,5 +1,35 @@
-function doSearch(smart, type, callback) {
+function doSearch(smart, type, fhirVersion, request, callback) {
   const q = {};
+  
+  // setup the query for Practitioner and Coverage
+  switch (type) {
+    case "Practitioner":
+      q._id = request.performer.reference;
+      console.log(q._id);
+      break;
+    case "Coverage":
+      switch (fhirVersion.toUpperCase()) {
+        case "STU3":
+          if (request.extension.length > 0) {
+            q._id = request.extension[0].valueReference.reference;
+            console.log(q._id);
+          } else {
+            console.log("No extension/coverage found!");
+          }
+          break;
+        case "R4":
+          if (request.insurance.length > 0) {
+            q._id = request.insurance[0].reference;
+            console.log(q._id);
+          } else {
+            console.log("No insurance/coverage found!");
+          }
+          break;
+        default:
+          // unknown version
+          break;
+      }
+  }
 
   // If this is for Epic, there are some specific modifications needed for the queries to work properly
   if (
@@ -70,7 +100,7 @@ function processError(smart, callback) {
   };
 }
 
-function buildPopulatedResourceBundle(smart, neededResources, consoleLog) {
+function buildPopulatedResourceBundle(smart, neededResources, fhirVersion, request, consoleLog) {
   return new Promise(function(resolve, reject){
     console.log("waiting for patient");
     consoleLog("waiting for patient","infoClass");
@@ -89,7 +119,7 @@ function buildPopulatedResourceBundle(smart, neededResources, consoleLog) {
           } else if (r === "Patient") {
             readResources(neededResources, callback);
           } else {
-            doSearch(smart, r, (results, error) => {
+            doSearch(smart, r, fhirVersion, request, (results, error) => {
               if (results) {
                 entryResources.push(...results);
               }
