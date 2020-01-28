@@ -35,8 +35,6 @@ const headers = {
 if (secret) headers["Authorization"] = "Basic " + btoa(clientId + ":" + secret);
 
 // obtain authorization token from the authorization service using the authorization code
-alert("getting token");
-
 const tokenPost = new XMLHttpRequest();
 var auth_response;
 tokenPost.open("POST", tokenUri);
@@ -47,7 +45,6 @@ tokenPost.onload = function() {
   
         auth_response = JSON.parse(tokenPost.responseText);
         console.log(auth_response);
-        alert("retrieved token");
       } catch (e) {
         const errorMsg = "Failed to parse auth response";
         document.body.innerText = errorMsg;
@@ -58,7 +55,6 @@ tokenPost.onload = function() {
       let appContext;
       try {
         const appString = decodeURIComponent(auth_response.appContext);
-        alert(appString);
         appContext = {
             template: appString.split("&")[0].split("=")[1],
             request: JSON.parse(appString.split("&")[1].split("=")[1].replace(/\\/g,"")),
@@ -83,7 +79,6 @@ tokenPost.onload = function() {
             patient: auth_response.patient,
         }
         });
-        alert("rendering app");
         ReactDOM.render(
         <App
           FHIR_URI_PREFIX={FHIR_URI_PREFIX}
