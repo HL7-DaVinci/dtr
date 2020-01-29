@@ -61,26 +61,47 @@ class App extends Component {
           this.fillValueSetDB(executionInputs, artifacts);
 
           this.consoleLog("executing elm", "infoClass");
-          return executeElm(this.smart, this.fhirVersion, executionInputs, this.consoleLog);
+          console.log("executing elm");
+          return executeElm(this.smart, this.fhirVersion, this.props.deviceRequest, executionInputs, this.consoleLog);
         }));
       })
       .then(cqlResults => {
         this.consoleLog("executed cql, result:"+JSON.stringify(cqlResults),"infoClass");
+        console.log("executed cql, result:");
 
-        // Collect all library results and grab the largest FHIR resource bundle
+        // Collect all library results into a single bundle
         let allLibrariesResults = {};
-        let largestBundle = null;
+        let fullBundle = null;
         cqlResults.forEach((libraryResult) => {
           // add results to hash indexed by library name
           allLibrariesResults[libraryResult.libraryName] = libraryResult.elmResults
-          // set this result's bundle as the largest one if it is
-          if (largestBundle == null) {
-            largestBundle = libraryResult.bundle
-          } else if (libraryResult.bundle.entry.length > largestBundle.entry.length)
-            largestBundle = libraryResult.bundle
-        });
 
-        this.setState({bundle: largestBundle})
+          if (fullBundle == null) {
+            fullBundle = libraryResult.bundle
+            // copy entire first bundle");
+          } else {
+            // add next bundle");
+            libraryResult.bundle.entry.forEach((libraryEntry) => {
+              // search for the entry to see if it is already in the bundle
+              let found = false;
+              fullBundle.entry.forEach((fullBundleEntry) => {
+                if ((fullBundleEntry.resource.id === libraryEntry.resource.id) && 
+                    (fullBundleEntry.resource.resourceType === libraryEntry.resource.resourceType)) {
+                  // skip it
+                  found = true;
+                }
+              });
+
+              // add the entry into the full bundle
+              if (!found) {
+                fullBundle.entry.push(libraryEntry);
+              }
+            });
+          }
+
+        });
+        console.log(fullBundle);
+        this.setState({bundle: fullBundle})
         this.setState({cqlPrepoulationResults: allLibrariesResults})
       });
     });

@@ -4,14 +4,14 @@ import cqlfhir from "cql-exec-fhir";
 import extractFhirResourcesThatNeedFetching from "./extractFhirResourcesThatNeedFetching";
 import buildPopulatedResourceBundle from "./buildPopulatedResourceBundle";
 
-function executeElm(smart, fhirVersion, executionInputs, consoleLog) {
+function executeElm(smart, fhirVersion, request, executionInputs, consoleLog) {
   return new Promise(function(resolve, reject){
     console.log("about to executeElm()")
     const patientSource = getPatientSource(fhirVersion)
     const neededResources = extractFhirResourcesThatNeedFetching(executionInputs.elm);
     consoleLog("need to fetch resources","infoClass");
     console.log("We need to fetch these resources:", neededResources);
-    buildPopulatedResourceBundle(smart, neededResources, consoleLog)
+    buildPopulatedResourceBundle(smart, neededResources, fhirVersion, request, consoleLog)
     .then(function(resourceBundle) {
       console.log("Fetched resources are in this bundle:", resourceBundle);
       patientSource.loadBundles([resourceBundle]);
