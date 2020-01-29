@@ -44,6 +44,13 @@ class App extends Component {
         this.setState({deviceRequest: this.props.deviceRequest})
         // execute for each main library
         return Promise.all(artifacts.mainLibraryElms.map((mainLibraryElm) => {
+          let parameterObj;
+          if(this.props.deviceRequest.resourceType === 'DeviceRequest') {
+            parameterObj = {device_request: fhirWrapper.wrap(this.props.deviceRequest)};
+          } else if (this.props.deviceRequest.resourceType === 'ServiceRequest'){
+            parameterObj = {service_request: fhirWrapper.wrap(this.props.deviceRequest)}
+          }
+
           const executionInputs = {
             elm: mainLibraryElm,
             // look at main library elms to determine dependent elms to include
@@ -54,7 +61,7 @@ class App extends Component {
               });
             }),
             valueSetDB: {},
-            parameters: {device_request: fhirWrapper.wrap(this.props.deviceRequest)}
+            parameters: parameterObj
           };
 
           // add the required value sets to the valueSetDB
