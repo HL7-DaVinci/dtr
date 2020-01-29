@@ -4,25 +4,29 @@ function doSearch(smart, type, fhirVersion, request, callback) {
   // setup the query for Practitioner and Coverage
   switch (type) {
     case "Practitioner":
-      q._id = request.performer.reference;
+      q._id = (request.performer && request.performer.reference);
       console.log(q._id);
       break;
     case "Coverage":
       switch (fhirVersion.toUpperCase()) {
         case "STU3":
-          if (request.extension.length > 0) {
-            q._id = request.extension[0].valueReference.reference;
-            console.log(q._id);
-          } else {
-            console.log("No extension/coverage found!");
+          if (request.extension) {
+            if (request.extension.length > 0) {
+              q._id = (request.extension[0] && request.extension[0].valueReference && request.extension[0].valueReference.reference);
+              console.log(q._id);
+            } else {
+              console.log("No extension/coverage found!");
+            }
           }
           break;
         case "R4":
-          if (request.insurance.length > 0) {
-            q._id = request.insurance[0].reference;
-            console.log(q._id);
-          } else {
-            console.log("No insurance/coverage found!");
+          if (request.insurance) {
+            if (request.insurance.length > 0) {
+              q._id = (request.insurance[0] && request.insurance[0].reference);
+              console.log(q._id);
+            } else {
+              console.log("No insurance/coverage found!");
+            }
           }
           break;
         default:
