@@ -9,8 +9,6 @@ import QuestionnaireForm from "./components/QuestionnaireForm/QuestionnaireForm"
 import Testing from "./components/ConsoleBox/Testing";
 import UserMessage from "./components/UserMessage/UserMessage";
 
-// import sample from './sample_questionnaire.json';
-
 class App extends Component {
   constructor(props) {
     super(props);
@@ -182,8 +180,6 @@ class App extends Component {
         errors: [...prevState.errors, jsonContent]
       }));
     }
-    // console.log("this.state.logs:", this.state.logs)
-    // console.log("this.state.errors:", this.state.errors)
   }
 
   render() {
