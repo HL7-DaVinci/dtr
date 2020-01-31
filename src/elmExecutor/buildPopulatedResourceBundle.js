@@ -8,7 +8,7 @@ function doSearch(smart, type, fhirVersion, request, callback) {
       if (request.resourceType === "DeviceRequest") {
         performer = request.performer && request.performer.reference;
       } else if (request.resourceType === "ServiceRequest") {
-        performer = request.performer[0].reference;
+        performer = request.performer[0] && request.performer[0].reference;
       }
       q._id = performer;
       console.log(q._id);
