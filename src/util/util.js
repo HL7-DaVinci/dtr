@@ -11,7 +11,8 @@ function findValueByPrefix(object, prefix) {
 function getListOfChoices(props, setChoice){
     // parse out the list of choices from 'option'
     let returnAnswer = null;
-    const answerOptionsReference = (props.item.options || {}).reference
+    // STU3 has referenced valuesets at `options.reference`, R4 is in answerValueSet
+    const answerOptionsReference = props.item.answerValueSet || (props.item.options || {}).reference
     if(typeof answerOptionsReference === "string") {
         // answerValueSet
         if(answerOptionsReference.startsWith("#")) {
@@ -30,7 +31,7 @@ function getListOfChoices(props, setChoice){
         }
 
     }else{
-        const answerOption = props.item.option // in r4 this is item.answerOption, but we support stu3 only
+        const answerOption = props.item.answerOption || props.item.option // in r4 this is item.answerOption, but we support stu3 only
         // list of answerOption options
         answerOption.forEach((concept)=>{
             // TODO: The value could be a code/date/time/reference, need to account for that.
