@@ -5,6 +5,7 @@ import cqlfhir from "cql-exec-fhir";
 import executeElm from "./elmExecutor/executeElm";
 import fetchArtifacts from "./util/fetchArtifacts";
 import fetchFhirVersion from "./util/fetchFhirVersion";
+import PriorAuthSubmit from "./components/PriorAuthSubmit/PriorAuthSubmit";
 import QuestionnaireForm from "./components/QuestionnaireForm/QuestionnaireForm";
 import Testing from "./components/ConsoleBox/Testing";
 import UserMessage from "./components/UserMessage/UserMessage";
@@ -233,7 +234,7 @@ class App extends Component {
       return (
         <div className="App">
           {this.state.priorAuthClaim ? (
-            <div>PAS</div>
+            <PriorAuthSubmit claimBundle={this.state.priorAuthClaim} />
           ) : (
             <QuestionnaireForm
               qform={this.state.questionnaire}
