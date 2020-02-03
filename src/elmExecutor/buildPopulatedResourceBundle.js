@@ -1,10 +1,16 @@
 function doSearch(smart, type, fhirVersion, request, callback) {
   const q = {};
-  
+
   // setup the query for Practitioner and Coverage
   switch (type) {
     case "Practitioner":
-      q._id = (request.performer && request.performer.reference);
+      let performer;
+      if (request.resourceType === "DeviceRequest") {
+        performer = request.performer && request.performer.reference;
+      } else if (request.resourceType === "ServiceRequest") {
+        performer = request.performer[0] && request.performer[0].reference;
+      }
+      q._id = performer;
       console.log(q._id);
       break;
     case "Coverage":
@@ -12,7 +18,10 @@ function doSearch(smart, type, fhirVersion, request, callback) {
         case "STU3":
           if (request.extension) {
             if (request.extension.length > 0) {
-              q._id = (request.extension[0] && request.extension[0].valueReference && request.extension[0].valueReference.reference);
+              q._id =
+                request.extension[0] &&
+                request.extension[0].valueReference &&
+                request.extension[0].valueReference.reference;
               console.log(q._id);
             } else {
               console.log("No extension/coverage found!");
@@ -22,7 +31,7 @@ function doSearch(smart, type, fhirVersion, request, callback) {
         case "R4":
           if (request.insurance) {
             if (request.insurance.length > 0) {
-              q._id = (request.insurance[0] && request.insurance[0].reference);
+              q._id = request.insurance[0] && request.insurance[0].reference;
               console.log(q._id);
             } else {
               console.log("No insurance/coverage found!");
@@ -56,13 +65,20 @@ function doSearch(smart, type, fhirVersion, request, callback) {
         break;
       case "MedicationOrder":
         // Epic returns only active meds by default, so we need to specifically ask for other types
-        q.status = ["active", "completed", "stopped", "on-hold", "draft", "entered-in-error"].join(
-          ","
-        );
+        q.status = [
+          "active",
+          "completed",
+          "stopped",
+          "on-hold",
+          "draft",
+          "entered-in-error"
+        ].join(",");
         break;
       case "MedicationStatement":
         // Epic returns only active meds by default, so we need to specifically ask for other types
-        q.status = ["active", "completed", "intended", "entered-in-error"].join(",");
+        q.status = ["active", "completed", "intended", "entered-in-error"].join(
+          ","
+        );
         break;
       default:
       //nothing
@@ -88,7 +104,10 @@ function processSuccess(smart, resources, callback) {
         // There is a next page, so recursively process that before we do the callback
         smart.patient.api
           .nextPage({ bundle: response.data })
-          .then(processSuccess(smart, resources, callback), processError(smart, callback));
+          .then(
+            processSuccess(smart, resources, callback),
+            processError(smart, callback)
+          );
       } else {
         callback(resources);
       }
@@ -104,10 +123,16 @@ function processError(smart, callback) {
   };
 }
 
-function buildPopulatedResourceBundle(smart, neededResources, fhirVersion, request, consoleLog) {
-  return new Promise(function(resolve, reject){
+function buildPopulatedResourceBundle(
+  smart,
+  neededResources,
+  fhirVersion,
+  request,
+  consoleLog
+) {
+  return new Promise(function(resolve, reject) {
     console.log("waiting for patient");
-    consoleLog("waiting for patient","infoClass");
+    consoleLog("waiting for patient", "infoClass");
 
     console.log(smart);
     consoleLog(smart.patient.id, "infoClass");
@@ -129,7 +154,7 @@ function buildPopulatedResourceBundle(smart, neededResources, fhirVersion, reque
               }
               if (error) {
                 console.error(error);
-                consoleLog(error.data.statusText,"errorClass");
+                consoleLog(error.data.statusText, "errorClass");
               }
               readResources(neededResources, callback);
             });
@@ -146,7 +171,7 @@ function buildPopulatedResourceBundle(smart, neededResources, fhirVersion, reque
         });
       },
       error => {
-          consoleLog("error: " + error, "errorClass");
+        consoleLog("error: " + error, "errorClass");
         console.log(error);
         reject(error);
       }

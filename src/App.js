@@ -9,8 +9,6 @@ import QuestionnaireForm from "./components/QuestionnaireForm/QuestionnaireForm"
 import Testing from "./components/ConsoleBox/Testing";
 import UserMessage from "./components/UserMessage/UserMessage";
 
-// import sample from './sample_questionnaire.json';
-
 class App extends Component {
   constructor(props) {
     super(props);
@@ -51,6 +49,19 @@ class App extends Component {
           // execute for each main library
           return Promise.all(
             artifacts.mainLibraryElms.map(mainLibraryElm => {
+              let parameterObj;
+              if (this.props.deviceRequest.resourceType === "DeviceRequest") {
+                parameterObj = {
+                  device_request: fhirWrapper.wrap(this.props.deviceRequest)
+                };
+              } else if (
+                this.props.deviceRequest.resourceType === "ServiceRequest"
+              ) {
+                parameterObj = {
+                  service_request: fhirWrapper.wrap(this.props.deviceRequest)
+                };
+              }
+
               const executionInputs = {
                 elm: mainLibraryElm,
                 // look at main library elms to determine dependent elms to include
@@ -66,9 +77,7 @@ class App extends Component {
                   }
                 ),
                 valueSetDB: {},
-                parameters: {
-                  device_request: fhirWrapper.wrap(this.props.deviceRequest)
-                }
+                parameters: parameterObj
               };
 
               // add the required value sets to the valueSetDB
@@ -86,6 +95,7 @@ class App extends Component {
             })
           );
         })
+
         .then(cqlResults => {
           this.consoleLog(
             "executed cql, result:" + JSON.stringify(cqlResults),
@@ -207,8 +217,6 @@ class App extends Component {
         errors: [...prevState.errors, jsonContent]
       }));
     }
-    // console.log("this.state.logs:", this.state.logs)
-    // console.log("this.state.errors:", this.state.errors)
   }
 
   setPriorAuthClaim(claimBundle) {
@@ -225,7 +233,7 @@ class App extends Component {
       return (
         <div className="App">
           {this.state.priorAuthClaim ? (
-            <div></div>
+            <div>PAS</div>
           ) : (
             <QuestionnaireForm
               qform={this.state.questionnaire}
