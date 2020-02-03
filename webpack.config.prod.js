@@ -24,8 +24,7 @@ module.exports = merge(common, {
       rewrites: [
         { from: /index/, to: "/index.html" },
         { from: /launch/, to: "/launch.html" },
-        { from: /register/, to: "/register.html" },
-        { from: /priorauth/, to: "/priorauth.html" }
+        { from: /register/, to: "/register.html" }
       ]
     },
     proxy: [

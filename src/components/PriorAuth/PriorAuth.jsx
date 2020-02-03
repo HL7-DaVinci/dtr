@@ -1,21 +1,36 @@
 import React, { Component } from "react";
-import { hot } from "react-hot-loader";
 import "./PriorAuth.css";
 
-class PriorAuth extends Component {
+import SendDMEOrder from "../../util/DMEOrders";
+
+// Note: code to enable/disable DME Orders
+var dMEOrdersEnabled = false;
+
+export default class PriorAuth extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      claimResponseBundle: props.claimResponseBundle,
+      claimResponseBundle: null,
       subscriptionType: null,
       subscribeMsg: "",
       showRestHookForm: false,
-      showLink: false
+      showLink: false,
+      priorAuthBase: null,
+      isSubmitted: false,
+      priorAuthId: null,
+      patientId: null
     };
     this.subscriptionType = {
       WEBSOCKET: "WebSocket",
       RESTHOOK: "Rest-Hook",
       POLLING: "Polling"
+    };
+    this.priorAuthService = {
+      CLAIM_RESPONSE: "/ClaimResponse",
+      SUBSCRIPTION: "/Subscription",
+      WS_CONNECT: "/connect",
+      WS_SUBSCRIBE: "/private/notification",
+      WS_BIND: "/subscribe"
     };
   }
 
@@ -79,12 +94,12 @@ class PriorAuth extends Component {
   getLatestResponse() {
     let priorAuth = this; // Save this context to use in the onload function
     const claimResponseUri =
-      this.props.priorAuthService.BASE +
-      this.props.priorAuthService.CLAIM_RESPONSE +
+      this.state.priorAuthBase +
+      this.priorAuthService.CLAIM_RESPONSE +
       "?identifier=" +
-      this.props.priorAuthId +
+      this.state.priorAuthId +
       "&patient.identifier=" +
-      this.props.patientId;
+      this.state.patientId;
     console.log("polling: " + claimResponseUri);
     this.setState({
       subscribeMsg: "Last updated " + new Date()
@@ -149,9 +164,9 @@ class PriorAuth extends Component {
       resourceType: "Subscription",
       criteria:
         "identifier=" +
-        this.props.priorAuthId +
+        this.state.priorAuthId +
         "&patient.identifier=" +
-        this.props.patientId +
+        this.state.patientId +
         "&status=active",
       channel: {
         type: "rest-hook",
@@ -159,8 +174,7 @@ class PriorAuth extends Component {
       }
     };
     const subscriptionUri =
-      this.props.priorAuthService.BASE +
-      this.props.priorAuthService.SUBSCRIPTION;
+      this.state.priorAuthBase + this.priorAuthService.SUBSCRIPTION;
     const subscriptionPost = new XMLHttpRequest();
     subscriptionPost.open("POST", subscriptionUri);
     subscriptionPost.setRequestHeader("Content-Type", "application/fhir+json");
@@ -180,9 +194,9 @@ class PriorAuth extends Component {
       resourceType: "Subscription",
       criteria:
         "identifier=" +
-        this.props.priorAuthId +
+        this.state.priorAuthId +
         "&patient.identifier=" +
-        this.props.patientId +
+        this.state.patientId +
         "&status=active",
       channel: {
         type: "websocket"
@@ -190,8 +204,7 @@ class PriorAuth extends Component {
     };
     let priorAuth = this;
     const subscriptionUri =
-      this.props.priorAuthService.BASE +
-      this.props.priorAuthService.SUBSCRIPTION;
+      this.state.priorAuthBase + this.priorAuthService.SUBSCRIPTION;
     const subscriptionPost = new XMLHttpRequest();
     subscriptionPost.open("POST", subscriptionUri);
     subscriptionPost.setRequestHeader("Content-Type", "application/fhir+json");
@@ -272,12 +285,12 @@ class PriorAuth extends Component {
    */
   deleteSubscription(id) {
     const subscriptionUri =
-      this.props.priorAuthService.BASE +
-      this.props.priorAuthService.SUBSCRIPTION +
+      this.state.priorAuthBase +
+      this.priorAuthService.SUBSCRIPTION +
       "?identifier=" +
       id +
       "&patient.identifier=" +
-      this.props.patientId;
+      this.state.patientId;
     const subscriptionDelete = new XMLHttpRequest();
     subscriptionDelete.open("DELETE", subscriptionUri);
     subscriptionDelete.setRequestHeader("Content-Type", "application/json");
@@ -303,6 +316,60 @@ class PriorAuth extends Component {
     return this.state.claimResponseBundle.entry[0].resource;
   }
 
+  /**
+   * Submit the claim (this.props.claimBundle) to the correct PAS endpoint
+   */
+  submitClaim() {
+    console.log("submitting claim");
+    const Http = new XMLHttpRequest();
+    const priorAuthUrl = priorAuthBase + "/Claim/$submit";
+    console.log("priorAuthUrl set to " + priorAuthUrl);
+    Http.open("POST", priorAuthUrl);
+    Http.setRequestHeader("Content-Type", "application/fhir+json");
+    Http.send(JSON.stringify(this.props.claimBundle));
+    var qForm = this;
+    Http.onreadystatechange = function() {
+      if (this.readyState === XMLHttpRequest.DONE) {
+        var message =
+          "Prior Authorization Failed.\nNo ClaimResponse found within bundle.";
+        if (this.status === 201) {
+          var claimResponseBundle = JSON.parse(this.responseText);
+          var claimResponse = claimResponseBundle.entry[0].resource;
+          message = "Prior Authorization " + claimResponse.disposition + "\n";
+          message += "Prior Authorization Number: " + claimResponse.preAuthRef;
+
+          // DME Orders
+          if (dMEOrdersEnabled) SendDMEOrder(qForm, response);
+        } else {
+          console.log(this.responseText);
+          message = "Prior Authorization Request Failed.";
+        }
+        console.log(message);
+
+        // TODO pass the message to the PriorAuth page instead of having it query again
+        var patientEntry = claimResponseBundle.entry.find(function(entry) {
+          return entry.resource.resourceType == "Patient";
+        });
+
+        // fall back to resource.id if resource.identifier is not populated
+        var patientId;
+        if (patientEntry.resource.identifier == null) {
+          patientId = patientEntry.resource.id;
+        } else {
+          patientId = patientEntry.resource.identifier[0].value;
+        }
+
+        this.setState({
+          priorAuthBase: priorAuthBase,
+          isSubmitted: true,
+          claimResponseBundle: claimResponseBundle,
+          priorAuthId: claimResponse.preAuthRef,
+          patientId: patientId
+        });
+      }
+    };
+  }
+
   render() {
     const claimResponse = this.getClaimResponse();
     const disabled = claimResponse.outcome !== "queued" ? "disabled" : "";
@@ -313,108 +380,133 @@ class PriorAuth extends Component {
     return (
       <div className="row">
         <div className="raw-claim-response col col-md-6">
-          <pre>{JSON.stringify(claimResponse, undefined, 2)}</pre>
+          {this.state.isSubmitted ? (
+            <pre>{JSON.stringify(claimResponse, undefined, 2)}</pre>
+          ) : (
+            <pre>{JSON.stringify(this.props.claimBundle, undefined, 2)}</pre>
+          )}
         </div>
-        <div className="right col col-md-6">
-          <div>
-            <h4 className="inline">Prior Authorization: </h4>
-            <p className="inline">{claimResponse.id}</p>
-          </div>
-          <div>
-            <h5 className="inline">Patient: </h5>
-            <p className="inline">{this.props.patientId}</p>
-          </div>
-          <div>
-            <h5 className="inline">Outcome: </h5>
-            <p className="inline">{claimResponse.outcome}</p>
-          </div>
-          <div>
-            <h5 className="inline">Disposition: </h5>
-            <p className="inline">{claimResponse.disposition}</p>
-          </div>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={() => this.getLatestResponse()}
-          >
-            Refresh
-          </button>
-          <button
-            type="button"
-            className="btn btn-success"
-            onClick={() => this.handleGetLink()}
-          >
-            Get Link
-          </button>
-          <br />
-          <a
-            className={this.state.showLink ? "" : "hidden"}
-            href={window.location.href}
-            target="_blank"
-          >
-            {window.location.href}
-          </a>
-          <hr />
-          <h4>Subscribe to Updates</h4>
-          <div className="dropdown">
-            <button
-              className="btn btn-secondary dropdown-toggle"
-              type="button"
-              id="dropdownMenuButton"
-              data-toggle="dropdown"
-              aria-haspopup="true"
-              aria-expanded="false"
-            >
-              {dropdownLabel}
-            </button>
-            <div className="dropdown-menu" aria-labelledby="dropdownMenuButton">
-              <a
-                className="dropdown-item"
-                href="#"
-                onClick={() => this.handleSubscribeTypeSelect("Rest-Hook")}
-              >
-                Rest-Hook
-              </a>
-              <a
-                className="dropdown-item"
-                href="#"
-                onClick={() => this.handleSubscribeTypeSelect("WebSocket")}
-              >
-                WebSocket
-              </a>
-              <a
-                className="dropdown-item"
-                href="#"
-                onClick={() => this.handleSubscribeTypeSelect("Polling")}
-              >
-                Polling
-              </a>
+        {this.state.isSubmitted ? (
+          <div className="right col col-md-6">
+            <div>
+              <h4 className="inline">Prior Authorization: </h4>
+              <p className="inline">{claimResponse.id}</p>
             </div>
+            <div>
+              <h5 className="inline">Patient: </h5>
+              <p className="inline">{this.state.patientId}</p>
+            </div>
+            <div>
+              <h5 className="inline">Outcome: </h5>
+              <p className="inline">{claimResponse.outcome}</p>
+            </div>
+            <div>
+              <h5 className="inline">Disposition: </h5>
+              <p className="inline">{claimResponse.disposition}</p>
+            </div>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => this.getLatestResponse()}
+            >
+              Refresh
+            </button>
+            <button
+              type="button"
+              className="btn btn-success"
+              onClick={() => this.handleGetLink()}
+            >
+              Get Link
+            </button>
+            <br />
+            <a
+              className={this.state.showLink ? "" : "hidden"}
+              href={window.location.href}
+              target="_blank"
+            >
+              {window.location.href}
+            </a>
+            <hr />
+            <h4>Subscribe to Updates</h4>
+            <div className="dropdown">
+              <button
+                className="btn btn-secondary dropdown-toggle"
+                type="button"
+                id="dropdownMenuButton"
+                data-toggle="dropdown"
+                aria-haspopup="true"
+                aria-expanded="false"
+              >
+                {dropdownLabel}
+              </button>
+              <div
+                className="dropdown-menu"
+                aria-labelledby="dropdownMenuButton"
+              >
+                <a
+                  className="dropdown-item"
+                  href="#"
+                  onClick={() => this.handleSubscribeTypeSelect("Rest-Hook")}
+                >
+                  Rest-Hook
+                </a>
+                <a
+                  className="dropdown-item"
+                  href="#"
+                  onClick={() => this.handleSubscribeTypeSelect("WebSocket")}
+                >
+                  WebSocket
+                </a>
+                <a
+                  className="dropdown-item"
+                  href="#"
+                  onClick={() => this.handleSubscribeTypeSelect("Polling")}
+                >
+                  Polling
+                </a>
+              </div>
+            </div>
+            <div
+              className={
+                "form-group " + (this.state.showRestHookForm ? "" : "hidden")
+              }
+            >
+              <label htmlFor="restHookEndpoint">Rest Hook Endpoint</label>
+              <input
+                type="text"
+                className="form-control"
+                id="restHookEndpoint"
+                defaultValue="http://localhost:9090/fhir/SubscriptionNotification?identifier=0000000000&patient.identifier=pat013&status=active"
+              />
+            </div>
+            <button
+              type="button"
+              className={"btn btn-primary " + disabled}
+              onClick={() => this.handleSubscribe()}
+            >
+              Subscribe
+            </button>
+            <p>{this.state.subscribeMsg}</p>
           </div>
-          <div
-            className={
-              "form-group " + (this.state.showRestHookForm ? "" : "hidden")
-            }
-          >
-            <label htmlFor="restHookEndpoint">Rest Hook Endpoint</label>
-            <input
-              type="text"
-              className="form-control"
-              id="restHookEndpoint"
-              defaultValue="http://localhost:9090/fhir/SubscriptionNotification?identifier=0000000000&patient.identifier=pat013&status=active"
-            />
+        ) : (
+          <div className="right col col-md-6">
+            <h2>Submit Prior Auth</h2>
+            <form>
+              <select id="pas-endpoint">
+                <option value="http://localhost:9000/fhir">
+                  http://localhost:9000/fhir
+                </option>
+                <option value="https://davinci-prior-auth.logicahealth.org/fhir">
+                  https://davinci-prior-auth.logicahealth.org/fhir
+                </option>
+              </select>
+              <button type="submit" onClick={this.submitClaim()}>
+                Submit
+              </button>
+            </form>
           </div>
-          <button
-            type="button"
-            className={"btn btn-primary " + disabled}
-            onClick={() => this.handleSubscribe()}
-          >
-            Subscribe
-          </button>
-          <p>{this.state.subscribeMsg}</p>
-        </div>
+        )}
       </div>
     );
   }
 }
-export default hot(module)(PriorAuth);
