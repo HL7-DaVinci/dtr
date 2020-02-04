@@ -221,7 +221,6 @@ class App extends Component {
   }
 
   setPriorAuthClaim(claimBundle) {
-    console.log("setting the prior auth claim bundle in app state");
     this.setState({ priorAuthClaim: claimBundle });
   }
 
@@ -241,7 +240,7 @@ class App extends Component {
               cqlPrepoulationResults={this.state.cqlPrepoulationResults}
               deviceRequest={this.state.deviceRequest}
               bundle={this.state.bundle}
-              setPriorAuthClaim={this.setPriorAuthClaim}
+              setPriorAuthClaim={this.setPriorAuthClaim.bind(this)}
             />
           )}
         </div>

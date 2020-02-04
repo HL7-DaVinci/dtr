@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import "./PriorAuth.css";
 
 import SendDMEOrder from "../../util/DMEOrders";
+import endpointConfig from "./endpointConfig.json";
 
 // Note: code to enable/disable DME Orders
 var dMEOrdersEnabled = false;
@@ -15,7 +16,7 @@ export default class PriorAuth extends Component {
       subscribeMsg: "",
       showRestHookForm: false,
       showLink: false,
-      priorAuthBase: null,
+      priorAuthBase: endpointConfig[0].endpoint,
       isSubmitted: false,
       priorAuthId: null,
       patientId: null
@@ -210,9 +211,12 @@ export default class PriorAuth extends Component {
     subscriptionPost.setRequestHeader("Content-Type", "application/fhir+json");
     subscriptionPost.onload = function() {
       let subscriptionResponse = JSON.parse(this.responseText);
-      let ws =
-        priorAuth.props.priorAuthService.WS_BASE +
-        priorAuth.props.priorAuthService.WS_CONNECT;
+      // TODO: update this to use conformance statement
+      let subscriptionBase = priorAuth.state.priorAuthBase.replace(
+        /^http/g,
+        "ws"
+      );
+      let ws = subscriptionBase + priorAuth.priorAuthService.WS_CONNECT;
       priorAuth.webSocketConnectAndBind(ws, subscriptionResponse.id);
     };
     subscriptionPost.send(JSON.stringify(subscription));
@@ -233,13 +237,13 @@ export default class PriorAuth extends Component {
     this.state.stompClient.connect({}, function(frame) {
       console.log("Connected: " + frame);
       priorAuth.state.stompClient.subscribe(
-        priorAuth.props.priorAuthService.WS_SUBSCRIBE,
+        priorAuth.priorAuthService.WS_SUBSCRIBE,
         function(msg) {
           priorAuth.webSocketReceiveMessage(msg.body, id);
         }
       );
       priorAuth.state.stompClient.send(
-        priorAuth.props.priorAuthService.WS_BIND,
+        priorAuth.priorAuthService.WS_BIND,
         {},
         "bind: " + id
       );
@@ -313,21 +317,21 @@ export default class PriorAuth extends Component {
    * Get the current ClaimResponse resource from the bundle loaded
    */
   getClaimResponse() {
-    return this.state.claimResponseBundle.entry[0].resource;
+    return this.state.claimResponseBundle
+      ? this.state.claimResponseBundle.entry[0].resource
+      : null;
   }
 
   /**
    * Submit the claim (this.props.claimBundle) to the correct PAS endpoint
    */
   submitClaim() {
-    console.log("submitting claim");
     const Http = new XMLHttpRequest();
-    const priorAuthUrl = priorAuthBase + "/Claim/$submit";
-    console.log("priorAuthUrl set to " + priorAuthUrl);
+    const priorAuthUrl = this.state.priorAuthBase + "/Claim/$submit";
     Http.open("POST", priorAuthUrl);
     Http.setRequestHeader("Content-Type", "application/fhir+json");
     Http.send(JSON.stringify(this.props.claimBundle));
-    var qForm = this;
+    let priorAuth = this;
     Http.onreadystatechange = function() {
       if (this.readyState === XMLHttpRequest.DONE) {
         var message =
@@ -339,7 +343,7 @@ export default class PriorAuth extends Component {
           message += "Prior Authorization Number: " + claimResponse.preAuthRef;
 
           // DME Orders
-          if (dMEOrdersEnabled) SendDMEOrder(qForm, response);
+          if (dMEOrdersEnabled) SendDMEOrder(priorAuth, response);
         } else {
           console.log(this.responseText);
           message = "Prior Authorization Request Failed.";
@@ -347,20 +351,19 @@ export default class PriorAuth extends Component {
         console.log(message);
 
         // TODO pass the message to the PriorAuth page instead of having it query again
-        var patientEntry = claimResponseBundle.entry.find(function(entry) {
+        let patientEntry = claimResponseBundle.entry.find(function(entry) {
           return entry.resource.resourceType == "Patient";
         });
 
         // fall back to resource.id if resource.identifier is not populated
-        var patientId;
+        let patientId;
         if (patientEntry.resource.identifier == null) {
           patientId = patientEntry.resource.id;
         } else {
           patientId = patientEntry.resource.identifier[0].value;
         }
 
-        this.setState({
-          priorAuthBase: priorAuthBase,
+        priorAuth.setState({
           isSubmitted: true,
           claimResponseBundle: claimResponseBundle,
           priorAuthId: claimResponse.preAuthRef,
@@ -370,9 +373,19 @@ export default class PriorAuth extends Component {
     };
   }
 
+  selectBase(e) {
+    this.setState({ priorAuthBase: e.target.value });
+  }
+
   render() {
+    // TODO: modify this to only run once when isSubmitted
+    window.scrollTo(0, 0);
     const claimResponse = this.getClaimResponse();
-    const disabled = claimResponse.outcome !== "queued" ? "disabled" : "";
+    const disabled = claimResponse
+      ? claimResponse.outcome !== "queued"
+        ? "disabled"
+        : ""
+      : "";
     const dropdownLabel =
       this.state.subscriptionType === null
         ? "Select Type"
@@ -492,15 +505,15 @@ export default class PriorAuth extends Component {
           <div className="right col col-md-6">
             <h2>Submit Prior Auth</h2>
             <form>
-              <select id="pas-endpoint">
-                <option value="http://localhost:9000/fhir">
-                  http://localhost:9000/fhir
-                </option>
-                <option value="https://davinci-prior-auth.logicahealth.org/fhir">
-                  https://davinci-prior-auth.logicahealth.org/fhir
-                </option>
+              <select
+                value={this.state.priorAuthBase}
+                onChange={this.selectBase.bind(this)}
+              >
+                {endpointConfig.map(e => {
+                  return <option value={e.endpoint}>{e.endpoint}</option>;
+                })}
               </select>
-              <button type="submit" onClick={this.submitClaim()}>
+              <button type="button" onClick={this.submitClaim.bind(this)}>
                 Submit
               </button>
             </form>
