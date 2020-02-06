@@ -505,21 +505,35 @@ export default class PriorAuth extends Component {
           <div className="right col col-md-6">
             <h2>Submit Prior Auth</h2>
             <form>
-              <select
-                value={this.state.priorAuthBase}
-                onChange={this.selectBase.bind(this)}
-              >
-                {endpointConfig.map(e => {
-                  return (
-                    <option value={e.url}>
-                      {e.name}: {e.url}
-                    </option>
-                  );
-                })}
-              </select>
-              <button type="button" onClick={this.submitClaim.bind(this)}>
-                Submit
-              </button>
+              <div className="row">
+                <div className="col">
+                  <label>Select PriorAuth Endpoint:</label>
+                  <br />
+                  <select
+                    value={this.state.priorAuthBase}
+                    onChange={this.selectBase.bind(this)}
+                  >
+                    {endpointConfig.map(e => {
+                      return (
+                        <option value={e.url}>
+                          {e.name}: {e.url}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+              </div>
+              <div className="row">
+                <div className="col">
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={this.submitClaim.bind(this)}
+                  >
+                    Submit
+                  </button>
+                </div>
+              </div>
             </form>
           </div>
         )}
