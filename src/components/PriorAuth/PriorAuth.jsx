@@ -510,7 +510,11 @@ export default class PriorAuth extends Component {
                 onChange={this.selectBase.bind(this)}
               >
                 {endpointConfig.map(e => {
-                  return <option value={e.endpoint}>{e.endpoint}</option>;
+                  return (
+                    <option value={e.url}>
+                      {e.name}: {e.url}
+                    </option>
+                  );
                 })}
               </select>
               <button type="button" onClick={this.submitClaim.bind(this)}>
