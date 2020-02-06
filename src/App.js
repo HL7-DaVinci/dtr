@@ -18,11 +18,16 @@ class App extends Component {
       deviceRequest: null,
       bundle: null,
       logs: [],
-      errors: []
+      errors: [],
+      priorauth: false
     }
     this.smart = props.smart;
     this.consoleLog = this.consoleLog.bind(this);
     this.fhirVersion = "unknown";
+
+    if (this.props.priorauth === "true") {
+      this.state.priorauth = true;
+    }
   }
 
   componentDidMount(){
@@ -186,7 +191,7 @@ class App extends Component {
     if (this.state.questionnaire && this.state.cqlPrepoulationResults && this.state.bundle){
       return (
         <div className="App">
-          <QuestionnaireForm qform = {this.state.questionnaire} cqlPrepoulationResults= {this.state.cqlPrepoulationResults} deviceRequest = {this.state.deviceRequest} bundle = {this.state.bundle} />
+          <QuestionnaireForm qform = {this.state.questionnaire} cqlPrepoulationResults= {this.state.cqlPrepoulationResults} deviceRequest = {this.state.deviceRequest} bundle = {this.state.bundle} priorauth = {this.state.priorauth} />
         </div>
       );
     }
