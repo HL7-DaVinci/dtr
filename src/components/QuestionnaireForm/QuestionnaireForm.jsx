@@ -660,95 +660,99 @@ export default class QuestionnaireForm extends Component {
 
         this.generateAndStoreDocumentReference(response, priorAuthBundle);
 
-        const priorAuthClaim = {
-            resourceType: "Claim",
-            status: "active",
-            type: {
-                coding: [{
-                    system: "http://terminology.hl7.org/CodeSystem/claim-type",
-                    code: "professional",
-                    display: "Professional"
-                }]
-            },
-            use: "preauthorization",
-            patient: { reference: this.makeReference(priorAuthBundle, "Patient") },
-            created: authored,
-            provider: { reference: this.makeReference(priorAuthBundle, "Practitioner") },
-            priority: { coding: [{ "code": "normal" }] },
-            prescription: { reference: this.makeReference(priorAuthBundle, "DeviceRequest") },
-            supportingInfo: [{
-                sequence: 1,
-                category: {
+        if (this.props.priorauth) {
+            const priorAuthClaim = {
+                resourceType: "Claim",
+                status: "active",
+                type: {
                     coding: [{
-                        system: "http://terminology.hl7.org/CodeSystem/claiminformationcategory",
-                        code: "info",
-                        display: "Information"
+                        system: "http://terminology.hl7.org/CodeSystem/claim-type",
+                        code: "professional",
+                        display: "Professional"
                     }]
                 },
-                valueReference: { reference: this.makeReference(priorAuthBundle, "QuestionnaireResponse") }
-            }],
-            diagnosis: [],
-            insurance: [{
-                sequence: 1,
-                focal: true,
-                coverage: { reference: this.makeReference(priorAuthBundle, "Coverage") }
-            }]
-        }
-        var sequence = 1;
-        priorAuthBundle.entry.forEach(function (entry, index) {
-            if (entry.resource.resourceType == "Condition") {
-                priorAuthClaim.diagnosis.push({
-                    sequence: sequence++,
-                    diagnosisReference: { reference: "Condition/" + entry.resource.id }
-                });
+                use: "preauthorization",
+                patient: { reference: this.makeReference(priorAuthBundle, "Patient") },
+                created: authored,
+                provider: { reference: this.makeReference(priorAuthBundle, "Practitioner") },
+                priority: { coding: [{ "code": "normal" }] },
+                prescription: { reference: this.makeReference(priorAuthBundle, "DeviceRequest") },
+                supportingInfo: [{
+                    sequence: 1,
+                    category: {
+                        coding: [{
+                            system: "http://terminology.hl7.org/CodeSystem/claiminformationcategory",
+                            code: "info",
+                            display: "Information"
+                        }]
+                    },
+                    valueReference: { reference: this.makeReference(priorAuthBundle, "QuestionnaireResponse") }
+                }],
+                diagnosis: [],
+                insurance: [{
+                    sequence: 1,
+                    focal: true,
+                    coverage: { reference: this.makeReference(priorAuthBundle, "Coverage") }
+                }]
             }
-        })
-        console.log(priorAuthClaim);
-
-        priorAuthBundle.entry.unshift({ resource: priorAuthClaim })
-        console.log(priorAuthBundle);
-
-        const Http = new XMLHttpRequest();
-        const priorAuthUrl = "https://davinci-prior-auth.logicahealth.org/fhir/Claim/$submit";
-        // const priorAuthUrl = "http://localhost:9000/fhir/Claim/$submit";
-        Http.open("POST", priorAuthUrl);
-        Http.setRequestHeader("Content-Type", "application/fhir+json");
-        Http.send(JSON.stringify(priorAuthBundle));
-        var qForm = this;
-        Http.onreadystatechange = function () {
-            if (this.readyState === XMLHttpRequest.DONE) {
-                var message = "Prior Authorization Failed.\nNo ClaimResponse found within bundle.";
-                if (this.status === 201) {
-                    var claimResponseBundle = JSON.parse(this.responseText);
-                    var claimResponse = claimResponseBundle.entry[0].resource;
-                    message = "Prior Authorization " + claimResponse.disposition + "\n";
-                    message += "Prior Authorization Number: " + claimResponse.preAuthRef;
-
-                    // DME Orders                
-                    if (dMEOrdersEnabled)
-                        SendDMEOrder(qForm, response);
-                } else {
-                    console.log(this.responseText);
-                    message = "Prior Authorization Request Failed."
+            var sequence = 1;
+            priorAuthBundle.entry.forEach(function (entry, index) {
+                if (entry.resource.resourceType == "Condition") {
+                    priorAuthClaim.diagnosis.push({
+                        sequence: sequence++,
+                        diagnosisReference: { reference: "Condition/" + entry.resource.id }
+                    });
                 }
-                console.log(message);
+            })
+            console.log(priorAuthClaim);
 
-                // TODO pass the message to the PriorAuth page instead of having it query again
-                var patientEntry = claimResponseBundle.entry.find(function (entry) {
-                    return (entry.resource.resourceType == "Patient");
-                });
+            priorAuthBundle.entry.unshift({ resource: priorAuthClaim })
+            console.log(priorAuthBundle);
 
-                // fall back to resource.id if resource.identifier is not populated
-                var patientId;
-                if (patientEntry.resource.identifier == null) {
-                    patientId = patientEntry.resource.id;
-                } else {
-                    patientId = patientEntry.resource.identifier[0].value;
+            const Http = new XMLHttpRequest();
+            const priorAuthUrl = "https://davinci-prior-auth.logicahealth.org/fhir/Claim/$submit";
+            // const priorAuthUrl = "http://localhost:9000/fhir/Claim/$submit";
+            Http.open("POST", priorAuthUrl);
+            Http.setRequestHeader("Content-Type", "application/fhir+json");
+            Http.send(JSON.stringify(priorAuthBundle));
+            var qForm = this;
+            Http.onreadystatechange = function () {
+                if (this.readyState === XMLHttpRequest.DONE) {
+                    var message = "Prior Authorization Failed.\nNo ClaimResponse found within bundle.";
+                    if (this.status === 201) {
+                        var claimResponseBundle = JSON.parse(this.responseText);
+                        var claimResponse = claimResponseBundle.entry[0].resource;
+                        message = "Prior Authorization " + claimResponse.disposition + "\n";
+                        message += "Prior Authorization Number: " + claimResponse.preAuthRef;
+
+                        // DME Orders                
+                        if (dMEOrdersEnabled)
+                            SendDMEOrder(qForm, response);
+                    } else {
+                        console.log(this.responseText);
+                        message = "Prior Authorization Request Failed."
+                    }
+                    console.log(message);
+
+                    // TODO pass the message to the PriorAuth page instead of having it query again
+                    var patientEntry = claimResponseBundle.entry.find(function (entry) {
+                        return (entry.resource.resourceType == "Patient");
+                    });
+
+                    // fall back to resource.id if resource.identifier is not populated
+                    var patientId;
+                    if (patientEntry.resource.identifier == null) {
+                        patientId = patientEntry.resource.id;
+                    } else {
+                        patientId = patientEntry.resource.identifier[0].value;
+                    }
+                    let priorAuthUri = "priorauth?identifier=" + claimResponse.preAuthRef + "&patient.identifier=" + patientId;
+                    console.log(priorAuthUri)
+                    window.location.href = priorAuthUri;
                 }
-                let priorAuthUri = "priorauth?identifier=" + claimResponse.preAuthRef + "&patient.identifier=" + patientId;
-                console.log(priorAuthUri)
-                window.location.href = priorAuthUri;
             }
+        } else {
+            console.log("NOT submitting for prior auth");
         }
 
         localStorage.removeItem(response.questionnaire);

@@ -54,7 +54,8 @@ tokenPost.onload = function() {
       const appContext = {
         template: appString.split("&")[0].split("=")[1],
         request: JSON.parse(appString.split("&")[1].split("=")[1].replace(/\\/g,"")),
-        filepath: appString.split("&")[2].split("=")[1]
+        priorauth: appString.split("&")[2].split("=")[1],
+        filepath: appString.split("&")[3].split("=")[1]
       }
       
         var smart = FHIR.client({
@@ -72,6 +73,7 @@ tokenPost.onload = function() {
           questionnaireUri={appContext.template}
           smart={smart}
           deviceRequest={appContext.request}
+          priorauth={appContext.priorauth}
           filepath={appContext.filepath}
         />,
         document.getElementById("root")
