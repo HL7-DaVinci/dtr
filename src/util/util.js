@@ -56,8 +56,26 @@ function getListOfChoices(props, setChoice){
     return returnAnswer;
 }
 
+function postToLogs(log, callback) {
+    const logRequest = new XMLHttpRequest();
+    logRequest.open("POST", "../logs");
+    logRequest.setRequestHeader("Content-Type", "application/json");
+    logRequest.onload = function() {
+        callback(JSON.parse(logRequest.responseText));
+    };
+    logRequest.send(JSON.stringify(log));
+}
+
+function updateLog(log) {
+    const logRequest = new XMLHttpRequest();
+    logRequest.open("PUT", "../logs/"+log.id);
+    logRequest.setRequestHeader("Content-Type", "application/json");
+    logRequest.send(JSON.stringify(log));
+}
 
 export {
     findValueByPrefix,
-    getListOfChoices
+    getListOfChoices,
+    postToLogs,
+    updateLog
 };
