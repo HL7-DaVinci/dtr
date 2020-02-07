@@ -20,16 +20,11 @@ class App extends Component {
       deviceRequest: null,
       bundle: null,
       logs: [],
-      errors: [],
-      priorauth: false
+      errors: []
     };
     this.smart = props.smart;
     this.consoleLog = this.consoleLog.bind(this);
     this.fhirVersion = "unknown";
-
-    if (this.props.priorauth === "true") {
-      this.state.priorauth = true;
-    }
   }
 
   componentDidMount() {
@@ -245,7 +240,7 @@ class App extends Component {
               cqlPrepoulationResults={this.state.cqlPrepoulationResults}
               deviceRequest={this.state.deviceRequest}
               bundle={this.state.bundle}
-              priorauth={this.state.priorauth}
+              priorAuthReq={this.props.priorAuthReq === "true" ? true : false}
               setPriorAuthClaim={this.setPriorAuthClaim.bind(this)}
             />
           )}
