@@ -741,7 +741,7 @@ export default class QuestionnaireForm extends Component {
     // For HIMSS Demo with Mettle always use GCS as payor info
     const insurer = {
       resourceType: "Organization",
-      id: "org011",
+      id: "org1234",
       name: "GCS",
       identifier: [
         {
@@ -749,6 +749,44 @@ export default class QuestionnaireForm extends Component {
           value: "2.16.840.1.113883.13.34.110.1.150.2"
         }
       ]
+    };
+    const managingOrg = {
+      resourceType: "Organization",
+      id: "org1111",
+      name: "Byrd-Watson",
+      identifier: [
+        {
+          system: "http://hl7.org/fhir/sid/us-npi",
+          value: "1437147246"
+        }
+      ],
+      address: [
+        {
+          use: "work",
+          state: "IL",
+          postalCode: "62864",
+          city: "Mount Vernon",
+          line: ["1200 Main St"]
+        }
+      ]
+    };
+    const facility = {
+      resourceType: "Location",
+      id: "loc1234",
+      type: [
+        {
+          coding: [
+            {
+              system: "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+              code: "IEC",
+              display: "Impairment evaluation center"
+            }
+          ]
+        }
+      ],
+      managingOrganization: {
+        reference: "Organization/org1111"
+      }
     };
 
     if (status == "in-progress") {
@@ -759,6 +797,8 @@ export default class QuestionnaireForm extends Component {
     }
 
     const priorAuthBundle = JSON.parse(JSON.stringify(this.props.bundle));
+    priorAuthBundle.entry.unshift({ resource: managingOrg });
+    priorAuthBundle.entry.unshift({ resource: facility });
     priorAuthBundle.entry.unshift({ resource: insurer });
     priorAuthBundle.entry.unshift({ resource: this.props.deviceRequest });
     priorAuthBundle.entry.unshift({ resource: response });
@@ -797,13 +837,46 @@ export default class QuestionnaireForm extends Component {
         insurer: {
           reference: this.makeReference(priorAuthBundle, "Organization")
         },
+        facility: {
+          reference: this.makeReference(priorAuthBundle, "Location")
+        },
         priority: { coding: [{ code: "normal" }] },
         prescription: {
           reference: this.makeReference(priorAuthBundle, "DeviceRequest")
         },
+        careTeam: [
+          {
+            sequence: 1,
+            provider: {
+              reference: this.makeReference(priorAuthBundle, "Practitioner")
+            },
+            extension: [
+              {
+                url: "http://terminology.hl7.org/ValueSet/v2-0912",
+                valueCode: "OP"
+              }
+            ]
+          }
+        ],
         supportingInfo: [
           {
             sequence: 1,
+            category: {
+              coding: [
+                {
+                  system:
+                    "http://hl7.org/us/davinci-pas/CodeSystem/PASSupportingInfoType",
+                  code: "patientEvent"
+                }
+              ]
+            },
+            timingPeriod: {
+              start: "2020-01-01",
+              end: "2021-01-01"
+            }
+          },
+          {
+            sequence: 2,
             category: {
               coding: [
                 {

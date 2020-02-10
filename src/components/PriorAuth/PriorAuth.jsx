@@ -336,7 +336,7 @@ export default class PriorAuth extends Component {
       if (this.readyState === XMLHttpRequest.DONE) {
         var message =
           "Prior Authorization Failed.\nNo ClaimResponse found within bundle.";
-        if (this.status === 201) {
+        if (this.status === 201 || this.status === 200) {
           var claimResponseBundle = JSON.parse(this.responseText);
           var claimResponse = claimResponseBundle.entry[0].resource;
           message = "Prior Authorization " + claimResponse.disposition + "\n";
@@ -345,6 +345,7 @@ export default class PriorAuth extends Component {
           // DME Orders
           if (dMEOrdersEnabled) SendDMEOrder(priorAuth, response);
         } else {
+          console.log(this);
           console.log(this.responseText);
           message = "Prior Authorization Request Failed.";
         }
