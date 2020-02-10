@@ -765,6 +765,15 @@ export default class QuestionnaireForm extends Component {
             }
           ]
         },
+        subType: {
+          coding: [
+            {
+              system: "http://terminology.hl7.org/CodeSystem/ex-claimsubtype",
+              code: "HIMSS",
+              display: "Example subType code for HIMSS demo"
+            }
+          ]
+        },
         use: "preauthorization",
         patient: { reference: this.makeReference(priorAuthBundle, "Patient") },
         created: authored,
