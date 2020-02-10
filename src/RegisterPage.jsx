@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { hot } from "react-hot-loader";
 import "./RegisterPage.css";
+import {postToClients, deleteClient} from "./util/util";
 
 class RegisterPage extends Component {
   constructor(props) {
@@ -9,52 +10,38 @@ class RegisterPage extends Component {
       clientId: "",
       fhirUrl: "",
       toggle: false,
-      json: {}
+      json: {},
+      clients: []
     }
 
     this.submit = this.submit.bind(this);
+    this.update = this.update.bind(this);
   }
 
   componentDidMount(){
-    let storedJSON = localStorage.getItem("dtrAppTempClientSet")
-    if(!storedJSON) {
-        storedJSON = {};
-    }else{
-        storedJSON = JSON.parse(storedJSON);
-    }
-    this.setState({"json": storedJSON});
+    this.update();
   }
 
+  update(e) {
+    const clientRequest = new XMLHttpRequest();
+    clientRequest.open("GET", "../clients");
+    clientRequest.setRequestHeader("Content-Type", "application/json");
+    clientRequest.onload = (e) => {
+        this.setState({clients: JSON.parse(clientRequest.responseText)});
+    };
+    clientRequest.send();
+  }
 
   submit(){
-    let storedJSON = localStorage.getItem("dtrAppTempClientSet")
-    if(!storedJSON) {
-        storedJSON = {};
-    }else{
-        storedJSON = JSON.parse(storedJSON);
-    }
-
     if(this.state.toggle) {
-        storedJSON["default"] = this.state.clientId;
+        postToClients({name: "default", client: this.state.clientId}, this.update)
     }else{
-        storedJSON[this.state.fhirUrl] = this.state.clientId;
+        postToClients({name: this.state.fhirUrl, client: this.state.clientId}, this.update);
     }
-
-    this.setState({"json": storedJSON});
-    localStorage.setItem("dtrAppTempClientSet", JSON.stringify(storedJSON));
-    console.log(localStorage);
   }
 
-  delete(fhirUrl) {
-        let storedJSON = localStorage.getItem("dtrAppTempClientSet")
-        if(!storedJSON) {
-            storedJSON = {};
-        }else{
-            storedJSON = JSON.parse(storedJSON);
-        }
-        delete storedJSON[fhirUrl];
-        localStorage.setItem("dtrAppTempClientSet", JSON.stringify(storedJSON));
-        this.setState({"json": storedJSON});
+  delete(log) {
+        deleteClient(log.id, this.update);
   }
 
   render() {
@@ -76,7 +63,7 @@ class RegisterPage extends Component {
             </div>
             <div className="sep">
                 <p>Current Client Ids</p>
-                {Object.keys(this.state.json).map((e)=>{return <div><p><span className="bold">{e}</span>: {this.state.json[e]} <span className="delete" onClick={()=>{this.delete(e)}}>x</span></p> </div>})}
+                {this.state.clients.map((e)=>{return <div key={e.id}><p><span className="bold">{e.name}</span>: {e.client} <span className="delete" onClick={()=>{this.delete(e)}}>x</span></p> </div>})}
             </div>
         </div>
 

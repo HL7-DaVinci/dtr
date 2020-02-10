@@ -73,9 +73,59 @@ function updateLog(log) {
     logRequest.send(JSON.stringify(log));
 }
 
+function postToClients(log, callback) {
+    getClients((clients)=>{
+        const filteredClients = clients.filter((e)=>{return log.name === e.name;});
+        if(filteredClients.length) {
+            const clientRequest = new XMLHttpRequest();
+            clientRequest.open("PUT", "../clients/" + filteredClients[0].id);
+            clientRequest.setRequestHeader("Content-Type", "application/json");
+            clientRequest.onload = function() {
+                callback(JSON.parse(clientRequest.responseText));
+            };
+            clientRequest.send(JSON.stringify(log));
+        } else {
+            const clientRequest = new XMLHttpRequest();
+            clientRequest.open("POST", "../clients");
+            clientRequest.setRequestHeader("Content-Type", "application/json");
+            clientRequest.onload = function() {
+                callback(JSON.parse(clientRequest.responseText));
+            };
+            clientRequest.send(JSON.stringify(log));
+        }
+
+
+    });
+
+}
+
+function deleteClient(id, callback) {
+    const clientRequest = new XMLHttpRequest();
+    clientRequest.open("DELETE", "../clients/" + id);
+    clientRequest.setRequestHeader("Content-Type", "application/json");
+    clientRequest.onload = function() {
+        callback();
+    };
+    clientRequest.send();
+}
+
+function getClients(callback) {
+    const clientRequest = new XMLHttpRequest();
+    clientRequest.open("GET", "../clients/");
+    clientRequest.setRequestHeader("Content-Type", "application/json");
+    clientRequest.onload = function() {
+        callback(JSON.parse(clientRequest.responseText));
+    };
+    clientRequest.send();
+}
+
+
 export {
     findValueByPrefix,
     getListOfChoices,
     postToLogs,
-    updateLog
+    updateLog,
+    postToClients,
+    deleteClient,
+    getClients
 };

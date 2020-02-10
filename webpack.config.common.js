@@ -4,7 +4,9 @@ module.exports = {
   entry: {
     launch: path.resolve(__dirname, "src/launch.js"),
     index: path.resolve(__dirname, "src/index.js"),
-    register: path.resolve(__dirname, "src/register.js")
+    register: path.resolve(__dirname, "src/register.js"),
+    priorauth: path.resolve(__dirname, "src/priorauth.js"),
+    log: path.resolve(__dirname, "src/logs.js")
   },
   output: {
     filename: "[name].bundle.js",

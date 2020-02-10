@@ -1,6 +1,7 @@
 import urlUtils from "./util/url";
-import {postToLogs} from "./util/util";
-let storedJSON = JSON.parse(localStorage.getItem("dtrAppTempClientSet"));
+import {postToLogs, updateLog, getClients} from "./util/util";
+let clients = [];
+getClients(logCallback);
 const log = {status:"launching"};
 
 var secret = null; // set me, if confidential
@@ -8,27 +9,30 @@ var secret = null; // set me, if confidential
 log.launchContextId = urlUtils.getUrlParameter("launch");
 log.serviceUri = urlUtils.getUrlParameter("iss");
 
-postToLogs(log, callback);
-
+function logCallback(c) {
+    clients = c.reduce((obj, item) => (obj[item.name] = item.client, obj) ,{});
+    postToLogs(log, callback);
+}
 
 function callback(log) {
-    log.status = "fetch client";
+    log.status = "fetch clients";
     // Change this to the ID of the client that you registered with the SMART on FHIR authorization server.
     var clientId = "7c47a01b-b7d8-41cf-a290-8ed607108e70"; // local client
     // clientId = "c7ecff8d-5e91-48f2-b22e-f423c0c4c009"
     localStorage.setItem("lastAccessedServiceUri", log.serviceUri);
-    if(storedJSON) {
-        if(storedJSON[log.serviceUri]) {
-            clientId = storedJSON[log.serviceUri];
-        }else if(storedJSON["default"]){
-            clientId = storedJSON["default"];
+    if(clients) {
+        if(clients[log.serviceUri]) {
+            clientId = clients[log.serviceUri];
+        }else if(clients["default"]){
+            clientId = clients["default"];
         }else{
             const errorMsg = "no client id found in local storage, please go to the /register page to register a client id, or verify that the default clientId string in the code is correctly typed.";
             log.error = errorMsg;
-            console.log("The app could not find the appropriate client ID");
+            updateLog(log);
         }
     }else{
         log.error = "unable to access clients";
+        updateLog(log);
     }
 
     log.clientId = clientId;
@@ -48,6 +52,7 @@ function callback(log) {
     log.redirectUri = launchUri.replace("launch", "index");
 
     log.status = "retrieving conformance statement";
+    updateLog(log);
     // FHIR Service Conformance Statement URL
     var conformanceUri = log.serviceUri + "/metadata?_format=json";
 
@@ -65,22 +70,24 @@ function callback(log) {
 
         conformanceStatement = JSON.parse(conformanceGet.responseText);
         } catch (e) {
-        const errorMsg = "Unable to parse conformance statement.";
-        document.body.innerText = errorMsg;
-        console.error(errorMsg);
+        log.error = "Unable to parse conformance statement.";
+        updateLog(log);
+        document.body.innerText = log.error;
         return;
         }
         redirect(conformanceStatement);
     } else {
-        const errorMsg = "Conformance statement request failed. Returned status: " + conformanceGet.status;
-        document.body.innerText = errorMsg;
-        console.error(errorMsg);
+        log.error = "Conformance statement request failed. Returned status: " + conformanceGet.status;
+        updateLog(log);
+        document.body.innerText = log.error;
         return;
     }
     };
     conformanceGet.send();
 
     function redirect(conformanceStatement) {
+    log.status = "redirecting";
+    updateLog(log);
     var authUri, tokenUri;
     var smartExtension = conformanceStatement.rest[0].security.extension.filter(function(e) {
         return e.url === "http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris";
@@ -100,7 +107,8 @@ function callback(log) {
         secret: secret,
         serviceUri: log.serviceUri,
         redirectUri: log.redirectUri,
-        tokenUri: tokenUri
+        tokenUri: tokenUri,
+        log: log
     });
 
     // finally, redirect the browser to the authorizatin server and pass the needed

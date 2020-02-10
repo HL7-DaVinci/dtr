@@ -1,89 +1,18 @@
 {
-  "clients": [],
-  "logs": [
+  "clients": [
     {
-      "why": "have you forsaken me",
-      "ok": [
-        "a",
-        "b",
-        "c"
-      ],
-      "id": 1
-    },
-    {
-      "why": "have you forsaken me",
-      "ok": [
-        "a",
-        "b",
-        "c"
-      ],
-      "id": 2
-    },
-    {
-      "why": "have you forsaken me",
-      "ok": [
-        "a",
-        "b",
-        "c"
-      ],
-      "createdAt": 1580833114628,
+      "name": "default",
+      "client": "7c47a01b-b7d8-41cf-a290-8ed607108e70",
       "id": 3
     },
     {
-      "why": "have you forsaken me",
-      "ok": [
-        "a",
-        "b",
-        "c"
-      ],
-      "createdAt": "1,580,833,210,530",
+      "name": "https://apporchard.epic.com/interconnect-aocurprd-oauth/api/FHIR/STU3",
+      "client": "c7ecff8d-5e91-48f2-b22e-f423c0c4c009",
+      "createdAt": 1581358188046,
       "id": 4
-    },
-    {
-      "why": "have you forsaken me",
-      "ok": [
-        "a",
-        "b",
-        "c"
-      ],
-      "createdAt": "1,580,934,970,145",
-      "id": 5
-    },
-    {
-      "why": "have you forsaken me",
-      "ok": [
-        "a",
-        "b",
-        "c"
-      ],
-      "createdAt": "1,580,935,388,489",
-      "id": 6
-    },
-    {
-      "why": "have you forsaken me",
-      "ok": [
-        "a",
-        "b",
-        "c"
-      ],
-      "createdAt": 1580935589589,
-      "id": 7
-    },
-    {
-      "why": "have you forsaken me",
-      "ok": [
-        "a",
-        "b",
-        "c"
-      ],
-      "createdAt": 1580939111220,
-      "id": 8
-    },
-    {
-      "status": "launching",
-      "createdAt": 1580941786321,
-      "id": 9
     }
+  ],
+  "logs": [
   ],
   "profile": {
     "name": "dtr"
