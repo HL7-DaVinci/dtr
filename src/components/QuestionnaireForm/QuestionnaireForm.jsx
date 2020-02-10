@@ -738,6 +738,19 @@ export default class QuestionnaireForm extends Component {
     });
     console.log(response);
 
+    // For HIMSS Demo with Mettle always use GCS as payor info
+    const insurer = {
+      resourceType: "Organization",
+      id: "org011",
+      name: "GCS",
+      identifier: [
+        {
+          system: "urn:ietf:rfc:3986",
+          value: "2.16.840.1.113883.13.34.110.1.150.2"
+        }
+      ]
+    };
+
     if (status == "in-progress") {
       localStorage.setItem(response.questionnaire, JSON.stringify(response));
       alert("Partial QuestionnaireResponse saved");
@@ -746,6 +759,7 @@ export default class QuestionnaireForm extends Component {
     }
 
     const priorAuthBundle = JSON.parse(JSON.stringify(this.props.bundle));
+    priorAuthBundle.entry.unshift({ resource: insurer });
     priorAuthBundle.entry.unshift({ resource: this.props.deviceRequest });
     priorAuthBundle.entry.unshift({ resource: response });
     console.log(priorAuthBundle);
@@ -779,6 +793,9 @@ export default class QuestionnaireForm extends Component {
         created: authored,
         provider: {
           reference: this.makeReference(priorAuthBundle, "Practitioner")
+        },
+        insurer: {
+          reference: this.makeReference(priorAuthBundle, "Organization")
         },
         priority: { coding: [{ code: "normal" }] },
         prescription: {
