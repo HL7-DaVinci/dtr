@@ -154,7 +154,7 @@ function buildPopulatedResourceBundle(
               }
               if (error) {
                 console.error(error);
-                consoleLog(error.data.statusText, "errorClass");
+                consoleLog(error.statusText, "errorClass");
               }
               readResources(neededResources, callback);
             });

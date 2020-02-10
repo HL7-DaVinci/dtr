@@ -106,12 +106,6 @@ tokenPost.onload = function() {
       return;
     }
     return patientId;
-  } else {
-    const errorMsg =
-      "Token post request failed. Returned status: " + tokenPost.status;
-    document.body.innerText = errorMsg;
-    console.error(errorMsg);
-    return;
-  }
+
 };
 tokenPost.send(data);
