@@ -822,6 +822,15 @@ export default class QuestionnaireForm extends Component {
             }
           }
         ],
+        item: [
+          {
+            sequence: "1",
+            productOrService: this.props.deviceRequest.codeCodeableConcept,
+            quantity: {
+              value: 1
+            }
+          }
+        ],
         diagnosis: [],
         insurance: [
           {
