@@ -16,7 +16,7 @@ export default class PriorAuth extends Component {
       subscribeMsg: "",
       showRestHookForm: false,
       showLink: false,
-      priorAuthBase: endpointConfig[0].endpoint,
+      priorAuthBase: endpointConfig[0].url,
       isSubmitted: false,
       priorAuthId: null,
       patientId: null
@@ -340,7 +340,8 @@ export default class PriorAuth extends Component {
           var claimResponseBundle = JSON.parse(this.responseText);
           var claimResponse = claimResponseBundle.entry[0].resource;
           message = "Prior Authorization " + claimResponse.disposition + "\n";
-          message += "Prior Authorization Number: " + claimResponse.preAuthRef;
+          message +=
+            "Prior Authorization Number: " + claimResponse.identifier[0].value;
 
           // DME Orders
           if (dMEOrdersEnabled) SendDMEOrder(priorAuth, response);
@@ -367,7 +368,7 @@ export default class PriorAuth extends Component {
         priorAuth.setState({
           isSubmitted: true,
           claimResponseBundle: claimResponseBundle,
-          priorAuthId: claimResponse.preAuthRef,
+          priorAuthId: claimResponse.identifier[0].value,
           patientId: patientId
         });
       }
@@ -516,7 +517,7 @@ export default class PriorAuth extends Component {
                   >
                     {endpointConfig.map(e => {
                       return (
-                        <option value={e.url}>
+                        <option key={e.name} value={e.url}>
                           {e.name}: {e.url}
                         </option>
                       );
