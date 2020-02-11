@@ -53,15 +53,21 @@ tokenPost.onload = function() {
         return;
       }
 
-      let appContext;
+      let appContext = {};
       try {
         const appString = decodeURIComponent(auth_response.appContext);
+        // Could switch to this later
+        // appString.split("&").map((e)=>{
+        //     const temp = e.split("=");
+        //     appContext[temp[0]] = temp[1];
+        // })
         appContext = {
             template: appString.split("&")[0].split("=")[1],
             request: JSON.parse(appString.split("&")[1].split("=")[1].replace(/\\/g,"")),
-            filepath: appString.split("&")[2].split("=")[1]
+            filepath: appString.split("&")[3].split("=")[1]
           }
       } catch (e) {
+          console.log(e);
           alert("error parsing app context, using default")
           appContext = {
             template: "urn:hl7:davinci:crd:home-oxygen-questionnaire",
@@ -109,3 +115,5 @@ tokenPost.onload = function() {
 
 };
 tokenPost.send(data);
+
+
