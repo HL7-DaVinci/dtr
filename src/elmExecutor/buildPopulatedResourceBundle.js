@@ -1,7 +1,7 @@
 import 'url-search-params-polyfill';
 function doSearch(smart, type, fhirVersion, request, callback) {
   const q = {};
-
+  let usePatient = true;
   // setup the query for Practitioner and Coverage
   switch (type) {
     case "Practitioner":
@@ -12,6 +12,7 @@ function doSearch(smart, type, fhirVersion, request, callback) {
         performer = request.performer[0] && request.performer[0].reference;
       }
       q._id = performer;
+      usePatient = false;
       console.log(q._id);
       break;
     case "Coverage":
@@ -89,8 +90,15 @@ function doSearch(smart, type, fhirVersion, request, callback) {
   Object.keys(q).forEach((parameter)=>{
       query.set(parameter, q[parameter]);
   });
-  smart.patient.request(`${type}?${query}`)
+  
+  if( usePatient ) {
+    smart.patient.request(`${type}?${query}`)
     .then(processSuccess(smart, [], callback), processError(smart, callback));
+  } else {
+    smart.request(`${type}?${query}`)
+    .then(processSuccess(smart, [], callback), processError(smart, callback));   
+  }
+
 }
 
 function processSuccess(smart, resources, callback) {

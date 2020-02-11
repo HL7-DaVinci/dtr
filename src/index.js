@@ -91,7 +91,7 @@ tokenPost.onload = function() {
           FHIR_URI_PREFIX={FHIR_URI_PREFIX}
           questionnaireUri={appContext.template}
           smart={smart}
-          deviceRequest={appContext.request}
+          deviceRequest={JSON.parse(appContext.request.replace(/\\/g,""))}
           filepath={appContext.filepath}
         />,
         document.getElementById("root")
