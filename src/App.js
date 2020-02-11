@@ -18,13 +18,14 @@ import UserMessage from "./components/UserMessage/UserMessage";
 //       startChar: 11,
 //       endLine: 74,
 //       endChar: 48,
-//       message: "Could not resolve type name Diagn]osis.",
+//       message: "Could not resolve type name Diagnosis.",
 //       errorType: "semantic",
 //       errorSeverity: "error",
 //       type: "CqlToElmError"
 //     }
 //   ]
 // };
+
 class App extends Component {
   constructor(props) {
     super(props);
