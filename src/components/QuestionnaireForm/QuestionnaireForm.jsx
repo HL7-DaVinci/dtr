@@ -806,133 +806,133 @@ export default class QuestionnaireForm extends Component {
 
     this.generateAndStoreDocumentReference(response, priorAuthBundle);
 
-    if (this.props.priorAuthReq) {
-      const priorAuthClaim = {
-        resourceType: "Claim",
-        status: "active",
-        type: {
-          coding: [
-            {
-              system: "http://terminology.hl7.org/CodeSystem/claim-type",
-              code: "professional",
-              display: "Professional"
-            }
-          ]
-        },
-        subType: {
-          coding: [
-            {
-              system: "http://terminology.hl7.org/CodeSystem/ex-claimsubtype",
-              code: "HIMSS",
-              display: "Example subType code for HIMSS demo"
-            }
-          ]
-        },
-        use: "preauthorization",
-        patient: { reference: this.makeReference(priorAuthBundle, "Patient") },
-        created: authored,
-        provider: {
-          reference: this.makeReference(priorAuthBundle, "Practitioner")
-        },
-        insurer: {
-          reference: this.makeReference(priorAuthBundle, "Organization")
-        },
-        facility: {
-          reference: this.makeReference(priorAuthBundle, "Location")
-        },
-        priority: { coding: [{ code: "normal" }] },
-        prescription: {
-          reference: this.makeReference(priorAuthBundle, "DeviceRequest")
-        },
-        careTeam: [
+    // if (this.props.priorAuthReq) {
+    const priorAuthClaim = {
+      resourceType: "Claim",
+      status: "active",
+      type: {
+        coding: [
           {
-            sequence: 1,
-            provider: {
-              reference: this.makeReference(priorAuthBundle, "Practitioner")
-            },
-            extension: [
-              {
-                url: "http://terminology.hl7.org/ValueSet/v2-0912",
-                valueCode: "OP"
-              }
-            ]
-          }
-        ],
-        supportingInfo: [
-          {
-            sequence: 1,
-            category: {
-              coding: [
-                {
-                  system:
-                    "http://hl7.org/us/davinci-pas/CodeSystem/PASSupportingInfoType",
-                  code: "patientEvent"
-                }
-              ]
-            },
-            timingPeriod: {
-              start: "2020-01-01",
-              end: "2021-01-01"
-            }
-          },
-          {
-            sequence: 2,
-            category: {
-              coding: [
-                {
-                  system:
-                    "http://terminology.hl7.org/CodeSystem/claiminformationcategory",
-                  code: "info",
-                  display: "Information"
-                }
-              ]
-            },
-            valueReference: {
-              reference: this.makeReference(
-                priorAuthBundle,
-                "QuestionnaireResponse"
-              )
-            }
-          }
-        ],
-        item: [
-          {
-            sequence: "1",
-            productOrService: this.props.deviceRequest.codeCodeableConcept,
-            quantity: {
-              value: 1
-            }
-          }
-        ],
-        diagnosis: [],
-        insurance: [
-          {
-            sequence: 1,
-            focal: true,
-            coverage: {
-              reference: this.makeReference(priorAuthBundle, "Coverage")
-            }
+            system: "http://terminology.hl7.org/CodeSystem/claim-type",
+            code: "professional",
+            display: "Professional"
           }
         ]
-      };
-      var sequence = 1;
-      priorAuthBundle.entry.forEach(function(entry, index) {
-        if (entry.resource.resourceType == "Condition") {
-          priorAuthClaim.diagnosis.push({
-            sequence: sequence++,
-            diagnosisReference: { reference: "Condition/" + entry.resource.id }
-          });
+      },
+      subType: {
+        coding: [
+          {
+            system: "http://terminology.hl7.org/CodeSystem/ex-claimsubtype",
+            code: "HIMSS",
+            display: "Example subType code for HIMSS demo"
+          }
+        ]
+      },
+      use: "preauthorization",
+      patient: { reference: this.makeReference(priorAuthBundle, "Patient") },
+      created: authored,
+      provider: {
+        reference: this.makeReference(priorAuthBundle, "Practitioner")
+      },
+      insurer: {
+        reference: this.makeReference(priorAuthBundle, "Organization")
+      },
+      facility: {
+        reference: this.makeReference(priorAuthBundle, "Location")
+      },
+      priority: { coding: [{ code: "normal" }] },
+      prescription: {
+        reference: this.makeReference(priorAuthBundle, "DeviceRequest")
+      },
+      careTeam: [
+        {
+          sequence: 1,
+          provider: {
+            reference: this.makeReference(priorAuthBundle, "Practitioner")
+          },
+          extension: [
+            {
+              url: "http://terminology.hl7.org/ValueSet/v2-0912",
+              valueCode: "OP"
+            }
+          ]
         }
-      });
-      console.log(priorAuthClaim);
+      ],
+      supportingInfo: [
+        {
+          sequence: 1,
+          category: {
+            coding: [
+              {
+                system:
+                  "http://hl7.org/us/davinci-pas/CodeSystem/PASSupportingInfoType",
+                code: "patientEvent"
+              }
+            ]
+          },
+          timingPeriod: {
+            start: "2020-01-01",
+            end: "2021-01-01"
+          }
+        },
+        {
+          sequence: 2,
+          category: {
+            coding: [
+              {
+                system:
+                  "http://terminology.hl7.org/CodeSystem/claiminformationcategory",
+                code: "info",
+                display: "Information"
+              }
+            ]
+          },
+          valueReference: {
+            reference: this.makeReference(
+              priorAuthBundle,
+              "QuestionnaireResponse"
+            )
+          }
+        }
+      ],
+      item: [
+        {
+          sequence: "1",
+          productOrService: this.props.deviceRequest.codeCodeableConcept,
+          quantity: {
+            value: 1
+          }
+        }
+      ],
+      diagnosis: [],
+      insurance: [
+        {
+          sequence: 1,
+          focal: true,
+          coverage: {
+            reference: this.makeReference(priorAuthBundle, "Coverage")
+          }
+        }
+      ]
+    };
+    var sequence = 1;
+    priorAuthBundle.entry.forEach(function(entry, index) {
+      if (entry.resource.resourceType == "Condition") {
+        priorAuthClaim.diagnosis.push({
+          sequence: sequence++,
+          diagnosisReference: { reference: "Condition/" + entry.resource.id }
+        });
+      }
+    });
+    console.log(priorAuthClaim);
 
-      priorAuthBundle.entry.unshift({ resource: priorAuthClaim });
-      console.log(priorAuthBundle);
+    priorAuthBundle.entry.unshift({ resource: priorAuthClaim });
+    console.log(priorAuthBundle);
 
-      this.props.setPriorAuthClaim(priorAuthBundle);
-    } else {
-      alert("NOT submitting for prior auth");
-    }
+    this.props.setPriorAuthClaim(priorAuthBundle);
+    // } else {
+    //   alert("NOT submitting for prior auth");
+    // }
     localStorage.removeItem(response.questionnaire);
   }
 
@@ -1050,14 +1050,20 @@ export default class QuestionnaireForm extends Component {
           >
             Save
           </button>
-          {this.props.priorAuthReq && (
+          {/* {this.props.priorAuthReq && (
             <button
               className="btn submit-button"
               onClick={this.outputResponse.bind(this, "completed")}
             >
               Next
             </button>
-          )}
+          )} */}
+          <button
+            className="btn submit-button"
+            onClick={this.outputResponse.bind(this, "completed")}
+          >
+            Next
+          </button>
         </div>
       </div>
     );
