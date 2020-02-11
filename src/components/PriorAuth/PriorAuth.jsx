@@ -16,7 +16,7 @@ export default class PriorAuth extends Component {
       subscribeMsg: "",
       showRestHookForm: false,
       showLink: false,
-      priorAuthBase: endpointConfig[0].endpoint,
+      priorAuthBase: endpointConfig[0].url,
       isSubmitted: false,
       priorAuthId: null,
       patientId: null
@@ -336,15 +336,17 @@ export default class PriorAuth extends Component {
       if (this.readyState === XMLHttpRequest.DONE) {
         var message =
           "Prior Authorization Failed.\nNo ClaimResponse found within bundle.";
-        if (this.status === 201) {
+        if (this.status === 201 || this.status === 200) {
           var claimResponseBundle = JSON.parse(this.responseText);
           var claimResponse = claimResponseBundle.entry[0].resource;
           message = "Prior Authorization " + claimResponse.disposition + "\n";
-          message += "Prior Authorization Number: " + claimResponse.preAuthRef;
+          message +=
+            "Prior Authorization Number: " + claimResponse.identifier[0].value;
 
           // DME Orders
           if (dMEOrdersEnabled) SendDMEOrder(priorAuth, response);
         } else {
+          console.log(this);
           console.log(this.responseText);
           message = "Prior Authorization Request Failed.";
         }
@@ -366,7 +368,7 @@ export default class PriorAuth extends Component {
         priorAuth.setState({
           isSubmitted: true,
           claimResponseBundle: claimResponseBundle,
-          priorAuthId: claimResponse.preAuthRef,
+          priorAuthId: claimResponse.identifier[0].value,
           patientId: patientId
         });
       }
@@ -515,7 +517,7 @@ export default class PriorAuth extends Component {
                   >
                     {endpointConfig.map(e => {
                       return (
-                        <option value={e.url}>
+                        <option key={e.name} value={e.url}>
                           {e.name}: {e.url}
                         </option>
                       );
