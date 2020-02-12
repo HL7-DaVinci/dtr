@@ -24,10 +24,10 @@ function getListOfChoices(props, setChoice){
                     const pair = {
                         "code": concept.code,
                         "display": concept.display,
-                    }
+                    };
                     setChoice(pair);
                 });
-            })
+            });
         }
 
     }else{
@@ -43,7 +43,7 @@ function getListOfChoices(props, setChoice){
             // "system": value.system,
             // "version": value.version,
             Object.keys(value).forEach((e) => {
-                pair[e] = value[e]
+                pair[e] = value[e];
             });
 
             if(pair.display === undefined && pair.code){
@@ -61,4 +61,4 @@ function getListOfChoices(props, setChoice){
 export {
     findValueByPrefix,
     getListOfChoices
-}
+};

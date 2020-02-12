@@ -4,7 +4,7 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, filepath, consol
   return new Promise(function(resolve, reject) {
     function handleFetchErrors(response) {
       if (!response.ok) {
-        let msg = `Failure when fetching resource`;
+        let msg = "Failure when fetching resource";
         let details = `${msg}: ${response.url}: the server responded with a status of ${response.status} (${response.statusText})`;
         consoleLog(msg, "errorClass", details);
         reject(msg);
@@ -20,12 +20,12 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, filepath, consol
       mainLibraryElms: [],
       dependentElms: [],
       valueSets: []
-    }
+    };
 
     function resolveIfDone(){
       if (pendingFetches != 0) return;
-      if (retVal.questionnaire && retVal.mainLibraryElms) resolve(retVal)
-      else reject("Failed to fetch all artifacts.")
+      if (retVal.questionnaire && retVal.mainLibraryElms) resolve(retVal);
+      else reject("Failed to fetch all artifacts.");
     }
 
     var fhirResources = false;
@@ -48,11 +48,11 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, filepath, consol
       consoleLog("fetched questionnaire successfully","infoClass");
       // consoleLog(JSON.stringify(questionnaire),"infoClass");
       retVal.questionnaire = questionnaire;
-      fetchedUris.add(questionnaireUri)
+      fetchedUris.add(questionnaireUri);
       // grab all main elm urls
       const mainElmUris = questionnaire.extension.filter(ext => ext.url == "http://hl7.org/fhir/StructureDefinition/cqif-library").map(lib => lib.valueReference.reference);
       mainElmUris.forEach((mainElmUri) => {
-        fetchElm(mainElmUri, true)
+        fetchElm(mainElmUri, true);
       });
       pendingFetches -= 1;
       consoleLog("fetched elms", "infoClass");
@@ -60,7 +60,7 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, filepath, consol
     })
     .catch(err => {
       console.log("error doing fetch():", err);
-      reject(err)
+      reject(err);
     });
 
     // fetch device request
@@ -97,12 +97,12 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, filepath, consol
       })
       .catch(err => {
         console.log("error fetching ELM:", err);
-        reject(err)
+        reject(err);
       });
     }
 
     function fetchRelatedElms(libraryResource){
-      if (libraryResource.relatedArtifact == null) return
+      if (libraryResource.relatedArtifact == null) return;
       const libUris = libraryResource.relatedArtifact.filter(a => a.type == "depends-on").map(a => a.resource.reference);
       libUris.forEach(libUri => fetchElm(libUri));
     }
@@ -123,11 +123,11 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, filepath, consol
       if (valueSetUri in fetchedUris) return;
       let valueSetUrl = fhirUriPrefix+encodeURIComponent(valueSetUri);
       if (!fhirResources) {
-        valueSetUrl = filepath + "/" + stripFilenameFromURI(valueSetUri) + '.json';
+        valueSetUrl = filepath + "/" + stripFilenameFromURI(valueSetUri) + ".json";
       }
 
       pendingFetches += 1;
-      console.log("about to fetchValueSet:",valueSetUrl)
+      console.log("about to fetchValueSet:",valueSetUrl);
       fetch(valueSetUrl).then(handleFetchErrors).then(r => r.json())
       .then(valueSet => {
         pendingFetches -= 1;
@@ -137,7 +137,7 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, filepath, consol
       })
       .catch(err => {
         console.log("error in fetchValueSet:  ", err);
-        reject(err)
+        reject(err);
       });
     }
 
@@ -150,13 +150,13 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, filepath, consol
       }
 
       pendingFetches += 1;
-      console.log("about to fetchElmFile:",elmUrl)
+      console.log("about to fetchElmFile:",elmUrl);
       fetch(elmUrl).then(handleFetchErrors).then(r => r.json())
       .then(elm => {
         if ( elm.library.annotation ) {
-          let errors = elm.library.annotation.filter(a => a.errorSeverity != 'warning')
+          let errors = elm.library.annotation.filter(a => a.errorSeverity != "warning");
           if (errors.length > 0) {
-            let msg = `CQL to ELM translation resulted in errors.`;
+            let msg = "CQL to ELM translation resulted in errors.";
             let details = { "ELM annotation": elm.library.annotation };
             consoleLog(msg, "errorClass", details);
             reject(msg);
@@ -173,7 +173,7 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, filepath, consol
       })
       .catch(err => {
         console.log("error in fetchElmFile:  ", err);
-        reject(err)
+        reject(err);
       });
     }
   });

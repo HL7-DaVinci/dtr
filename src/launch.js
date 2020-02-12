@@ -13,10 +13,8 @@ var serviceUri = urlUtils.getUrlParameter("iss");
 var launchContextId = urlUtils.getUrlParameter("launch");
 
 // Change this to the ID of the client that you registered with the SMART on FHIR authorization server.
-var clientId = "default"; // local client
-
-
-console.log(serviceUri);
+var clientId = "7c47a01b-b7d8-41cf-a290-8ed607108e70"; // local client
+// clientId = "c7ecff8d-5e91-48f2-b22e-f423c0c4c009"
 localStorage.setItem("lastAccessedServiceUri", serviceUri);
 if(storedJSON) {
     if(storedJSON[serviceUri]) {
@@ -102,7 +100,7 @@ function redirect(conformanceStatement) {
     redirectUri: redirectUri,
     tokenUri: tokenUri
   });
-console.log(clientId);
+
   // finally, redirect the browser to the authorizatin server and pass the needed
   // parameters for the authorization request in the URL
   window.location.href =
