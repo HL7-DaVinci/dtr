@@ -90,7 +90,9 @@ function doSearch(smart, type, fhirVersion, request, callback) {
   Object.keys(q).forEach((parameter)=>{
       query.set(parameter, q[parameter]);
   });
-  smart.patient.request(`${type}?${query}`)
+  
+  if( usePatient ) {
+    smart.patient.request(`${type}?${query}`)
     .then(processSuccess(smart, [], callback), processError(smart, callback));
   } else {
     smart.request(`${type}?${query}`)

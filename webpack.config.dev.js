@@ -25,7 +25,6 @@ module.exports = merge(common, {
         { from: /index/, to: "/index.html" },
         { from: /launch/, to: "/launch.html" },
         { from: /register/, to: "/register.html" },
-        { from: /priorauth/, to: "/priorauth.html" },
         { from: /log/, to: "/logs.html" }
       ]
     },
