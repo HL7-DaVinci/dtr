@@ -1,4 +1,5 @@
 import '@babel/polyfill'
+import 'react-app-polyfill/ie11';
 import FHIR from "fhirclient"
 import urlUtils from "./util/url";
 import {updateLog} from "./util/util";
@@ -58,11 +59,16 @@ tokenPost.onload = function() {
       let appContext;
       try {
         const appString = decodeURIComponent(auth_response.appContext);
-        appContext = {
-            template: appString.split("&")[0].split("=")[1],
-            request: JSON.parse(appString.split("&")[1].split("=")[1].replace(/\\/g,"")),
-            filepath: appString.split("&")[2].split("=")[1]
-          }
+        // Could switch to this later
+        appString.split("&").map((e)=>{
+            const temp = e.split("=");
+            appContext[temp[0]] = temp[1];
+        })
+        // appContext = {
+        //     template: appString.split("&")[0].split("=")[1],
+        //     request: JSON.parse(appString.split("&")[1].split("=")[1].replace(/\\/g,"")),
+        //     filepath: appString.split("&")[3].split("=")[1]
+        //   }
       } catch (e) {
           log.error = "error parsing app context, using default";
           console.log("using default appContext");
