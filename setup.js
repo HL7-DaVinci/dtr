@@ -7,7 +7,9 @@ var fs = require("fs"),
   server = jsonServer.create(),
   router = jsonServer.router("./src/db.json"),
   middlewares = jsonServer.defaults();
-
+  pem.config({
+    pathOpenSSL: "/usr/local/bin/openssl"
+  });
 
   server.use("/fetchFhirUri", function(req, res) {
     var url = "https://davinci-crd.logicahealth.org/fetchFhirUri" + req.url;
