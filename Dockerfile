@@ -4,6 +4,7 @@ WORKDIR /home/node/app
 COPY package*.json ./
 USER node
 RUN npm install
+RUN npm run build
 COPY --chown=node:node . .
 EXPOSE 3005
 CMD [ "/home/node/app/run.sh" ]
