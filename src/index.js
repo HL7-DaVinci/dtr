@@ -57,7 +57,7 @@ tokenPost.onload = function() {
       }
 
       updateLog(log);
-      let appContext;
+      let appContext = {};
       try {
         const appString = decodeURIComponent(auth_response.appContext);
         // Could switch to this later
