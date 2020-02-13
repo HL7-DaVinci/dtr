@@ -8,6 +8,7 @@
     "startDev": "webpack-dev-server --config ./webpack.config.dev.js",
     "startProd": "webpack-dev-server --config ./webpack.config.prod.js",
     "startTemplate": "webpack-dev-server --config ./webpack.config.run.js",
+    "startTest": "node ./setup.js",
     "lint": "node ./node_modules/.bin/eslint --ext .js ./"
   },
   "devDependencies": {
