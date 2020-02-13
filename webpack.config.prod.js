@@ -34,7 +34,12 @@ module.exports = merge(common, {
         target: "https://davinci-crd.logicahealth.org",
         changeOrigin: true,
         secure: false
-      }
+      },
+      {
+        context: ["/logs","/clients"],
+        target: "https://localhost:3006",
+        secure: false
+    }
     ]
   },
   plugins: [new webpack.HotModuleReplacementPlugin()]
