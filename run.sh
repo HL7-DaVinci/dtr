@@ -22,5 +22,5 @@ if [[ $VERSION == 'Template' ]]; then
     cat $OUTFILE
     echo "<---------------------------------------->"
 fi
-
+npm run build
 npm run start$VERSION
