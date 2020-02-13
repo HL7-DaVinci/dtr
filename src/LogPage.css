@@ -1,0 +1,10 @@
+.log {
+    padding:10px;
+    border:1px solid black;
+    border-left: 5px solid black;
+    margin: 10px;
+}
+.section {
+    margin-right: 30px;
+    display:inline-block;
+}
