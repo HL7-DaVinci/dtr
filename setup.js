@@ -79,9 +79,12 @@ next();
 });
 
 server.get("/register", function(req, res){
+    console.log("register");
+    console.log(__dirname + "/public/register.html");
     res.sendFile(__dirname + "/public/register.html");
 });
 server.get("/index", function(req, res){
+    console.log("henlo");
     res.sendFile(__dirname + "/public/index.html");
 });
 server.get("/launch", function(req, res){
