@@ -1,9 +1,8 @@
 
 var fs = require("fs"),
   request = require("request"),
-  https = require("https"),
+  http = require("http"),
   jsonServer = require("json-server"),
-  pem = require("pem"),
   server = jsonServer.create(),
   router = jsonServer.router("./src/db.json"),
   middlewares = jsonServer.defaults();
@@ -64,8 +63,6 @@ var fs = require("fs"),
 //   });
 
   var options = {
-    key: fs.readFileSync("./certs/server.key"),
-    cert: fs.readFileSync("./certs/server.cert")
   };
   
 server.use(middlewares);
@@ -95,7 +92,7 @@ server.get("/priorauth", function(req, res){
 });
 
 server.use(router);
-https.createServer(options, server).listen(3005, function() {
+http.createServer(options, server).listen(3005, function() {
     console.log("json-server started on port " + 3005);
 });
   
