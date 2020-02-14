@@ -95,7 +95,7 @@ server.get("/priorauth", function(req, res){
 });
 
 server.use(router);
-https.createServer(options, server).listen(3005, "davinci-dtr.logicahealth.org", function() {
+https.createServer(options, server).listen(3005, function() {
     console.log("json-server started on port " + 3005);
 });
   
