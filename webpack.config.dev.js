@@ -37,7 +37,7 @@ module.exports = merge(common, {
       },
       {
           context: ["/logs","/clients"],
-          target: "https://localhost:3006",
+          target: "http://localhost:3006",
           secure: false
       }
     ]

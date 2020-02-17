@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "webpack --config ./webpack.config.prod.js --progress --colors",
-    "start": "webpack-dev-server --config ./webpack.config.dev.js & node ./setup.js",
+    "start": "webpack-dev-server --config ./webpack.config.dev.js & json-server --watch ./src/db.json --port 3006",
     "startDev": "webpack-dev-server --config ./webpack.config.dev.js",
     "startProd": "webpack-dev-server --config ./webpack.config.prod.js",
     "startTemplate": "webpack-dev-server --config ./webpack.config.run.js",
