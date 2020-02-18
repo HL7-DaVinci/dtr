@@ -16,7 +16,7 @@ var fs = require("fs"),
       }})).pipe(res);
   });
   server.use("/getfile", function(req, res) {
-    var url = "https://davinci-crd.logicahealth.org" + req.url;
+    var url = "https://davinci-crd.logicahealth.org/getfile" + req.url;
     req.pipe(request({url:url,  agentOptions: {
         rejectUnauthorized: false
       }})).pipe(res);
