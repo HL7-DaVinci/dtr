@@ -298,6 +298,19 @@ export default class QuestionnaireForm extends Component {
               console.log(`Couldn't find library "${libraryName}"`);
             }
 
+            // This is to populated dynamic options (option items generated from CQL expression)
+            // R4 uses item.answerOption, STU3 uses item.option
+            if (prepopulationResult != null && prepopulationResult.length > 0 && item.type == 'open-choice') {
+              if (item.answerOption != null && item.answerOption.length == 0 ) {
+                prepopulationResult.forEach(v => {
+                  item.answerOption.push({valueCoding: v})
+                })
+              } else if (item.option != null && item.option.length == 0 ) {{
+                prepopulationResult.forEach(v => {
+                  item.option.push({valueCoding: v})
+                })
+              }
+            }
             this.updateQuestionValue(
               item.linkId,
               prepopulationResult,
