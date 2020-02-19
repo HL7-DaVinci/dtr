@@ -303,9 +303,19 @@ export default class QuestionnaireForm extends Component {
             if (prepopulationResult != null && prepopulationResult.length > 0 && item.type == 'open-choice') {
               if (item.answerOption != null && item.answerOption.length == 0 ) {
                 prepopulationResult.forEach(v => {
-                  item.answerOption.push({valueCoding: v})
+                  let system = ''
+                  if (v.system == 'http://snomed.info/sct') {
+                    system = 'SNOMED'
+                  } else if (v.system.startsWith('http://hl7.org/fhir/sid/icd-10')) {
+                    system = "ICD-10"
+                  }
+                  item.answerOption.push({valueCoding: {
+                    code: v.code,
+                    system: v.system,
+                    display: v.display + ' - ' + system + ' - ' + v.code
+                  }})
                 })
-              } else if (item.option != null && item.option.length == 0 ) {{
+              } else if (item.option != null && item.option.length == 0 ) {
                 prepopulationResult.forEach(v => {
                   item.option.push({valueCoding: v})
                 })
