@@ -1,5 +1,9 @@
 import React, { Component } from "react";
 
+import "../../Inputs/TextInput/TextInput.css";
+import "../../ComponentStyles.css";
+import "./SelectEncounterInput.css";
+
 class SelectEncounterInput extends Component {
   constructor(props) {
     super(props);
@@ -44,7 +48,6 @@ class SelectEncounterInput extends Component {
   }
 
   getCurrentEncounterDetails(currentEncounter) {
-    console.log("currentEncounter", currentEncounter);
     const encounterDetails =
       currentEncounter && currentEncounter.length > 0
         ? {
@@ -70,30 +73,44 @@ class SelectEncounterInput extends Component {
 
     return (
       <div>
-        {optionTemplate.length > 0 ? (
-          <select value={this.state.value} onChange={this.handleChange}>
-            <option value="" defaultValue>
-              Pick one encounter
-            </option>
-            {optionTemplate}
-          </select>
-        ) : (
-          <label>
-            A Face-to-Face (F2F) encounter within 6 months is required by
-            Medicare for the most hospital bed orderings. Could not find any
-            from the patient's records. Enter one below with the date and the
-            provider information.
-          </label>
-        )}
-        {currentEncounter && (
-          <div>
-            <div>{encounterDetails && encounterDetails.performer}</div>
-            <div>{encounterDetails && encounterDetails.type}</div>
-            <div>{encounterDetails && encounterDetails.date}</div>
-          </div>
-        )}
-        <label>Qualified Face-to-Face evaluation:</label>
-        <textarea ref="manualInput" onChange={this.handleChange}></textarea>
+        <div>
+          {optionTemplate.length > 0 ? (
+            <div className="dropdown-input">
+              <select value={this.state.value} onChange={this.handleChange}>
+                <option value="" defaultValue>
+                  Pick one encounter or enter below
+                </option>
+                {optionTemplate}
+              </select>
+            </div>
+          ) : (
+            <div className="info-label">
+              <label>
+                A Face-to-Face (F2F) encounter within 6 months is required by
+                Medicare for most of the hospital bed orderings. Could not find any
+                from the patient's records. Enter one below with the date and
+                the provider information.
+              </label>
+            </div>
+          )}
+          {currentEncounter && (
+            <div className="info-label">
+              <div>{encounterDetails && encounterDetails.performer}</div>
+              <div>{encounterDetails && encounterDetails.type}</div>
+              <div>{encounterDetails && encounterDetails.date}</div>
+            </div>
+          )}
+        </div>
+        <div className="header-input">
+          <label>Other qualified Face-to-Face evaluation:</label>
+        </div>
+        <div className="text-input">
+          <textarea
+            className="text-input-box"
+            ref="manualInput"
+            onChange={this.handleChange}
+          ></textarea>
+        </div>
       </div>
     );
   }
