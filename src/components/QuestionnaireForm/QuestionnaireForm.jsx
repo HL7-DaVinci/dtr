@@ -526,6 +526,7 @@ export default class QuestionnaireForm extends Component {
               retrieveCallback={this.retrieveValue}
               inputTypeDisplay="open-choice"
               containedResources={this.state.containedResources}
+              smart={this.props.smart}
             />
           );
         default:

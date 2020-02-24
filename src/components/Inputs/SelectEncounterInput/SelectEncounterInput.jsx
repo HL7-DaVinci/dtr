@@ -9,7 +9,8 @@ class SelectEncounterInput extends Component {
     super(props);
 
     this.state = {
-      values: []
+      values: [],
+      encounterDetails: {}
     };
     this.handleChange = this.handleChange.bind(this);
     this.getCurrentEncounterDetails = this.getCurrentEncounterDetails.bind(
@@ -35,6 +36,41 @@ class SelectEncounterInput extends Component {
       value => value.id === event.target.value
     );
     const encounterDetails = this.getCurrentEncounterDetails(currentEncounter);
+
+    if (encounterDetails && encounterDetails.performerId) {
+      //get the practitioner details
+      const q = {
+        _id: encounterDetails.performerId
+      };
+
+      this.props.smart.patient.api
+        .search({ type: "Practitioner", query: q })
+        .then(
+          response => {
+            const data = response.data;
+            if (data) {
+              const practitionerNames = data.entry[0].resource.name.filter(
+                n => n.use === "official"
+              );
+
+              if (practitionerNames.length > 0) {
+                const practitionerName = practitionerNames[0];
+                const displayName = practitionerName
+                  ? `Provider: ${practitionerName.prefix} ${practitionerName.given[0]} ${practitionerName.family} `
+                  : `Provider: ${encounterDetails.performerId}`;
+                this.setState({
+                  encounterDetails: {
+                    ...encounterDetails,
+                    performer: displayName
+                  }
+                });
+              }
+            }
+          },
+          error => console.log(error)
+        );
+    }
+
     // select from the drop down will clear the text input
     if (encounterDetails) {
       this.refs.manualInput.value = "";
@@ -42,7 +78,7 @@ class SelectEncounterInput extends Component {
 
     this.props.updateCallback(
       this.props.item.linkId,
-      encounterDetails || this.state.value,
+      this.state.encounterDetails || this.state.value,
       "values"
     );
   }
@@ -51,11 +87,12 @@ class SelectEncounterInput extends Component {
     const encounterDetails =
       currentEncounter && currentEncounter.length > 0
         ? {
-            performer: `Practitioner: ${currentEncounter[0].encounter.participant[0].individual.display.value}`,
+            performerId: `${currentEncounter[0].encounter.participant[0].individual.reference.value}`,
             date: `Evaluation date: from ${currentEncounter[0].encounter.period.start.value} to ${currentEncounter[0].encounter.period.end.value}`,
             type: `Type: ${currentEncounter[0].encounter.type[0].coding[0].display.value}`
           }
         : null;
+    this.setState({ encounterDetails });
     return encounterDetails;
   }
 
@@ -69,7 +106,8 @@ class SelectEncounterInput extends Component {
     const currentEncounter = this.state.values.filter(
       value => value.id === this.state.value
     );
-    const encounterDetails = this.getCurrentEncounterDetails(currentEncounter);
+
+    const encounterDetails = this.state.encounterDetails;
 
     return (
       <div>
@@ -87,15 +125,17 @@ class SelectEncounterInput extends Component {
             <div className="info-label">
               <label>
                 A Face-to-Face (F2F) encounter within 6 months is required by
-                Medicare for most of the hospital bed orderings. Could not find any
-                from the patient's records. Enter one below with the date and
-                the provider information.
+                Medicare for most of the hospital bed orderings. Could not find
+                any from the patient's records. Enter one below with the date
+                and the provider information.
               </label>
             </div>
           )}
           {currentEncounter && (
             <div className="info-label">
-              <div>{encounterDetails && encounterDetails.performer}</div>
+              {encounterDetails && encounterDetails.performer && (
+                <div>{encounterDetails && encounterDetails.performer}</div>
+              )}
               <div>{encounterDetails && encounterDetails.type}</div>
               <div>{encounterDetails && encounterDetails.date}</div>
             </div>
