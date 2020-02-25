@@ -789,11 +789,14 @@ export default class QuestionnaireForm extends Component {
       }
     };
 
-    if (status == "in-progress") {
-      localStorage.setItem(response.questionnaire, JSON.stringify(response));
-      alert("Partial QuestionnaireResponse saved");
-      console.log("Partial QuestionnaireResponse saved.");
-      return;
+    if (status == "in-progress") 
+    {
+       localStorage.setItem(response.questionnaire, JSON.stringify(response));      
+    
+       alert("QuestionnaireResponse saved");
+       console.log("QuestionnaireResponse saved.");
+      
+       return;
     }
 
     const priorAuthBundle = JSON.parse(JSON.stringify(this.props.bundle));
@@ -1058,12 +1061,14 @@ export default class QuestionnaireForm extends Component {
               Next
             </button>
           )} */}
-          <button
+           {/*
+           Remove Next button for HIMSS demo in order to not show PAS
+           <button
             className="btn submit-button"
             onClick={this.outputResponse.bind(this, "completed")}
           >
             Next
-          </button>
+          </button>*/}
         </div>
       </div>
     );
