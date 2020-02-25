@@ -11,7 +11,18 @@ function doSearch(smart, type, fhirVersion, request, callback) {
       } else if (request.resourceType === "ServiceRequest") {
         performer = request.performer[0] && request.performer[0].reference;
       }
+
       q._id = performer;
+      if( performer.includes("PractitionerRole")){
+          q._id = null;
+      }
+      smart.request(performer,{resolveReferences:"practitioner",flat:true}).then((result)=>{
+          if(result && result.practitioner) {
+              request.performer = {"reference": "Practitioner/" + result.practitioner.id};
+            callback([result.practitioner]);
+          }
+
+      });
       usePatient = false;
       console.log(q._id);
       break;
@@ -94,7 +105,7 @@ function doSearch(smart, type, fhirVersion, request, callback) {
   if( usePatient ) {
     smart.patient.request(`${type}?${query}`)
     .then(processSuccess(smart, [], callback), processError(smart, callback));
-  } else {
+  } else if(q._id){
     smart.request(`${type}?${query}`)
     .then(processSuccess(smart, [], callback), processError(smart, callback));   
   }
