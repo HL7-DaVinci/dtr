@@ -16,6 +16,7 @@ class SelectEncounterInput extends Component {
     this.getCurrentEncounterDetails = this.getCurrentEncounterDetails.bind(
       this
     );
+    this.getEncounterDetails = this.getEncounterDetails.bind(this);
   }
 
   componentDidMount() {
@@ -84,17 +85,28 @@ class SelectEncounterInput extends Component {
   }
 
   getCurrentEncounterDetails(currentEncounter) {
-    const encounterDetails =
+    let encounterDetails =
       currentEncounter && currentEncounter.length > 0
-        ? {
-            performerId: `${currentEncounter[0].encounter.participant[0].individual.reference.value}`,
-            date: `Evaluation date: from ${currentEncounter[0].encounter.period.start.value} to ${currentEncounter[0].encounter.period.end.value}`,
-            type: `Type: ${currentEncounter[0].encounter.type[0].coding[0].display.value}`
-          }
+        ? this.getEncounterDetails(currentEncounter[0])
         : null;
     this.setState({ encounterDetails });
     return encounterDetails;
   }
+
+  getEncounterDetails = rawEncounter => {
+    const encounter = rawEncounter.encounter;
+    let details = {};
+    if (encounter) {
+      if (encounter.period.end) {
+        details.date = `Evaluation date: from ${encounter.period.start.value} to ${encounter.period.end.value}`;
+      } else {
+        details.date = `Evaluation date: from ${encounter.period.start.value} till now`;
+      }
+      details.performerId = `${encounter.participant[0].individual.reference.value}`;
+      details.type = `Type: ${encounter.type[0].coding[0].display.value}`;
+    }
+    return details;
+  };
 
   render() {
     let optionTemplate = this.state.values.map(v => (
