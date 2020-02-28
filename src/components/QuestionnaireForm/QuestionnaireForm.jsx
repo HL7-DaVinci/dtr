@@ -10,6 +10,7 @@ import BooleanInput from "../Inputs/BooleanInput/BooleanInput";
 import QuantityInput from "../Inputs/QuantityInput/QuantityInput";
 import { findValueByPrefix } from "../../util/util.js";
 import OpenChoice from "../Inputs/OpenChoiceInput/OpenChoice";
+import SelectEncounterInput from "../Inputs/SelectEncounterInput/SelectEncounterInput";
 
 export default class QuestionnaireForm extends Component {
   constructor(props) {
@@ -321,6 +322,7 @@ export default class QuestionnaireForm extends Component {
                 })
               }
             }
+            
             this.updateQuestionValue(
               item.linkId,
               prepopulationResult,
@@ -513,6 +515,18 @@ export default class QuestionnaireForm extends Component {
               inputTypeDisplay="open-choice"
               containedResources={this.state.containedResources}
               valueType={["valueCoding", "valueString"]}
+            />
+          );
+        case "select-encounter":
+          return (
+            <SelectEncounterInput
+              key={item.linkId}
+              item={item}
+              updateCallback={this.updateQuestionValue}
+              retrieveCallback={this.retrieveValue}
+              inputTypeDisplay="open-choice"
+              containedResources={this.state.containedResources}
+              smart={this.props.smart}
             />
           );
         default:
