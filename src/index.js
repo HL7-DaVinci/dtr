@@ -58,7 +58,9 @@ tokenPost.onload = function() {
       updateLog(log);
       let appContext = {};
       try {
-        const appString = decodeURIComponent(auth_response.appContext);
+        // Fix + encoded spaces back to precent encoded spaces
+        const encodedAppString = auth_response.appContext.replace(/\+/g, '%20');
+        const appString = decodeURIComponent(encodedAppString);
         // Could switch to this later
         appString.split("&").map((e)=>{
             const temp = e.split("=");
