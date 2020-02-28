@@ -82,10 +82,10 @@ export default class QuantityInput extends Component {
                     <input className="quantity-input value" placeholder="value" value={this.state.value} onChange={(e) => { this.updateState("value", e) }}></input>
                     <input className="quantity-input unit" placeholder="unit" value={this.state.unit} onChange={(e) => { this.updateState("unit", e) }}></input>
                 </div>
-                <div>
+                {/* <div>
                     <input className="quantity-input code" placeholder="code" value={this.state.code} onChange={(e) => { this.updateState("code", e) }}></input>
                     <input className="quantity-input system" placeholder="system" value={this.state.system} onChange={(e) => { this.updateState("system", e) }}></input>
-                </div>
+                </div> */}
             </div>
         );
     }
