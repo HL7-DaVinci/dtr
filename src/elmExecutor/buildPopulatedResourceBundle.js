@@ -1,6 +1,7 @@
+import 'url-search-params-polyfill';
 function doSearch(smart, type, fhirVersion, request, callback) {
   const q = {};
-
+  let usePatient = true;
   // setup the query for Practitioner and Coverage
   switch (type) {
     case "Practitioner":
@@ -11,6 +12,7 @@ function doSearch(smart, type, fhirVersion, request, callback) {
         performer = request.performer[0] && request.performer[0].reference;
       }
       q._id = performer;
+      usePatient = false;
       console.log(q._id);
       break;
     case "Coverage":
@@ -84,30 +86,37 @@ function doSearch(smart, type, fhirVersion, request, callback) {
       //nothing
     }
   }
-  smart.patient.api
-    .search({ type, query: q })
+  const query = new URLSearchParams();
+  Object.keys(q).forEach((parameter)=>{
+      query.set(parameter, q[parameter]);
+  });
+  
+  if( usePatient ) {
+    smart.patient.request(`${type}?${query}`)
     .then(processSuccess(smart, [], callback), processError(smart, callback));
+  } else {
+    smart.request(`${type}?${query}`)
+    .then(processSuccess(smart, [], callback), processError(smart, callback));   
+  }
+
 }
 
 function processSuccess(smart, resources, callback) {
   return response => {
-    if (response.data && response.data.resourceType === "Bundle") {
-      if (response.data.entry) {
-        response.data.entry.forEach(function(e) {
+    if (response && response.resourceType === "Bundle") {
+      if (response.entry) {
+        response.entry.forEach(function(e) {
           resources.push(e.resource);
         });
       }
       if (
-        response.data.link &&
-        response.data.link.some(l => l.relation === "next" && l.url != null)
+        response.link &&
+        response.link.some(l => l.relation === "next" && l.url != null)
       ) {
         // There is a next page, so recursively process that before we do the callback
         smart.patient.api
-          .nextPage({ bundle: response.data })
-          .then(
-            processSuccess(smart, resources, callback),
-            processError(smart, callback)
-          );
+          .nextPage({ bundle: response })
+          .then(processSuccess(smart, resources, callback), processError(smart, callback));
       } else {
         callback(resources);
       }
@@ -134,7 +143,6 @@ function buildPopulatedResourceBundle(
     console.log("waiting for patient");
     consoleLog("waiting for patient", "infoClass");
 
-    console.log(smart);
     consoleLog(smart.patient.id, "infoClass");
     smart.patient.read().then(
       pt => {
@@ -154,7 +162,7 @@ function buildPopulatedResourceBundle(
               }
               if (error) {
                 console.error(error);
-                consoleLog(error.data.statusText, "errorClass");
+                consoleLog(error.statusText, "errorClass");
               }
               readResources(neededResources, callback);
             });

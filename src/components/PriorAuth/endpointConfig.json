@@ -1,11 +1,11 @@
 [
   {
-    "name": "Localhost",
-    "url": "http://localhost:9000/fhir"
-  },
-  {
     "name": "Logica Health",
     "url": "https://davinci-prior-auth.logicahealth.org/fhir"
+  },
+  {
+    "name": "Localhost",
+    "url": "http://localhost:9000/fhir"
   },
   {
     "name": "Mettle Solutions",
