@@ -1,15 +1,7 @@
 import React, { Component } from "react";
 import cql from "cql-execution";
-
 import "./QuestionnaireForm.css";
-
-import Section from "../Section/Section";
-import TextInput from "../Inputs/TextInput/TextInput";
-import ChoiceInput from "../Inputs/ChoiceInput/ChoiceInput";
-import BooleanInput from "../Inputs/BooleanInput/BooleanInput";
-import QuantityInput from "../Inputs/QuantityInput/QuantityInput";
 import { findValueByPrefix } from "../../util/util.js";
-import OpenChoice from "../Inputs/OpenChoiceInput/OpenChoice";
 
 export default class QuestionnaireForm extends Component {
   constructor(props) {
@@ -28,11 +20,7 @@ export default class QuestionnaireForm extends Component {
       useSavedResponse: false,
       savedResponse: null
     };
-    this.updateQuestionValue = this.updateQuestionValue.bind(this);
-    this.updateNestedQuestionValue = this.updateNestedQuestionValue.bind(this);
 
-    this.renderComponent = this.renderComponent.bind(this);
-    this.retrieveValue = this.retrieveValue.bind(this);
     this.outputResponse = this.outputResponse.bind(this);
   }
 
@@ -40,7 +28,7 @@ export default class QuestionnaireForm extends Component {
     // setup
     // get all contained resources
     let partialResponse = localStorage.getItem(this.props.qform.id);
-    let responseItems = null;
+    let dynamic_choice_only = false;
 
     if (partialResponse) {
       let result = confirm(
@@ -49,210 +37,47 @@ export default class QuestionnaireForm extends Component {
 
       if (result) {
         this.state.savedResponse = JSON.parse(partialResponse);
-        responseItems = this.state.savedResponse.item;
-      } else {
-        localStorage.removeItem(this.props.qform.id);
+        dynamic_choice_only = true;
       }
+
+      localStorage.removeItem(this.props.qform.id);
     }
+
 
     if (this.props.qform.contained) {
       this.distributeContained(this.props.qform.contained);
     }
+
+    this.populateDisplay()
     const items = this.props.qform.item;
-    this.setState({ items });
-    const links = this.prepopulate(items, [], responseItems);
-    this.setState({ orderedLinks: links });
+    this.prepopulate(items, dynamic_choice_only)
   }
 
-  componentDidMount() {}
+  componentDidMount() {
+    var lform = window.LForms.FHIR.R4.SDC.convertQuestionnaireToLForms(this.props.qform);
+    lform.templateOptions = {
+      showFormHeader: false,
+      showColumnHeader: false,
+      showQuestionCode: true,
+      hideFormControls: true
+    };
 
-  evaluateOperator(operator, questionValue, answerValue) {
-    switch (operator) {
-      case "exists":
-        return answerValue === (questionValue !== undefined);
-      case "=":
-        return questionValue === answerValue;
-      case "!=":
-        return questionValue !== answerValue;
-      case "<":
-        return questionValue < answerValue;
-      case ">":
-        return questionValue > answerValue;
-      case "<=":
-        return questionValue <= answerValue;
-      case ">=":
-        return questionValue >= answerValue;
-      default:
-        return questionValue === answerValue;
+    if (this.state.savedResponse) {
+      lform = LForms.Util.mergeFHIRDataIntoLForms("QuestionnaireResponse", this.state.savedResponse, lform, "R4")
     }
+
+    window.LForms.Util.addFormToPage(lform, "formContainer")
   }
 
-  retrieveValue(elementName) {
-    return this.state.values[elementName];
-  }
-
-  updateQuestionValue(elementName, object, type) {
-    // callback function for children to update
-    // parent state containing the linkIds
-    this.setState(prevState => ({
-      [type]: {
-        ...prevState[type],
-        [elementName]: object
-      }
-    }));
-  }
-
-  updateNestedQuestionValue(linkId, elementName, object) {
-    this.setState(prevState => ({
-      values: {
-        ...prevState.values,
-        [linkId]: {
-          ...prevState.values[linkId],
-          [elementName]: object
-        }
-      }
-    }));
-  }
-
-  distributeContained(contained) {
-    // make a key:value map for the contained
-    // resources with their id so they can be
-    // referenced by #{id}
-    const containedResources = {};
-    contained.forEach(resource => {
-      containedResources[resource.id] = resource;
-    });
-    this.setState({ containedResources });
-  }
-
-  checkEnable(item) {
-    if (item.hasOwnProperty("enableWhen")) {
-      const enableCriteria = item.enableWhen;
-      const results = [];
-      // false if we need all behaviorType to be "all"
-      const checkAny =
-        enableCriteria.length > 1 ? item.enableBehavior === "any" : false;
-      enableCriteria.forEach(rule => {
-        const question = this.state.values[rule.question];
-        const answer = findValueByPrefix(rule, "answer");
-        if (
-          typeof question === "object" &&
-          typeof answer === "object" &&
-          answer !== null &&
-          question !== null
-        ) {
-          if (rule.answerQuantity) {
-            // at the very least the unit and value need to be the same
-            results.push(
-              this.evaluateOperator(
-                rule.operator,
-                question.value,
-                answer.value.toString()
-              ) &&
-                this.evaluateOperator(rule.operator, question.unit, answer.unit)
-            );
-          } else if (rule.answerCoding) {
-            let result = false;
-            if (Array.isArray(question)) {
-              question.forEach(e => {
-                result =
-                  result ||
-                  (e.code === answer.code && e.system === answer.system);
-              });
-            }
-            results.push(result);
-          }
-        } else {
-          results.push(this.evaluateOperator(rule.operator, question, answer));
-        }
-      });
-      return !checkAny
-        ? results.some(i => {
-            return i;
-          })
-        : results.every(i => {
-            return i;
-          });
-    } else {
-      // default to showing the item
-      return true;
-    }
-  }
-
-  prepopulate(items, links, responseItems) {
+  prepopulate(items, dynamic_choice_only) {
     items.map(item => {
       if (item.item) {
         // its a section/group
-        links.push(item.linkId);
 
-        let responseChildItems = null;
-
-        if (responseItems) {
-          let matchedItem = responseItems.filter(i => i.linkId == item.linkId);
-
-          if (matchedItem.length > 0) responseChildItems = matchedItem[0].item;
-        }
-
-        this.prepopulate(item.item, links, responseChildItems);
+        this.prepopulate(item.item, dynamic_choice_only);
       } else {
         // autofill fields
-        links.push(item.linkId);
-
-        if (responseItems) {
-          let matchedItem = responseItems.filter(i => i.linkId == item.linkId);
-
-          if (matchedItem.length > 0 && matchedItem[0].answer) {
-            let values = [];
-
-            matchedItem[0].answer.forEach(answer => {
-              let keys = Object.keys(answer);
-
-              if (keys.length > 0) {
-                let key = keys[0];
-                let value = null;
-
-                switch (key) {
-                  case "valueCoding":
-                    value = answer[key];
-                    break;
-
-                  case "valueDate":
-                    value = new cql.Date.parse(answer[key]);
-                    break;
-
-                  case "valueDateTime":
-                    value = new cql.DateTime.parse(answer[key]);
-                    break;
-
-                  case "valueString":
-                    value = answer[key];
-                    if (value.display != null) {
-                      value.valueTypeFinal = "valueString";
-                    }
-                    break;
-
-                  default:
-                    value = answer[key];
-                    break;
-                }
-
-                if (value != null) {
-                  values.push(value);
-                }
-              }
-            });
-
-            if (
-              values.length > 1 ||
-              item.type == "open-choice" ||
-              item.type == "choice"
-            ) {
-              this.updateQuestionValue(item.linkId, values, "values");
-            } else if (values.length == 1) {
-              this.updateQuestionValue(item.linkId, values[0], "values");
-            }
-          }
-        } else if (item.extension) {
+        if (item.extension && (!dynamic_choice_only || item.type == 'open-choice')) {
           item.extension.forEach(e => {
             let value;
             if (
@@ -298,237 +123,122 @@ export default class QuestionnaireForm extends Component {
               console.log(`Couldn't find library "${libraryName}"`);
             }
 
-            // This is to populated dynamic options (option items generated from CQL expression)
-            // R4 uses item.answerOption, STU3 uses item.option
-            if (prepopulationResult != null && prepopulationResult.length > 0 && item.type == 'open-choice') {
-              if (item.answerOption != null && item.answerOption.length == 0 ) {
-                prepopulationResult.forEach(v => {
-                  let system = ''
-                  if (v.system == 'http://snomed.info/sct') {
-                    system = 'SNOMED'
-                  } else if (v.system.startsWith('http://hl7.org/fhir/sid/icd-10')) {
-                    system = "ICD-10"
+            if (prepopulationResult != null) {
+              let initial = [];
+
+              switch (item.type) {
+                case 'boolean':
+                  initial.push({ valueBoolean: prepopulationResult });
+                  break;
+
+                case 'integer':
+                  initial.push({ valueInteger: prepopulationResult });
+                  break;
+
+                case 'date':
+                  initial.push({ valueDate: prepopulationResult });
+                  break;
+
+                case 'choice':
+                  initial.push(this.getDisplayCoding(prepopulationResult));
+                  break;
+
+                case 'open-choice':
+                  //This is to populated dynamic options (option items generated from CQL expression)
+                  //R4 uses item.answerOption, STU3 uses item.option
+                  let populateAnswerOptions = false;
+                  let populateOptions = false;
+
+                  if (item.answerOption != null && item.answerOption.length == 0) {
+                    populateAnswerOptions = true
+                  } else if (item.option != null && item.option.length == 0) {
+                    populateOptions = true
                   }
-                  item.answerOption.push({valueCoding: {
-                    code: v.code,
-                    system: v.system,
-                    display: v.display + ' - ' + system + ' - ' + v.code
-                  }})
-                })
-              } else if (item.option != null && item.option.length == 0 ) {
-                prepopulationResult.forEach(v => {
-                  item.option.push({valueCoding: v})
-                })
+
+                  prepopulationResult.forEach(v => {
+                    let displayCoding = this.getDisplayCoding(v)
+
+                    if (populateAnswerOptions) {
+                      item.answerOption.push({ valueCoding: displayCoding })
+                    } else if (populateOptions) {
+                      item.option.push({ valueCoding: displayCoding })
+                    }
+
+                    initial.push({ valueCoding: displayCoding });
+                  });
+                  break;
+
+                case 'quantity':
+                  initial.push({ valueQuantity: prepopulationResult });
+                  break;
+
+                default:
+                  initial.push({ valueString: prepopulationResult });
               }
+              item.initial = initial;
             }
-            this.updateQuestionValue(
-              item.linkId,
-              prepopulationResult,
-              "values"
-            );
           });
+        }
+
+        if (item.type == 'choice' || item.type == 'open-choice') {
+          // Add display field which is required by LHC form
+          if (item.answerOption) {
+            this.populateDisplay(item.answerOption)
+          } else if (item.option) {
+            this.populateDisplay(item.option)
+          }
         }
       }
     });
-    return links;
   }
 
-  isNotEmpty(value) {
-    return (
-      value !== undefined &&
-      value !== null &&
-      value !== "" &&
-      (Array.isArray(value) ? value.length > 0 : true)
-    );
-  }
-
-  renderComponent(item, level) {
-    const enable = this.checkEnable(item);
-    if (enable && this.state.turnOffValues.indexOf(item.linkId) < 0) {
-      switch (item.type) {
-        case "group":
-          return (
-            <Section
-              key={item.linkId}
-              componentRenderer={this.renderComponent}
-              updateCallback={this.updateQuestionValue}
-              item={item}
-              level={level}
-            />
-          );
-        case "string":
-          return (
-            <TextInput
-              key={item.linkId}
-              item={item}
-              updateCallback={this.updateQuestionValue}
-              retrieveCallback={this.retrieveValue}
-              inputType="text"
-              inputTypeDisplay="string"
-              valueType="valueString"
-            />
-          );
-
-        case "text":
-          return (
-            <TextInput
-              key={item.linkId}
-              item={item}
-              updateCallback={this.updateQuestionValue}
-              retrieveCallback={this.retrieveValue}
-              inputType="textArea"
-              inputTypeDisplay="text"
-              valueType="valueString"
-            />
-          );
-        case "choice":
-          return (
-            <ChoiceInput
-              key={item.linkId}
-              item={item}
-              updateCallback={this.updateQuestionValue}
-              retrieveCallback={this.retrieveValue}
-              containedResources={this.state.containedResources}
-              valueType="valueCoding"
-            />
-          );
-        case "boolean":
-          return (
-            <BooleanInput
-              key={item.linkId}
-              item={item}
-              updateCallback={this.updateQuestionValue}
-              retrieveCallback={this.retrieveValue}
-              valueType="valueBoolean"
-            />
-          );
-        case "decimal":
-          return (
-            <TextInput
-              key={item.linkId}
-              item={item}
-              updateCallback={this.updateQuestionValue}
-              retrieveCallback={this.retrieveValue}
-              inputType="number"
-              inputTypeDisplay="decimal"
-              valueType="valueDecimal"
-            />
-          );
-
-        case "url":
-          return (
-            <TextInput
-              key={item.linkId}
-              item={item}
-              updateCallback={this.updateQuestionValue}
-              retrieveCallback={this.retrieveValue}
-              inputType="url"
-              inputTypeDisplay="url"
-              valueType="valueUri"
-            />
-          );
-        case "date":
-          return (
-            <TextInput
-              key={item.linkId}
-              item={item}
-              updateCallback={this.updateQuestionValue}
-              retrieveCallback={this.retrieveValue}
-              inputType="date"
-              inputTypeDisplay="date"
-              valueType="valueDate"
-            />
-          );
-        case "time":
-          return (
-            <TextInput
-              key={item.linkId}
-              item={item}
-              updateCallback={this.updateQuestionValue}
-              retrieveCallback={this.retrieveValue}
-              inputType="time"
-              inputTypeDisplay="time"
-              valueType="valueTime"
-            />
-          );
-        case "dateTime":
-          return (
-            <TextInput
-              key={item.linkId}
-              item={item}
-              updateCallback={this.updateQuestionValue}
-              retrieveCallback={this.retrieveValue}
-              inputType="datetime-local"
-              inputTypeDisplay="datetime"
-              valueType="valueDateTime"
-            />
-          );
-
-        case "attachment":
-          return (
-            <TextInput
-              key={item.linkId}
-              item={item}
-              updateCallback={this.updateQuestionValue}
-              retrieveCallback={this.retrieveValue}
-              inputType="file"
-              inputTypeDisplay="attachment"
-              valueType="valueAttachment"
-            />
-          );
-
-        case "integer":
-          return (
-            <TextInput
-              key={item.linkId}
-              item={item}
-              updateCallback={this.updateQuestionValue}
-              retrieveCallback={this.retrieveValue}
-              inputType="number"
-              inputTypeDisplay="valueInteger"
-              valueType="integer"
-            />
-          );
-
-        case "quantity":
-          return (
-            <QuantityInput
-              key={item.linkId}
-              item={item}
-              updateCallback={this.updateNestedQuestionValue}
-              updateQuestionValue={this.updateQuestionValue}
-              retrieveCallback={this.retrieveValue}
-              inputTypeDisplay="quantity"
-              valueType="valueQuantity"
-            />
-          );
-
-        case "open-choice":
-          return (
-            <OpenChoice
-              key={item.linkId}
-              item={item}
-              updateCallback={this.updateQuestionValue}
-              retrieveCallback={this.retrieveValue}
-              inputTypeDisplay="open-choice"
-              containedResources={this.state.containedResources}
-              valueType={["valueCoding", "valueString"]}
-            />
-          );
-        default:
-          return (
-            <TextInput
-              key={item.linkId}
-              item={item}
-              updateCallback={this.updateQuestionValue}
-              retrieveCallback={this.retrieveValue}
-              inputType="text"
-              inputTypeDisplay="string"
-              valueType="valueString"
-            />
-          );
+  getDisplayCoding(code) {
+    if (typeof code == 'string') {
+      return {
+        code: code,
+        display: code
       }
     }
+
+    let system = '';
+    let displayText = v.display
+
+    if (v.system == 'http://snomed.info/sct') {
+      system = 'SNOMED'
+    } else if (v.system.startsWith('http://hl7.org/fhir/sid/icd-10')) {
+      system = "ICD-10"
+    }
+
+    if (system.length > 0) {
+      displayText = displayText + ' - ' + system + ' - ' + v.code
+    }
+
+    return {
+      code: v.code,
+      system: v.system,
+      display: displayText
+    }
+  }
+
+  populateDisplay(codingList) {
+    if (codingList) {
+      codingList.forEach(v => {
+        if (v.valueCoding && v.valueCoding.display == null) {
+          v.valueCoding.display = v.valueCoding.code
+        }
+      })
+    }
+  }
+
+  distributeContained(contained) {
+    // make a key:value map for the contained
+    // resources with their id so they can be
+    // referenced by #{id}
+    const containedResources = {};
+    contained.forEach(resource => {
+      containedResources[resource.id] = resource;
+    });
+    this.setState({ containedResources });
   }
 
   generateAndStoreDocumentReference(questionnaireResponse, dataBundle) {
@@ -604,12 +314,12 @@ export default class QuestionnaireForm extends Component {
       Http.open("POST", docReferenceUrl);
       Http.setRequestHeader("Content-Type", "application/fhir+json");
       Http.send(JSON.stringify(documentReference));
-      Http.onreadystatechange = function() {
+      Http.onreadystatechange = function () {
         if (this.readyState === XMLHttpRequest.DONE) {
           if (this.status == 201) {
             console.log(
               "Successfully stored DocumentReference ID: " +
-                JSON.parse(this.response).id
+              JSON.parse(this.response).id
             );
           } else {
             console.log(
@@ -625,141 +335,25 @@ export default class QuestionnaireForm extends Component {
   // create the questionnaire response based on the current state
   outputResponse(status) {
     console.log(this.state.sectionLinks);
-    const today = new Date();
-    const dd = String(today.getDate()).padStart(2, "0");
-    const mm = String(today.getMonth() + 1).padStart(2, "0"); //January is 0!
-    const yyyy = today.getFullYear();
-    const authored = `${yyyy}-${mm}-${dd}`;
-    // TODO: Update Questionnaire.id and QuestionnaireResponse.id with real id from server
-    const response = {
-      resourceType: "QuestionnaireResponse",
-      id: "9964",
-      authored: authored,
-      status: status,
-      item: [],
-      author: {
-        reference:
-          "Practitioner/" +
-          this.props.cqlPrepoulationResults.BasicPractitionerInfo
-            .OrderingProvider.id.value
-      },
-      questionnaire: this.props.qform.id
+
+    var qr = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', 'R4');
+    qr.status = status;
+    qr.author = {
+      reference:
+        "Practitioner/" +
+        this.props.cqlPrepoulationResults.BasicPractitionerInfo
+          .OrderingProvider.id.value
     };
 
-    let currentItem = response.item;
-    let currentLevel = 0;
-    let currentValues = [];
-    const chain = { 0: { currentItem, currentValues } };
-    this.state.orderedLinks.map(item => {
-      const itemType = this.state.itemTypes[item];
+    qr.questionnaire = this.props.qform.id;
 
-      if (Object.keys(this.state.sectionLinks).indexOf(item) >= 0) {
-        currentValues = currentValues.filter(e => {
-          return e !== item;
-        });
-        if (chain[currentLevel + 1]) {
-          chain[currentLevel + 1].currentValues = currentValues;
-        }
-        const section = this.state.sectionLinks[item];
-        currentValues = section.values;
-        // new section
-        currentItem = chain[section.level].currentItem;
-        const newItem = {
-          linkId: item,
-          text: section.text,
-          item: []
-        };
-        currentItem.push(newItem);
-        currentItem = newItem.item;
-        currentLevel = section.level;
 
-        // filter out this section
-        chain[section.level + 1] = { currentItem, currentValues };
-      } else {
-        // not a new section, so it's an item
-        if (currentValues.indexOf(item) < 0 && itemType && itemType.enabled) {
-          // item not in this section, drop a level
-          const tempLevel = currentLevel;
-
-          while (
-            chain[currentLevel].currentValues.length === 0 &&
-            currentLevel > 0
-          ) {
-            // keep dropping levels until we find an unfinished section
-            currentLevel--;
-          }
-
-          // check off current item
-          chain[tempLevel].currentValues = currentValues.filter(e => {
-            return e !== item;
-          });
-
-          currentValues = chain[currentLevel].currentValues;
-          currentItem = chain[currentLevel].currentItem;
-        } else {
-          // item is in this section, check it off
-
-          currentValues = currentValues.filter(e => {
-            return e !== item;
-          });
-          chain[currentLevel + 1].currentValues = currentValues;
-        }
-      }
-
-      if (
-        itemType &&
-        (itemType.enabled || this.state.turnOffValues.indexOf(item) >= 0)
-      ) {
-        const answerItem = {
-          linkId: item,
-          text: itemType.text,
-          answer: []
-        };
-        switch (itemType.valueType) {
-          case "valueAttachment":
-            //TODO
-            break;
-          case "valueQuantity":
-            const quantity = this.state.values[item];
-            if (quantity && quantity.comparator === "=") {
-              delete quantity.comparator;
-            }
-            answerItem.answer.push({ [itemType.valueType]: quantity });
-            break;
-          case "valueDateTime":
-          case "valueDate":
-            const date = this.state.values[item];
-            if (date) {
-              answerItem.answer.push({ [itemType.valueType]: date.toString() });
-            }
-            break;
-          default:
-            const answer = this.state.values[item];
-            if (Array.isArray(answer)) {
-              answer.forEach(e => {
-                // possible for an array to contain multiple types
-                let finalType;
-                if (e.valueTypeFinal) {
-                  finalType = e.valueTypeFinal;
-                  delete e.valueTypeFinal;
-                } else {
-                  finalType = itemType.valueType;
-                }
-                answerItem.answer.push({ [finalType]: e });
-              });
-            } else {
-              answerItem.answer.push({ [itemType.valueType]: answer });
-            }
-        }
-        // FHIR fields are not allowed to be empty or null, so we must prune
-        if (this.isEmptyAnswer(answerItem.answer)) {
-          // console.log("Removing empty answer: ", answerItem);
-          delete answerItem.answer;
-        }
-        currentItem.push(answerItem);
-      }
-    });
-    console.log(response);
+    if (status == "in-progress") {
+      localStorage.setItem(qr.questionnaire, JSON.stringify(qr));
+      alert("Partial QuestionnaireResponse saved");
+      console.log("Partial QuestionnaireResponse saved.");
+      return;
+    }
 
     // For HIMSS Demo with Mettle always use GCS as payor info
     const insurer = {
@@ -812,13 +406,6 @@ export default class QuestionnaireForm extends Component {
       }
     };
 
-    if (status == "in-progress") {
-      localStorage.setItem(response.questionnaire, JSON.stringify(response));
-      alert("Partial QuestionnaireResponse saved");
-      console.log("Partial QuestionnaireResponse saved.");
-      return;
-    }
-
     const priorAuthBundle = JSON.parse(JSON.stringify(this.props.bundle));
     priorAuthBundle.entry.unshift({ resource: managingOrg });
     priorAuthBundle.entry.unshift({ resource: facility });
@@ -827,7 +414,7 @@ export default class QuestionnaireForm extends Component {
     priorAuthBundle.entry.unshift({ resource: response });
     console.log(priorAuthBundle);
 
-    this.generateAndStoreDocumentReference(response, priorAuthBundle);
+    this.generateAndStoreDocumentReference(qr, priorAuthBundle);
 
     // if (this.props.priorAuthReq) {
     const priorAuthClaim = {
@@ -939,7 +526,7 @@ export default class QuestionnaireForm extends Component {
       ]
     };
     var sequence = 1;
-    priorAuthBundle.entry.forEach(function(entry, index) {
+    priorAuthBundle.entry.forEach(function (entry, index) {
       if (entry.resource.resourceType == "Condition") {
         priorAuthClaim.diagnosis.push({
           sequence: sequence++,
@@ -956,7 +543,7 @@ export default class QuestionnaireForm extends Component {
     // } else {
     //   alert("NOT submitting for prior auth");
     // }
-    localStorage.removeItem(response.questionnaire);
+    localStorage.removeItem(qr.questionnaire);
   }
 
   isEmptyAnswer(answer) {
@@ -979,112 +566,22 @@ export default class QuestionnaireForm extends Component {
   }
 
   makeReference(bundle, resourceType) {
-    var entry = bundle.entry.find(function(entry) {
+    var entry = bundle.entry.find(function (entry) {
       return entry.resource.resourceType == resourceType;
     });
     return resourceType + "/" + entry.resource.id;
   }
 
-  removeFilledFields() {
-    if (this.state.turnOffValues.length > 0) {
-      this.setState({ turnOffValues: [] });
-    } else {
-      const returnArray = [];
-      this.state.orderedLinks.forEach(e => {
-        if (
-          this.isNotEmpty(this.state.values[e]) &&
-          this.state.itemTypes[e] &&
-          this.state.itemTypes[e].enabled
-        ) {
-          returnArray.push(e);
-        }
-      });
-      this.setState({ turnOffValues: returnArray });
-    }
-  }
-
   render() {
     return (
       <div>
-        <div className="floating-tools">
-          <p className="filter-filled">
-            filter:{" "}
-            <input
-              type="checkbox"
-              onClick={() => {
-                this.removeFilledFields();
-              }}
-            ></input>
-          </p>
-        </div>
-        <h2 className="document-header">{this.props.qform.title}</h2>
-
-        <div className="sidenav">
-          {this.state.orderedLinks.map(e => {
-            if (Object.keys(this.state.sectionLinks).indexOf(e) < 0) {
-              const value = this.state.values[e];
-              let extraClass;
-              let indicator;
-              if (this.state.itemTypes[e] && this.state.itemTypes[e].enabled) {
-                extraClass = this.isNotEmpty(value) ? "sidenav-active" : "";
-                indicator = true;
-              } else {
-                if (
-                  this.isNotEmpty(value) &&
-                  this.state.turnOffValues.indexOf(e) > -1
-                ) {
-                  extraClass = "sidenav-manually-disabled";
-                } else if (value) {
-                  extraClass = "sidenav-disabled filled";
-                } else {
-                  extraClass = "sidenav-disabled";
-                }
-              }
-              return (
-                <div
-                  key={e}
-                  className={"sidenav-box " + extraClass}
-                  onClick={() => {
-                    indicator
-                      ? window.scrollTo(
-                          0,
-                          this.state.itemTypes[e].ref.current.previousSibling
-                            .offsetTop
-                        )
-                      : null;
-                  }}
-                >
-                  {e}
-                </div>
-              );
-            }
-          })}
-          <div className="sidenav-box "></div>
-        </div>
-        <div className="wrapper">
-          {this.state.items.map(item => {
-            return this.renderComponent(item, 0);
-          })}
+        <div id="formContainer">
         </div>
         <div className="submit-button-panel">
-          <button
-            className="btn submit-button"
-            onClick={this.outputResponse.bind(this, "in-progress")}
-          >
+          <button className="btn submit-button" onClick={this.outputResponse.bind(this, "in-progress")}>
             Save
           </button>
-          {/* {this.props.priorAuthReq && (
-            <button
-              className="btn submit-button"
-              onClick={this.outputResponse.bind(this, "completed")}
-            >
-              Next
-            </button>
-          )} */}
-          <button
-            className="btn submit-button"
-            onClick={this.outputResponse.bind(this, "completed")}
-          >
+          <button className="btn submit-button" onClick={this.outputResponse.bind(this, "completed")}>
             Next
           </button>
         </div>
