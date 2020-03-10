@@ -192,11 +192,11 @@ export default class QuestionnaireForm extends Component {
     });
   }
 
-  getDisplayCoding(code) {
-    if (typeof code == 'string') {
+  getDisplayCoding(v) {
+    if (typeof v == 'string') {
       return {
-        code: code,
-        display: code
+        code: v,
+        display: v
       }
     }
 
