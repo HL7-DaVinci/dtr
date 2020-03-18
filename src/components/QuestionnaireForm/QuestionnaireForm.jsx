@@ -38,11 +38,18 @@ export default class QuestionnaireForm extends Component {
       if (result) {
         this.state.savedResponse = JSON.parse(partialResponse);
         dynamic_choice_only = true;
+      } else {
+        localStorage.removeItem(this.props.qform.id);
       }
-
-      localStorage.removeItem(this.props.qform.id);
     }
 
+
+      // If not using saved QuestionnaireResponse, create a new one
+      let newResponse  = {
+        resourceType: 'QuestionnaireResponse',
+        status: 'draft',
+        item: []
+      }
 
     if (this.props.qform.contained) {
       this.distributeContained(this.props.qform.contained);
@@ -50,11 +57,22 @@ export default class QuestionnaireForm extends Component {
 
     this.populateDisplay()
     const items = this.props.qform.item;
-    this.prepopulate(items, dynamic_choice_only)
+    this.prepopulate(items, newResponse.item, dynamic_choice_only)
+
+    if (!dynamic_choice_only) {
+      this.state.savedResponse = newResponse
+    }
   }
 
   componentDidMount() {
-    var lform = window.LForms.FHIR.R4.SDC.convertQuestionnaireToLForms(this.props.qform);
+    let lform = null
+    
+    if (this.props.fhirVersion == 'STU3') {
+      lform = window.LForms.FHIR.STU3.SDC.convertQuestionnaireToLForms(this.props.qform);
+    } else {
+      lform = window.LForms.FHIR.R4.SDC.convertQuestionnaireToLForms(this.props.qform);
+    }
+
     lform.templateOptions = {
       showFormHeader: false,
       showColumnHeader: false,
@@ -69,15 +87,25 @@ export default class QuestionnaireForm extends Component {
     window.LForms.Util.addFormToPage(lform, "formContainer")
   }
 
-  prepopulate(items, dynamic_choice_only) {
+  prepopulate(items, response_items, dynamic_choice_only) {
     items.map(item => {
+
+        let response_item = {
+          linkId: item.linkId,
+        };
+
+      if (!dynamic_choice_only) {
+        response_items.push(response_item);
+      }
+      
       if (item.item) {
         // its a section/group
-
-        this.prepopulate(item.item, dynamic_choice_only);
+        response_item.item = []
+        this.prepopulate(item.item, response_item.item, dynamic_choice_only);
       } else {
         // autofill fields
         if (item.extension && (!dynamic_choice_only || item.type == 'open-choice')) {
+          response_item.answer=[]
           item.extension.forEach(e => {
             let value;
             if (
@@ -123,24 +151,24 @@ export default class QuestionnaireForm extends Component {
               console.log(`Couldn't find library "${libraryName}"`);
             }
 
-            if (prepopulationResult != null) {
-              let initial = [];
-
+            if (prepopulationResult != null && !dynamic_choice_only) {
+ 
               switch (item.type) {
                 case 'boolean':
-                  initial.push({ valueBoolean: prepopulationResult });
+                  response_item.answer.push({ valueBoolean: prepopulationResult });
                   break;
 
                 case 'integer':
-                  initial.push({ valueInteger: prepopulationResult });
+                  response_item.answer.push({ valueInteger: prepopulationResult });
                   break;
 
                 case 'date':
-                  initial.push({ valueDate: prepopulationResult });
+                  response_item.text = "Date of Birth:"
+                  response_item.answer.push({ valueDate: prepopulationResult });
                   break;
 
                 case 'choice':
-                  initial.push(this.getDisplayCoding(prepopulationResult));
+                  response_item.answer.push({valueCoding: this.getDisplayCoding(prepopulationResult, item)});
                   break;
 
                 case 'open-choice':
@@ -164,18 +192,17 @@ export default class QuestionnaireForm extends Component {
                       item.option.push({ valueCoding: displayCoding })
                     }
 
-                    initial.push({ valueCoding: displayCoding });
+                    response_item.answer.push({ valueCoding: displayCoding });
                   });
                   break;
 
                 case 'quantity':
-                  initial.push({ valueQuantity: prepopulationResult });
+                  response_item.answer.push({ valueQuantity: prepopulationResult });
                   break;
 
                 default:
-                  initial.push({ valueString: prepopulationResult });
+                  response_item.answer.push({ valueString: prepopulationResult });
               }
-              item.initial = initial;
             }
           });
         }
@@ -192,11 +219,22 @@ export default class QuestionnaireForm extends Component {
     });
   }
 
-  getDisplayCoding(v) {
+  getDisplayCoding(v, item) {
     if (typeof v == 'string') {
-      return {
-        code: v,
-        display: v
+      let selectedCode;
+      if (item.answerOption) {
+        selectedCode = item.answerOption.find(o => o.valueCoding.code == v)
+      } else if (item.option) {
+        selectedCode = item.option.find(o => o.valueCoding.code == v)
+      }
+
+      if (selectedCode) {
+        return selectedCode.valueCoding
+      } else {
+        return {
+          code: v,
+          display: v
+        }
       }
     }
 
