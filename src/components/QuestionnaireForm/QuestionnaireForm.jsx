@@ -64,7 +64,7 @@ export default class QuestionnaireForm extends Component {
     }
   }
 
-  componentDidMount() {
+  componentDidMount() {   
     let lform = LForms.Util.convertFHIRQuestionnaireToLForms(this.props.qform, this.props.fhirVersion);
 
     lform.templateOptions = {
@@ -74,13 +74,11 @@ export default class QuestionnaireForm extends Component {
       hideFormControls: true
     };
 
-    let mergedLfData = lform;
-
     if (this.state.savedResponse) {
-      mergedLfData = LForms.Util.mergeFHIRDataIntoLForms("QuestionnaireResponse", this.state.savedResponse, lform, this.props.fhirVersion)
+      lform = LForms.Util.mergeFHIRDataIntoLForms("QuestionnaireResponse", this.state.savedResponse, lform, this.props.fhirVersion)
     }    
 
-    LForms.Util.addFormToPage(mergedLfData, "formContainer")
+    LForms.Util.addFormToPage(lform, "formContainer")
   }
 
   prepopulate(items, response_items, dynamic_choice_only) {
@@ -164,12 +162,9 @@ export default class QuestionnaireForm extends Component {
                   break;
 
                 case 'date':
-                  if (this.props.fhirVersion === "STU3") {
-                    item.initialDate = prepopulationResult;
-                  } else {
-                    initial.push({valueDate: prepopulationResult});  
-                  }
-                  response_item.answer.push({valueDate: prepopulationResult});
+                  // LHC form could not correctly parse Date object.
+                  // Have to convert Date object to string. 
+                  response_item.answer.push({valueDate: prepopulationResult.toString()});
                   break;
 
                 case 'choice':
@@ -418,10 +413,6 @@ export default class QuestionnaireForm extends Component {
 
     qr.questionnaire = this.props.qform.id;
 
-    // This is a bug in LHC control. The prepopulated date is not saved
-    this.checkMissingDate(this.props.qform.item, qr.item);
-
-
     if (status == "in-progress") {
       localStorage.setItem(qr.questionnaire, JSON.stringify(qr));
       alert("Partial QuestionnaireResponse saved");
@@ -618,22 +609,6 @@ export default class QuestionnaireForm extends Component {
     //   alert("NOT submitting for prior auth");
     // }
     localStorage.removeItem(qr.questionnaire);
-  }
-
-  checkMissingDate(questionItems, responseItems) {
-    responseItems.forEach(responseItem => {
-      const questionItem = questionItems.find(i => i.linkId == responseItem.linkId)
-      if (responseItem.item) {
-        this.checkMissingDate(questionItem.item, responseItem.item);
-      } else if (questionItem.type === 'date' && !responseItem.answer) {
-          if (this.props.fhirVersion === 'STU3' && questionItem.initialDate) {
-          responseItem.answer = [];
-          responseItem.answer.push({valueDate: initialDate});
-          } else if (questionItem.initial && questionItem.initial.length > 0) {
-            responseItem.answer = questionItem.initial;
-          } 
-        }
-    });
   }
 
   isEmptyAnswer(answer) {
