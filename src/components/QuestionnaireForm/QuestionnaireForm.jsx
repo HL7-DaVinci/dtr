@@ -36,7 +36,8 @@ export default class QuestionnaireForm extends Component {
       );
 
       if (result) {
-        this.state.savedResponse = JSON.parse(partialResponse);
+        //this.state.savedResponse = JSON.parse(partialResponse);
+        this.setState({savedResponse: JSON.parse(partialResponse)})
         dynamic_choice_only = true;
       } else {
         localStorage.removeItem(this.props.qform.id);
@@ -64,13 +65,7 @@ export default class QuestionnaireForm extends Component {
   }
 
   componentDidMount() {
-    let lform = null
-    
-    if (this.props.fhirVersion == 'STU3') {
-      lform = window.LForms.FHIR.STU3.SDC.convertQuestionnaireToLForms(this.props.qform);
-    } else {
-      lform = window.LForms.FHIR.R4.SDC.convertQuestionnaireToLForms(this.props.qform);
-    }
+    let lform = LForms.Util.convertFHIRQuestionnaireToLForms(this.props.qform, this.props.fhirVersion);
 
     lform.templateOptions = {
       showFormHeader: false,
@@ -79,11 +74,13 @@ export default class QuestionnaireForm extends Component {
       hideFormControls: true
     };
 
-    if (this.state.savedResponse) {
-      lform = LForms.Util.mergeFHIRDataIntoLForms("QuestionnaireResponse", this.state.savedResponse, lform, "R4")
-    }
+    let mergedLfData = lform;
 
-    window.LForms.Util.addFormToPage(lform, "formContainer")
+    if (this.state.savedResponse) {
+      mergedLfData = LForms.Util.mergeFHIRDataIntoLForms("QuestionnaireResponse", this.state.savedResponse, lform, this.props.fhirVersion)
+    }    
+
+    LForms.Util.addFormToPage(mergedLfData, "formContainer")
   }
 
   prepopulate(items, response_items, dynamic_choice_only) {
@@ -312,7 +309,7 @@ export default class QuestionnaireForm extends Component {
     contained.forEach(resource => {
       containedResources[resource.id] = resource;
     });
-    this.setState({ containedResources });
+    this.state.containedResources = containedResources;
   }
 
   generateAndStoreDocumentReference(questionnaireResponse, dataBundle) {
