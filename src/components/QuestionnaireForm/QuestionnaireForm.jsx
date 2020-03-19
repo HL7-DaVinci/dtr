@@ -55,7 +55,6 @@ export default class QuestionnaireForm extends Component {
       this.distributeContained(this.props.qform.contained);
     }
 
-    this.populateDisplay()
     const items = this.props.qform.item;
     this.prepopulate(items, newResponse.item, dynamic_choice_only)
 
@@ -103,6 +102,10 @@ export default class QuestionnaireForm extends Component {
         response_item.item = []
         this.prepopulate(item.item, response_item.item, dynamic_choice_only);
       } else {
+        if (item.type === 'choice' || item.type === 'open-choice') {
+         this.populateOptions(item)
+        }
+
         // autofill fields
         if (item.extension && (!dynamic_choice_only || item.type == 'open-choice')) {
           response_item.answer=[]
@@ -152,7 +155,8 @@ export default class QuestionnaireForm extends Component {
             }
 
             if (prepopulationResult != null && !dynamic_choice_only) {
- 
+              let initial = []
+
               switch (item.type) {
                 case 'boolean':
                   response_item.answer.push({ valueBoolean: prepopulationResult });
@@ -163,8 +167,12 @@ export default class QuestionnaireForm extends Component {
                   break;
 
                 case 'date':
-                  response_item.text = "Date of Birth:"
-                  response_item.answer.push({ valueDate: prepopulationResult });
+                  if (this.props.fhirVersion === "STU3") {
+                    item.initialDate = prepopulationResult;
+                  } else {
+                    initial.push({valueDate: prepopulationResult});  
+                  }
+                  response_item.answer.push({valueDate: prepopulationResult});
                   break;
 
                 case 'choice':
@@ -203,18 +211,15 @@ export default class QuestionnaireForm extends Component {
                 default:
                   response_item.answer.push({ valueString: prepopulationResult });
               }
+
+              if (initial.length > 0) {
+                item.initial = initial;
+              }
             }
           });
         }
 
-        if (item.type == 'choice' || item.type == 'open-choice') {
-          // Add display field which is required by LHC form
-          if (item.answerOption) {
-            this.populateDisplay(item.answerOption)
-          } else if (item.option) {
-            this.populateDisplay(item.option)
-          }
-        }
+
       }
     });
   }
@@ -258,13 +263,44 @@ export default class QuestionnaireForm extends Component {
     }
   }
 
-  populateDisplay(codingList) {
+  populateMissingDisplay(codingList) {
     if (codingList) {
       codingList.forEach(v => {
-        if (v.valueCoding && v.valueCoding.display == null) {
+        if (v.valueCoding && !v.valueCoding.display) {
           v.valueCoding.display = v.valueCoding.code
         }
       })
+    }
+  }
+
+  populateOptions(item) {
+    const answerOptionsReference = item.answerValueSet || (item.options || {}).reference
+
+    if(typeof answerOptionsReference === "string") {
+      // answerValueSet
+      if(answerOptionsReference.startsWith("#")) {
+          // contained resource reference
+          const resource = this.state.containedResources[answerOptionsReference.substr(1,answerOptionsReference.length)];
+          const values = resource.compose.include;
+          let choice = []
+          values.forEach((element)=>{
+              element.concept.forEach((concept)=>{
+                choice.push({valueCoding: concept})
+              });
+          });
+
+          if (this.state.fhirVersion === 'STU3') {
+            item.option = choice
+          } else {
+            item.answerOption = choice
+          }
+      }
+    }
+
+    if (this.props.fhirVersion === 'STU3') {
+      this.populateMissingDisplay(item.option)
+    } else {
+      this.populateMissingDisplay(item.answerOption)
     }
   }
 
@@ -384,6 +420,9 @@ export default class QuestionnaireForm extends Component {
     };
 
     qr.questionnaire = this.props.qform.id;
+
+    // This is a bug in LHC control. The prepopulated date is not saved
+    this.checkMissingDate(this.props.qform.item, qr.item);
 
 
     if (status == "in-progress") {
@@ -582,6 +621,22 @@ export default class QuestionnaireForm extends Component {
     //   alert("NOT submitting for prior auth");
     // }
     localStorage.removeItem(qr.questionnaire);
+  }
+
+  checkMissingDate(questionItems, responseItems) {
+    responseItems.forEach(responseItem => {
+      const questionItem = questionItems.find(i => i.linkId == responseItem.linkId)
+      if (responseItem.item) {
+        this.checkMissingDate(questionItem.item, responseItem.item);
+      } else if (questionItem.type === 'date' && !responseItem.answer) {
+          if (this.props.fhirVersion === 'STU3' && questionItem.initialDate) {
+          responseItem.answer = [];
+          responseItem.answer.push({valueDate: initialDate});
+          } else if (questionItem.initial && questionItem.initial.length > 0) {
+            responseItem.answer = questionItem.initial;
+          } 
+        }
+    });
   }
 
   isEmptyAnswer(answer) {
