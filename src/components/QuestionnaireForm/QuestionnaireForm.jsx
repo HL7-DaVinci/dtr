@@ -286,7 +286,7 @@ export default class QuestionnaireForm extends Component {
               });
           });
 
-          if (this.state.fhirVersion === 'STU3') {
+          if (this.props.fhirVersion === 'STU3') {
             item.option = choice
           } else {
             item.answerOption = choice
