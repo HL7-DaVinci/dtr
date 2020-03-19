@@ -1,6 +1,7 @@
 import "isomorphic-fetch";
 
-function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, filepath, consoleLog) {
+function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVersion, smart, consoleLog) {
+
   return new Promise(function(resolve, reject) {
     function handleFetchErrors(response) {
       if (!response.ok) {
@@ -12,7 +13,7 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, filepath, consol
       return response;
     }
 
-    const fetchedUris = new Set();
+    const fetchedUrls = new Set();
     let pendingFetches = 0;
 
     const retVal = {
@@ -28,31 +29,24 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, filepath, consol
       else reject("Failed to fetch all artifacts.");
     }
 
-    var fhirResources = false;
-    if (filepath == null || filepath == "" || filepath == "_") {
-      console.log("fhir resources mode");
-      fhirResources = true;
-    }
-
     //fetch questionnaire and all elms
-    var questionnaireUrl = fhirUriPrefix+encodeURIComponent(questionnaireUri);
-    if (!fhirResources) {
-      questionnaireUrl = filepath + "/" + stripFilenameFromURI(questionnaireUri) + ".json";
-    }
+    const questionnaireUrl = buildFhirUrl(questionnaireReference);
 
     pendingFetches += 1;
-    consoleLog("fetching questionairre and elms", "infoClass");
+    consoleLog("fetching questionnaire and elms", "infoClass");
     consoleLog(questionnaireUrl, "infoClass");
     fetch(questionnaireUrl).then(handleFetchErrors).then(r => r.json())
     .then(questionnaire => {
       consoleLog("fetched questionnaire successfully","infoClass");
       // consoleLog(JSON.stringify(questionnaire),"infoClass");
       retVal.questionnaire = questionnaire;
-      fetchedUris.add(questionnaireUri);
+      fetchedUrls.add(questionnaireUrl);
       // grab all main elm urls
-      const mainElmUris = questionnaire.extension.filter(ext => ext.url == "http://hl7.org/fhir/StructureDefinition/cqif-library").map(lib => lib.valueReference.reference);
-      mainElmUris.forEach((mainElmUri) => {
-        fetchElm(mainElmUri, true);
+      const mainElmReferences = questionnaire.extension.filter(ext => ext.url == "http://hl7.org/fhir/StructureDefinition/cqif-library").map(lib => lib.valueReference.reference);
+      
+      mainElmReferences.forEach((mainElmReference) => {
+        const mainElmUrl = buildFhirUrl(mainElmReference);
+        fetchElm(mainElmUrl, true);
       });
       pendingFetches -= 1;
       consoleLog("fetched elms", "infoClass");
@@ -63,31 +57,14 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, filepath, consol
       reject(err);
     });
 
-    // fetch device request
-    // if (deviceRequestIdOrUrl.includes("DeviceRequest/")){
-    //   deviceRequestIdOrUrl.indexOf("DeviceRequest/");
-    //   deviceRequestIdOrUrl = deviceRequestIdOrUrl.substr(deviceRequestIdOrUrl.indexOf("DeviceRequest/") + 14)
-    // }
-    // pendingFetches += 1;
-    // smart.patient.api.read({type: "DeviceRequest", id: deviceRequestIdOrUrl})
-    // .then(response => {
-    //   pendingFetches -= 1;
-    //   if (response.status !== "success") reject("Failed ot fetch device request.");
-    //   retVal.deviceRequest = response.data;
-    //   resolveIfDone()
-    // }, err => reject(err))
-
-    function fetchElm(libraryUri, isMain = false){
-      if (libraryUri in fetchedUris) return;
-      let libraryUrl = fhirUriPrefix+encodeURIComponent(libraryUri);
-      if (!fhirResources) {
-        libraryUrl = filepath + "/" + stripFilenameFromURI(libraryUri) + ".json";
-      }
+    function fetchElm(libraryUrl, isMain = false){
+      if (libraryUrl in fetchedUrls) return;
 
       pendingFetches += 1;
+      consoleLog("about to fetchElm:", libraryUrl);
       fetch(libraryUrl).then(handleFetchErrors).then(r => r.json())
       .then(libraryResource => {
-        fetchedUris.add(libraryUri);
+        fetchedUrls.add(libraryUrl);
         fetchRelatedElms(libraryResource);
         fetchRequiredValueSets(libraryResource);
         fetchElmFile(libraryResource, isMain);
@@ -103,8 +80,11 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, filepath, consol
 
     function fetchRelatedElms(libraryResource){
       if (libraryResource.relatedArtifact == null) return;
-      const libUris = libraryResource.relatedArtifact.filter(a => a.type == "depends-on").map(a => a.resource.reference);
-      libUris.forEach(libUri => fetchElm(libUri));
+      const libReferences = libraryResource.relatedArtifact.filter(a => a.type == "depends-on").map(a => a.resource.reference);
+      libReferences.forEach(libReference => {
+        const libUrl = buildFhirUrl(libReference);
+        fetchElm(libUrl);
+      });
     }
 
     // Fetch any valuesets required for this library
@@ -113,25 +93,23 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, filepath, consol
       // look at the dataRequirement attribute in the library if it exists. This explains the resources it requires
       // for evaluation and one or more code filters that may be used.
       // TODO: allow this to look at multiple code filters.
-      const dataRequirementsWithValuesets = libraryResource.dataRequirement.filter(dr => dr.codeFilter != null && dr.codeFilter[0].valueSetReference != null);
-      const valueSetUris = dataRequirementsWithValuesets.map(dr => dr.codeFilter[0].valueSetReference.reference);
-      valueSetUris.forEach(valueSetUri => fetchValueSet(valueSetUri));
+      const dataRequirementsWithValuesets = libraryResource.dataRequirement.filter(dr => dr.codeFilter != null && dr.codeFilter[0].valueSet != null);
+      const valueSetUrls = dataRequirementsWithValuesets.map(dr => dr.codeFilter[0].valueSet);
+      valueSetUrls.forEach(valueSetUrl => {
+        // assume that the valueSets are full URLs
+        //TODO: handle valuesets that are URN OIDs pointing to a ValueSet repository
+        fetchValueSet(valueSetUrl);
+      });
     }
 
     // Fetch a FHIR value set
-    function fetchValueSet(valueSetUri) {
-      if (valueSetUri in fetchedUris) return;
-      let valueSetUrl = fhirUriPrefix+encodeURIComponent(valueSetUri);
-      if (!fhirResources) {
-        valueSetUrl = filepath + "/" + stripFilenameFromURI(valueSetUri) + ".json";
-      }
-
+    function fetchValueSet(valueSetUrl) {
       pendingFetches += 1;
-      console.log("about to fetchValueSet:",valueSetUrl);
+      consoleLog("about to fetchValueSet:", valueSetUrl);
       fetch(valueSetUrl).then(handleFetchErrors).then(r => r.json())
       .then(valueSet => {
         pendingFetches -= 1;
-        fetchedUris.add(valueSetUri);
+        fetchedUrls.add(valueSetUrl);
         retVal.valueSets.push(valueSet);
         resolveIfDone();
       })
@@ -143,14 +121,10 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, filepath, consol
 
     function fetchElmFile(libraryResource, isMain){
       const elmUri = libraryResource.content.filter(c => c.contentType == "application/elm+json")[0].url;
-      if (elmUri in fetchedUris) return;
-      let elmUrl = fhirUriPrefix+encodeURIComponent(elmUri);
-      if (!fhirResources) {
-        elmUrl = filepath + "/" + stripFilenameFromURI(elmUri);
-      }
+      let elmUrl = buildFileUrl(elmUri);
 
       pendingFetches += 1;
-      console.log("about to fetchElmFile:",elmUrl);
+      consoleLog("about to fetchElmFile:", elmUrl);
       fetch(elmUrl).then(handleFetchErrors).then(r => r.json())
       .then(elm => {
         if ( elm.library.annotation ) {
@@ -163,7 +137,7 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, filepath, consol
           }
         }
         pendingFetches -= 1;
-        fetchedUris.add(elmUri);
+        fetchedUrls.add(elmUri);
         if (isMain) {
           retVal.mainLibraryElms.push(elm);
         } else {
@@ -176,12 +150,15 @@ function fetchArtifacts(fhirUriPrefix, questionnaireUri, smart, filepath, consol
         reject(err);
       });
     }
-  });
-}
 
-function stripFilenameFromURI(uri) {
-  console.log("stripFilenameFromURI (for fetching): " + uri);
-  return uri.substr(uri.lastIndexOf(":")+1);
+    function buildFileUrl(file) {
+      return filePrefix + file;
+    }
+
+    function buildFhirUrl(reference) {
+      return fhirPrefix + fhirVersion + "/" + reference;
+    }
+  });
 }
 
 export default fetchArtifacts;
