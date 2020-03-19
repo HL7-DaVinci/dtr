@@ -103,7 +103,7 @@ export default class QuestionnaireForm extends Component {
         this.prepopulate(item.item, response_item.item, dynamic_choice_only);
       } else {
         if (item.type === 'choice' || item.type === 'open-choice') {
-         this.populateOptions(item)
+         this.populateChoices(item)
         }
 
         // autofill fields
@@ -192,7 +192,7 @@ export default class QuestionnaireForm extends Component {
                   }
 
                   prepopulationResult.forEach(v => {
-                    let displayCoding = this.getDisplayCoding(v)
+                    let displayCoding = this.getDisplayCoding(v, item)
 
                     if (populateAnswerOptions) {
                       item.answerOption.push({ valueCoding: displayCoding })
@@ -273,7 +273,7 @@ export default class QuestionnaireForm extends Component {
     }
   }
 
-  populateOptions(item) {
+  populateChoices(item) {
     const answerOptionsReference = item.answerValueSet || (item.options || {}).reference
 
     if(typeof answerOptionsReference === "string") {
