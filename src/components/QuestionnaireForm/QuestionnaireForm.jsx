@@ -248,7 +248,7 @@ export default class QuestionnaireForm extends Component {
       displayText = displayText + ' - ' + system + ' - ' + v.code
 
       if(v.type && v.type === 'encounter' && v.periodStart) {
-        displayText = v.display + ' on ' + v.periodStart
+        displayText = 'Encounter - ' + v.display + ' on ' + v.periodStart
       }
     }
 
