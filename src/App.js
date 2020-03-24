@@ -283,6 +283,7 @@ class App extends Component {
               priorAuthReq={this.props.priorAuthReq === "true" ? true : false}
               setPriorAuthClaim={this.setPriorAuthClaim.bind(this)}
               fhirVersion={this.fhirVersion.toUpperCase()}
+              smart={this.smart}
             />
           )}
         </div>
