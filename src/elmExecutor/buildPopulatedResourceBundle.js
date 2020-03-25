@@ -1,4 +1,4 @@
-import 'url-search-params-polyfill';
+import "url-search-params-polyfill";
 function doSearch(smart, type, fhirVersion, request, callback) {
   const q = {};
   let usePatient = true;
@@ -161,8 +161,15 @@ function buildPopulatedResourceBundle(
                 entryResources.push(...results);
               }
               if (error) {
-                console.error(error);
-                consoleLog(error.statusText, "errorClass");
+                const resourceError = new Error(error);
+                if(resourceError.message.includes("OperationOutcome")) {
+                    let splitError = resourceError.message.split("{");
+                    splitError[0] = "";
+                    splitError = splitError.join("{");
+                    consoleLog("Error fetching resource", "errorClass", JSON.parse(splitError));
+                }else{
+                    consoleLog("Error fetching resource", "errorClass", resourceError.message);
+                }
               }
               readResources(neededResources, callback);
             });
@@ -179,7 +186,7 @@ function buildPopulatedResourceBundle(
         });
       },
       error => {
-        consoleLog("error: " + error, "errorClass");
+        consoleLog("error: " + error, "errorClass", `failed to fetch patient ${smart.patient.id}`);
         console.log(error);
         reject(error);
       }
