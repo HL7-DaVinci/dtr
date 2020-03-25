@@ -47,14 +47,15 @@ html {
 }
 
 .submit-button-panel {
-  margin-left: 55px;
+  float:right;
+  margin-right: 10px;
 }
 
 .submit-button {
   margin-left: 5px;
-  border-width: 1px 1px 1px 5px;
+  border-width: 1px;
   border-style:solid;
-  border-color:#333;
+  border-color:#ced5d9;
 }
 
 .submit-button:hover {
