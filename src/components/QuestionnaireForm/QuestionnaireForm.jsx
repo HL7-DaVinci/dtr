@@ -37,23 +37,18 @@ export default class QuestionnaireForm extends Component {
 
       if (result) {
         //this.state.savedResponse = JSON.parse(partialResponse);
-        this.setState({savedResponse: JSON.parse(partialResponse)})
+        this.setState({ savedResponse: JSON.parse(partialResponse) })
         dynamic_choice_only = true;
       } else {
         localStorage.removeItem(this.props.qform.id);
       }
     }
 
-
-      // If not using saved QuestionnaireResponse, create a new one
-      let newResponse  = {
-        resourceType: 'QuestionnaireResponse',
-        status: 'draft',
-        item: []
-      }
-
-    if (this.props.qform.contained) {
-      this.distributeContained(this.props.qform.contained);
+    // If not using saved QuestionnaireResponse, create a new one
+    let newResponse = {
+      resourceType: 'QuestionnaireResponse',
+      status: 'draft',
+      item: []
     }
 
     const items = this.props.qform.item;
@@ -64,7 +59,8 @@ export default class QuestionnaireForm extends Component {
     }
   }
 
-  componentDidMount() {   
+  componentDidMount() {
+    console.log(JSON.stringify(this.props.qform));
     let lform = LForms.Util.convertFHIRQuestionnaireToLForms(this.props.qform, this.props.fhirVersion);
 
     lform.templateOptions = {
@@ -76,34 +72,33 @@ export default class QuestionnaireForm extends Component {
 
     if (this.state.savedResponse) {
       lform = LForms.Util.mergeFHIRDataIntoLForms("QuestionnaireResponse", this.state.savedResponse, lform, this.props.fhirVersion)
-    }    
+    }
 
     LForms.Util.addFormToPage(lform, "formContainer")
   }
 
   prepopulate(items, response_items, dynamic_choice_only) {
     items.map(item => {
-
-        let response_item = {
-          linkId: item.linkId,
-        };
+      let response_item = {
+        linkId: item.linkId,
+      };
 
       if (!dynamic_choice_only) {
         response_items.push(response_item);
       }
-      
+
       if (item.item) {
         // its a section/group
         response_item.item = []
         this.prepopulate(item.item, response_item.item, dynamic_choice_only);
       } else {
         if (item.type === 'choice' || item.type === 'open-choice') {
-         this.populateChoices(item)
+          this.populateChoices(item)
         }
 
         // autofill fields
         if (item.extension && (!dynamic_choice_only || item.type == 'open-choice')) {
-          response_item.answer=[]
+          response_item.answer = []
           item.extension.forEach(e => {
             let value;
             if (
@@ -164,11 +159,11 @@ export default class QuestionnaireForm extends Component {
                 case 'date':
                   // LHC form could not correctly parse Date object.
                   // Have to convert Date object to string. 
-                  response_item.answer.push({valueDate: prepopulationResult.toString()});
+                  response_item.answer.push({ valueDate: prepopulationResult.toString() });
                   break;
 
                 case 'choice':
-                  response_item.answer.push({valueCoding: this.getDisplayCoding(prepopulationResult, item)});
+                  response_item.answer.push({ valueCoding: this.getDisplayCoding(prepopulationResult, item) });
                   break;
 
                 case 'open-choice':
@@ -266,29 +261,6 @@ export default class QuestionnaireForm extends Component {
   }
 
   populateChoices(item) {
-    const answerOptionsReference = item.answerValueSet || (item.options || {}).reference
-
-    if(typeof answerOptionsReference === "string") {
-      // answerValueSet
-      if(answerOptionsReference.startsWith("#")) {
-          // contained resource reference
-          const resource = this.state.containedResources[answerOptionsReference.substr(1,answerOptionsReference.length)];
-          const values = resource.compose.include;
-          let choice = []
-          values.forEach((element)=>{
-              element.concept.forEach((concept)=>{
-                choice.push({valueCoding: concept})
-              });
-          });
-
-          if (this.props.fhirVersion === 'STU3') {
-            item.option = choice
-          } else {
-            item.answerOption = choice
-          }
-      }
-    }
-
     if (this.props.fhirVersion === 'STU3') {
       this.populateMissingDisplay(item.option)
     } else {
