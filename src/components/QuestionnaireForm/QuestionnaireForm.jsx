@@ -72,7 +72,7 @@ export default class QuestionnaireForm extends Component {
     };
 
     if (this.state.savedResponse) {
-      lform = LForms.Util.mergeFHIRDataIntoLForms("QuestionnaireResponse", this.state.savedResponse, lform, this.props.fhirVersion)
+     lform = LForms.Util.mergeFHIRDataIntoLForms("QuestionnaireResponse", this.state.savedResponse, lform, this.props.fhirVersion)
     }
 
     LForms.Util.addFormToPage(lform, "formContainer")
@@ -117,7 +117,7 @@ export default class QuestionnaireForm extends Component {
             value = value.expression;
           } else {
             // not a cql statement reference
-            return;
+            break;
           }
 
           // split library designator from statement
@@ -147,8 +147,6 @@ export default class QuestionnaireForm extends Component {
           }
 
           if (prepopulationResult != null && !dynamic_choice_only) {
-            let initial = []
-
             switch (item.type) {
               case 'boolean':
                 response_item.answer.push({ valueBoolean: prepopulationResult });
@@ -199,10 +197,6 @@ export default class QuestionnaireForm extends Component {
 
               default:
                 response_item.answer.push({ valueString: prepopulationResult });
-            }
-
-            if (initial.length > 0) {
-              item.initial = initial;
             }
           }
         });
