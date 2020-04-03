@@ -65,9 +65,10 @@ export default class QuestionnaireForm extends Component {
 
     lform.templateOptions = {
       showFormHeader: false,
-      showColumnHeader: false,
-      showQuestionCode: true,
-      hideFormControls: true
+      showColumnHeaders: false,
+      showQuestionCode: false,
+      hideFormControls: true,
+      showFormOptionPanelButton: true
     };
 
     if (this.state.savedResponse) {
@@ -88,125 +89,123 @@ export default class QuestionnaireForm extends Component {
       }
 
       if (item.item) {
-        // its a section/group
+        // add sub-items
         response_item.item = []
         this.prepopulate(item.item, response_item.item, dynamic_choice_only);
-      } else {
-        if (item.type === 'choice' || item.type === 'open-choice') {
-          this.populateChoices(item)
-        }
+      }
 
-        // autofill fields
-        if (item.extension && (!dynamic_choice_only || item.type == 'open-choice')) {
-          response_item.answer = []
-          item.extension.forEach(e => {
-            let value;
-            if (
-              e.url ===
-              "http://hl7.org/fhir/StructureDefinition/cqif-calculatedValue"
-            ) {
-              // stu3
-              value = findValueByPrefix(e, "value");
-            } else if (
-              e.url === "http://hl7.org/fhir/StructureDefinition/cqf-expression"
-            ) {
-              // r4
-              value = findValueByPrefix(e, "value");
-              value = value.expression;
-            } else {
-              // not a cql statement reference
-              return;
-            }
+      if (item.type === 'choice' || item.type === 'open-choice') {
+        this.populateChoices(item)
+      }
 
-            // split library designator from statement
-            const valueComponents = value.split(".");
-            let libraryName;
-            let statementName;
-            if (valueComponents.length > 1) {
-              libraryName = valueComponents[0].substring(
-                1,
-                valueComponents[0].length - 1
-              );
-              statementName = valueComponents[1];
-            } else {
-              // if there is not library name grab the first library name
-              statementName = value;
-              libraryName = Object.keys(this.props.cqlPrepoulationResults)[0];
-            }
-            // grab the population result
-            let prepopulationResult;
-            if (this.props.cqlPrepoulationResults[libraryName] != null) {
-              prepopulationResult = this.props.cqlPrepoulationResults[
-                libraryName
-              ][statementName];
-            } else {
-              prepopulationResult = null;
-              console.log(`Couldn't find library "${libraryName}"`);
-            }
+      // autofill fields
+      if (item.extension && (!dynamic_choice_only || item.type == 'open-choice')) {
+        response_item.answer = []
+        item.extension.forEach(e => {
+          let value;
+          if (
+            e.url ===
+            "http://hl7.org/fhir/StructureDefinition/cqif-calculatedValue"
+          ) {
+            // stu3
+            value = findValueByPrefix(e, "value");
+          } else if (
+            e.url === "http://hl7.org/fhir/StructureDefinition/cqf-expression"
+          ) {
+            // r4
+            value = findValueByPrefix(e, "value");
+            value = value.expression;
+          } else {
+            // not a cql statement reference
+            return;
+          }
 
-            if (prepopulationResult != null && !dynamic_choice_only) {
-              let initial = []
+          // split library designator from statement
+          const valueComponents = value.split(".");
+          let libraryName;
+          let statementName;
+          if (valueComponents.length > 1) {
+            libraryName = valueComponents[0].substring(
+              1,
+              valueComponents[0].length - 1
+            );
+            statementName = valueComponents[1];
+          } else {
+            // if there is not library name grab the first library name
+            statementName = value;
+            libraryName = Object.keys(this.props.cqlPrepoulationResults)[0];
+          }
+          // grab the population result
+          let prepopulationResult;
+          if (this.props.cqlPrepoulationResults[libraryName] != null) {
+            prepopulationResult = this.props.cqlPrepoulationResults[
+              libraryName
+            ][statementName];
+          } else {
+            prepopulationResult = null;
+            console.log(`Couldn't find library "${libraryName}"`);
+          }
 
-              switch (item.type) {
-                case 'boolean':
-                  response_item.answer.push({ valueBoolean: prepopulationResult });
-                  break;
+          if (prepopulationResult != null && !dynamic_choice_only) {
+            let initial = []
 
-                case 'integer':
-                  response_item.answer.push({ valueInteger: prepopulationResult });
-                  break;
+            switch (item.type) {
+              case 'boolean':
+                response_item.answer.push({ valueBoolean: prepopulationResult });
+                break;
 
-                case 'date':
-                  // LHC form could not correctly parse Date object.
-                  // Have to convert Date object to string. 
-                  response_item.answer.push({ valueDate: prepopulationResult.toString() });
-                  break;
+              case 'integer':
+                response_item.answer.push({ valueInteger: prepopulationResult });
+                break;
 
-                case 'choice':
-                  response_item.answer.push({ valueCoding: this.getDisplayCoding(prepopulationResult, item) });
-                  break;
+              case 'date':
+                // LHC form could not correctly parse Date object.
+                // Have to convert Date object to string. 
+                response_item.answer.push({ valueDate: prepopulationResult.toString() });
+                break;
 
-                case 'open-choice':
-                  //This is to populated dynamic options (option items generated from CQL expression)
-                  //R4 uses item.answerOption, STU3 uses item.option
-                  let populateAnswerOptions = false;
-                  let populateOptions = false;
+              case 'choice':
+                response_item.answer.push({ valueCoding: this.getDisplayCoding(prepopulationResult, item) });
+                break;
 
-                  if (item.answerOption != null && item.answerOption.length == 0) {
-                    populateAnswerOptions = true
-                  } else if (item.option != null && item.option.length == 0) {
-                    populateOptions = true
+              case 'open-choice':
+                //This is to populated dynamic options (option items generated from CQL expression)
+                //R4 uses item.answerOption, STU3 uses item.option
+                let populateAnswerOptions = false;
+                let populateOptions = false;
+
+                if (item.answerOption != null && item.answerOption.length == 0) {
+                  populateAnswerOptions = true
+                } else if (item.option != null && item.option.length == 0) {
+                  populateOptions = true
+                }
+
+                prepopulationResult.forEach(v => {
+                  let displayCoding = this.getDisplayCoding(v, item)
+
+                  if (populateAnswerOptions) {
+                    item.answerOption.push({ valueCoding: displayCoding })
+                  } else if (populateOptions) {
+                    item.option.push({ valueCoding: displayCoding })
                   }
 
-                  prepopulationResult.forEach(v => {
-                    let displayCoding = this.getDisplayCoding(v, item)
+                  response_item.answer.push({ valueCoding: displayCoding });
+                });
+                break;
 
-                    if (populateAnswerOptions) {
-                      item.answerOption.push({ valueCoding: displayCoding })
-                    } else if (populateOptions) {
-                      item.option.push({ valueCoding: displayCoding })
-                    }
+              case 'quantity':
+                response_item.answer.push({ valueQuantity: prepopulationResult });
+                break;
 
-                    response_item.answer.push({ valueCoding: displayCoding });
-                  });
-                  break;
-
-                case 'quantity':
-                  response_item.answer.push({ valueQuantity: prepopulationResult });
-                  break;
-
-                default:
-                  response_item.answer.push({ valueString: prepopulationResult });
-              }
-
-              if (initial.length > 0) {
-                item.initial = initial;
-              }
+              default:
+                response_item.answer.push({ valueString: prepopulationResult });
             }
-          });
-        }
 
-
+            if (initial.length > 0) {
+              item.initial = initial;
+            }
+          }
+        });
       }
     });
   }
@@ -379,7 +378,7 @@ export default class QuestionnaireForm extends Component {
     qr.author = {
       reference:
         "Practitioner/" +
-        this.props.cqlPrepoulationResults.BasicPractitionerInfo
+        this.props.cqlPrepoulationResults.BasicPractitionerInfoPrepopulation
           .OrderingProvider.id.value
     };
 
