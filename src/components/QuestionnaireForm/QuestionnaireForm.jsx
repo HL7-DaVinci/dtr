@@ -72,7 +72,7 @@ export default class QuestionnaireForm extends Component {
     };
 
     if (this.state.savedResponse) {
-     lform = LForms.Util.mergeFHIRDataIntoLForms("QuestionnaireResponse", this.state.savedResponse, lform, this.props.fhirVersion)
+      lform = LForms.Util.mergeFHIRDataIntoLForms("QuestionnaireResponse", this.state.savedResponse, lform, this.props.fhirVersion)
     }
 
     LForms.Util.addFormToPage(lform, "formContainer")
@@ -206,15 +206,25 @@ export default class QuestionnaireForm extends Component {
 
   getDisplayCoding(v, item) {
     if (typeof v == 'string') {
+      const answerValueSetReference = item.answerValueSet || (item.options || {}).reference
+      const answerOption = item.answerOption || item.option
       let selectedCode;
-      if (item.answerOption) {
-        selectedCode = item.answerOption.find(o => o.valueCoding.code == v)
-      } else if (item.option) {
-        selectedCode = item.option.find(o => o.valueCoding.code == v)
+
+      if (answerValueSetReference && this.props.qform.contained) {
+        const vs_id = answerValueSetReference.substr(1);
+        const vs = this.props.qform.contained.find(r => r.id == vs_id);
+        if (vs && vs.expansion && vs.expansion.contains) {
+          selectedCode = vs.expansion.contains.find(o => o.code == v)
+        }
+      } else if (answerOption) {
+        const option = answerOption.find(o => o.valueCoding.code == v)
+        if (option) {
+          selectedCode = option.valueCoding
+        }
       }
 
       if (selectedCode) {
-        return selectedCode.valueCoding
+        return selectedCode
       } else {
         return {
           code: v,
@@ -259,17 +269,6 @@ export default class QuestionnaireForm extends Component {
     } else {
       this.populateMissingDisplay(item.answerOption)
     }
-  }
-
-  distributeContained(contained) {
-    // make a key:value map for the contained
-    // resources with their id so they can be
-    // referenced by #{id}
-    const containedResources = {};
-    contained.forEach(resource => {
-      containedResources[resource.id] = resource;
-    });
-    this.state.containedResources = containedResources;
   }
 
   generateAndStoreDocumentReference(questionnaireResponse, dataBundle) {
