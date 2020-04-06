@@ -117,7 +117,7 @@ export default class QuestionnaireForm extends Component {
             value = value.expression;
           } else {
             // not a cql statement reference
-            break;
+            return;
           }
 
           // split library designator from statement
