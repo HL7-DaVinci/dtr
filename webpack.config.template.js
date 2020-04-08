@@ -29,7 +29,7 @@ module.exports = merge(common, {
     },
     proxy: [
       {
-        context: ["/fetchFhirUri", "/getfile"],
+        context: ["/files", "/fhir"],
         target: "PROXY_TARGET",
         changeOrigin: true,
         secure: false

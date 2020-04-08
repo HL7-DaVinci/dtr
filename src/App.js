@@ -57,10 +57,11 @@ class App extends Component {
       this.fhirVersion = fhirVersion;
 
       fetchArtifacts(
-        this.props.FHIR_URI_PREFIX,
+        this.props.FHIR_PREFIX,
+        this.props.FILE_PREFIX,
         this.props.questionnaireUri,
+        this.fhirVersion,
         this.smart,
-        this.props.filepath,
         this.consoleLog
       )
         .then(artifacts => {
@@ -228,6 +229,11 @@ class App extends Component {
   }
 
   consoleLog(content, type, details = null) {
+    if (details == null) {
+      console.log(content, type);
+    } else {
+      console.log(content, type, details);
+    }
     let jsonContent = {
       content,
       details,
@@ -283,6 +289,7 @@ class App extends Component {
               priorAuthReq={this.props.priorAuthReq === "true" ? true : false}
               setPriorAuthClaim={this.setPriorAuthClaim.bind(this)}
               fhirVersion={this.fhirVersion.toUpperCase()}
+              smart={this.smart}
             />
           )}
         </div>

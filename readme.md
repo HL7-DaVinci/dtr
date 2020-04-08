@@ -34,17 +34,17 @@ http://localhost:3005/launch?iss=http://launch.smarthealthit.org/v/r2/fhir/&laun
 
 ## Connecting with other subprojects:
 
-It is recommmended when first starting out you have all five applications running (**[Request Generator](https://github.com/HL7-DaVinci/crd-request-generator), [EHR (FHIR) Server](https://github.com/HL7-DaVinci/CRD/tree/master/ehr-server), [CRD Server](https://github.com/HL7-DaVinci/CRD), [DTR Server](https://github.com/HL7-DaVinci/dtr),** and **[KeyCloak  Server](https://github.com/HL7-DaVinci/CRD#setting-up-a-keycloak-instance)**) to test the full SMART on FHIR App launch sequence. After getting these applications up and running you can swap your appliaction if desired.  
+It is recommmended when first starting out you have all five applications running (**[Request Generator](https://github.com/HL7-DaVinci/crd-request-generator), [Test EHR (FHIR) Server](https://github.com/HL7-DaVinci/test-ehr/tree/master), [CRD Server](https://github.com/HL7-DaVinci/CRD), [DTR Server](https://github.com/HL7-DaVinci/dtr),** and **[KeyCloak  Server](https://github.com/HL7-DaVinci/CRD#setting-up-a-keycloak-instance)**) to test the full SMART on FHIR App launch sequence. After getting these applications up and running you can swap your appliaction if desired.  
 
 _Note: If you have your own EHR then you should not need to run the EHR (FHIR) Server, KeyCloak and the Request Generator. Otherwise please follow the below steps._
 
 Steps to prepare local EHR server, Keycloak server, and Request Generator:
 
-1. Remove the **target** folder (if it exists) in the **EHR** server folder.
+1. Remove the **target** folder (if it exists) in the **Test EHR** server folder.
    
-2. Start the **EHR** server.
+2. Start the **Test EHR** server, by running `gradle appRun`.
 
-3. Make sure the **EHR** server has the data it needs, by running `gradle loadData` to populate it.
+3. Make sure the **Test EHR** server has the data it needs, by running `gradle loadData` to populate it.
 
 4. Then, run the **KeyCloak** server. Follow the guide in the CRD readme if you have never set it up before, make the appropriate **realm/client/user**. 
    
@@ -57,7 +57,7 @@ Steps to prepare local EHR server, Keycloak server, and Request Generator:
 
 >Test it!
 
->Assuming you have completed the above. You should be able to send a request from the Request Generator in order for the SMART app to launch by clicking the `Dara` button to pre-populate the inputs. Check `include prefetch` and send the request, you should get a CDS Hooks Card back. Click the SMART link and you should see a login screen. Login with whatever user you've registered, and the SMART App should proceed to launch.
+>Assuming you have completed the above. You should be able to send a request from the Request Generator in order for the SMART app to launch by clicking the `Patient Select:` button to pre-populate the inputs. Choose a `Device Request` from the drop-down for one of the patients, then click anywhere in the row corresponding to the patient for whom you selected a `Device Request`. The data will be prefetched and you can send the request by prssing the `Submit` button. You should get a CDS Hooks Card back. Click the SMART link button for `Order Form` and you should see a login screen. Login with whatever user you've registered, and the SMART App should proceed to launch.
 
 ## Building Releases
 

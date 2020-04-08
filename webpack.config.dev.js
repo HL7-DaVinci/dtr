@@ -16,7 +16,7 @@ module.exports = merge(common, {
   devServer: {
     contentBase: path.resolve(__dirname, "public"),
     port: 3005,
-    https: false,
+    https: true,
     host: "0.0.0.0",
     public: "0.0.0.0",
     hotOnly: true,
@@ -29,7 +29,7 @@ module.exports = merge(common, {
     },
     proxy: [
       {
-        context: ["/fetchFhirUri", "/getfile"],
+        context: ["/files", "/fhir"],
         target: "http://localhost:8090",
         changeOrigin: true,
         secure: false
