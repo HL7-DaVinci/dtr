@@ -22,7 +22,8 @@ sessionStorage["serviceUri"] = serviceUri;
 const redirectUri = params.redirectUri;
 // This endpoint available when deployed in CRD server, for development we have
 // the proxy set up in webpack.config.dev.js so the CRD server needs to be running
-const FHIR_URI_PREFIX = "../../fetchFhirUri/";
+const FHIR_PREFIX = "../../fhir/";
+const FILE_PREFIX = "../../"
 var data = `code=${code}&grant_type=authorization_code&redirect_uri=${redirectUri}`;
 // const data = new URLSearchParams();
 // data.append("code", code);
@@ -64,7 +65,6 @@ tokenPost.onload = function() {
         // appContext = {
         //     template: appString.split("&")[0].split("=")[1],
         //     request: JSON.parse(appString.split("&")[1].split("=")[1].replace(/\\/g,"")),
-        //     filepath: appString.split("&")[3].split("=")[1]
         //   }
       } catch (e) {
           console.log(e);
@@ -72,7 +72,6 @@ tokenPost.onload = function() {
           appContext = {
             template: "urn:hl7:davinci:crd:home-oxygen-questionnaire",
             request: JSON.parse('{\\"resourceType\\":\\"DeviceRequest\\",\\"id\\":\\"ecea4560-e72c-4f69-8efd-b0f240ecef40\\",\\"meta\\":{\\"profile\\":[\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/STU3\\/StructureDefinition\\/profile-devicerequest-stu3\\"]},\\"status\\":\\"draft\\",\\"codeCodeableConcept\\":{\\"coding\\":[{\\"system\\":\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\",\\"code\\":\\"E0424\\"}]},\\"subject\\":{\\"reference\\":\\"Patient\\/e3uD6HlZwY69BYkprsNDh2Du7KroLDCIzX8uiCuKkahM3\\"},\\"authoredOn\\":\\"2019-12-30\\",\\"performer\\":{\\"reference\\":\\"PractitionerRole\\/100163717310\\"}}'.replace(/\\/g,"")),
-            filepath: '../../getfile/cms/hcpcs/E0424'
             }
         }
 
@@ -88,11 +87,11 @@ tokenPost.onload = function() {
         });
         ReactDOM.render(
         <App
-          FHIR_URI_PREFIX={FHIR_URI_PREFIX}
+          FHIR_PREFIX={FHIR_PREFIX}
+          FILE_PREFIX={FILE_PREFIX}
           questionnaireUri={appContext.template}
           smart={smart}
           deviceRequest={JSON.parse(appContext.request.replace(/\\/g,""))}
-          filepath={appContext.filepath}
         />,
         document.getElementById("root")
         );
