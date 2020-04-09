@@ -37,23 +37,18 @@ export default class QuestionnaireForm extends Component {
 
       if (result) {
         //this.state.savedResponse = JSON.parse(partialResponse);
-        this.setState({savedResponse: JSON.parse(partialResponse)})
+        this.setState({ savedResponse: JSON.parse(partialResponse) })
         dynamic_choice_only = true;
       } else {
         localStorage.removeItem(this.props.qform.id);
       }
     }
 
-
-      // If not using saved QuestionnaireResponse, create a new one
-      let newResponse  = {
-        resourceType: 'QuestionnaireResponse',
-        status: 'draft',
-        item: []
-      }
-
-    if (this.props.qform.contained) {
-      this.distributeContained(this.props.qform.contained);
+    // If not using saved QuestionnaireResponse, create a new one
+    let newResponse = {
+      resourceType: 'QuestionnaireResponse',
+      status: 'draft',
+      item: []
     }
 
     const items = this.props.qform.item;
@@ -64,169 +59,172 @@ export default class QuestionnaireForm extends Component {
     }
   }
 
-  componentDidMount() {   
+  componentDidMount() {
+    console.log(JSON.stringify(this.props.qform));
     let lform = LForms.Util.convertFHIRQuestionnaireToLForms(this.props.qform, this.props.fhirVersion);
 
     lform.templateOptions = {
       showFormHeader: false,
-      showColumnHeader: false,
-      showQuestionCode: true,
-      hideFormControls: true
+      showColumnHeaders: false,
+      showQuestionCode: false,
+      hideFormControls: true,
+      showFormOptionPanelButton: true
     };
 
     if (this.state.savedResponse) {
       lform = LForms.Util.mergeFHIRDataIntoLForms("QuestionnaireResponse", this.state.savedResponse, lform, this.props.fhirVersion)
-    }    
+    }
 
     LForms.Util.addFormToPage(lform, "formContainer")
   }
 
   prepopulate(items, response_items, dynamic_choice_only) {
     items.map(item => {
-
-        let response_item = {
-          linkId: item.linkId,
-        };
+      let response_item = {
+        linkId: item.linkId,
+      };
 
       if (!dynamic_choice_only) {
         response_items.push(response_item);
       }
-      
+
       if (item.item) {
-        // its a section/group
+        // add sub-items
         response_item.item = []
         this.prepopulate(item.item, response_item.item, dynamic_choice_only);
-      } else {
-        if (item.type === 'choice' || item.type === 'open-choice') {
-         this.populateChoices(item)
-        }
+      }
 
-        // autofill fields
-        if (item.extension && (!dynamic_choice_only || item.type == 'open-choice')) {
-          response_item.answer=[]
-          item.extension.forEach(e => {
-            let value;
-            if (
-              e.url ===
-              "http://hl7.org/fhir/StructureDefinition/cqif-calculatedValue"
-            ) {
-              // stu3
-              value = findValueByPrefix(e, "value");
-            } else if (
-              e.url === "http://hl7.org/fhir/StructureDefinition/cqf-expression"
-            ) {
-              // r4
-              value = findValueByPrefix(e, "value");
-              value = value.expression;
-            } else {
-              // not a cql statement reference
-              return;
-            }
+      if (item.type === 'choice' || item.type === 'open-choice') {
+        this.populateChoices(item)
+      }
 
-            // split library designator from statement
-            const valueComponents = value.split(".");
-            let libraryName;
-            let statementName;
-            if (valueComponents.length > 1) {
-              libraryName = valueComponents[0].substring(
-                1,
-                valueComponents[0].length - 1
-              );
-              statementName = valueComponents[1];
-            } else {
-              // if there is not library name grab the first library name
-              statementName = value;
-              libraryName = Object.keys(this.props.cqlPrepoulationResults)[0];
-            }
-            // grab the population result
-            let prepopulationResult;
-            if (this.props.cqlPrepoulationResults[libraryName] != null) {
-              prepopulationResult = this.props.cqlPrepoulationResults[
-                libraryName
-              ][statementName];
-            } else {
-              prepopulationResult = null;
-              console.log(`Couldn't find library "${libraryName}"`);
-            }
+      // autofill fields
+      if (item.extension && (!dynamic_choice_only || item.type == 'open-choice')) {
+        response_item.answer = []
+        item.extension.forEach(e => {
+          let value;
+          if (
+            e.url ===
+            "http://hl7.org/fhir/StructureDefinition/cqif-calculatedValue"
+          ) {
+            // stu3
+            value = findValueByPrefix(e, "value");
+          } else if (
+            e.url === "http://hl7.org/fhir/StructureDefinition/cqf-expression"
+          ) {
+            // r4
+            value = findValueByPrefix(e, "value");
+            value = value.expression;
+          } else {
+            // not a cql statement reference
+            return;
+          }
 
-            if (prepopulationResult != null && !dynamic_choice_only) {
-              let initial = []
+          // split library designator from statement
+          const valueComponents = value.split(".");
+          let libraryName;
+          let statementName;
+          if (valueComponents.length > 1) {
+            libraryName = valueComponents[0].substring(
+              1,
+              valueComponents[0].length - 1
+            );
+            statementName = valueComponents[1];
+          } else {
+            // if there is not library name grab the first library name
+            statementName = value;
+            libraryName = Object.keys(this.props.cqlPrepoulationResults)[0];
+          }
+          // grab the population result
+          let prepopulationResult;
+          if (this.props.cqlPrepoulationResults[libraryName] != null) {
+            prepopulationResult = this.props.cqlPrepoulationResults[
+              libraryName
+            ][statementName];
+          } else {
+            prepopulationResult = null;
+            console.log(`Couldn't find library "${libraryName}"`);
+          }
 
-              switch (item.type) {
-                case 'boolean':
-                  response_item.answer.push({ valueBoolean: prepopulationResult });
-                  break;
+          if (prepopulationResult != null && !dynamic_choice_only) {
+            switch (item.type) {
+              case 'boolean':
+                response_item.answer.push({ valueBoolean: prepopulationResult });
+                break;
 
-                case 'integer':
-                  response_item.answer.push({ valueInteger: prepopulationResult });
-                  break;
+              case 'integer':
+                response_item.answer.push({ valueInteger: prepopulationResult });
+                break;
 
-                case 'date':
-                  // LHC form could not correctly parse Date object.
-                  // Have to convert Date object to string. 
-                  response_item.answer.push({valueDate: prepopulationResult.toString()});
-                  break;
+              case 'date':
+                // LHC form could not correctly parse Date object.
+                // Have to convert Date object to string. 
+                response_item.answer.push({ valueDate: prepopulationResult.toString() });
+                break;
 
-                case 'choice':
-                  response_item.answer.push({valueCoding: this.getDisplayCoding(prepopulationResult, item)});
-                  break;
+              case 'choice':
+                response_item.answer.push({ valueCoding: this.getDisplayCoding(prepopulationResult, item) });
+                break;
 
-                case 'open-choice':
-                  //This is to populated dynamic options (option items generated from CQL expression)
-                  //R4 uses item.answerOption, STU3 uses item.option
-                  let populateAnswerOptions = false;
-                  let populateOptions = false;
+              case 'open-choice':
+                //This is to populated dynamic options (option items generated from CQL expression)
+                //R4 uses item.answerOption, STU3 uses item.option
+                let populateAnswerOptions = false;
+                let populateOptions = false;
 
-                  if (item.answerOption != null && item.answerOption.length == 0) {
-                    populateAnswerOptions = true
-                  } else if (item.option != null && item.option.length == 0) {
-                    populateOptions = true
+                if (item.answerOption != null && item.answerOption.length == 0) {
+                  populateAnswerOptions = true
+                } else if (item.option != null && item.option.length == 0) {
+                  populateOptions = true
+                }
+
+                prepopulationResult.forEach(v => {
+                  let displayCoding = this.getDisplayCoding(v, item)
+
+                  if (populateAnswerOptions) {
+                    item.answerOption.push({ valueCoding: displayCoding })
+                  } else if (populateOptions) {
+                    item.option.push({ valueCoding: displayCoding })
                   }
 
-                  prepopulationResult.forEach(v => {
-                    let displayCoding = this.getDisplayCoding(v, item)
+                  response_item.answer.push({ valueCoding: displayCoding });
+                });
+                break;
 
-                    if (populateAnswerOptions) {
-                      item.answerOption.push({ valueCoding: displayCoding })
-                    } else if (populateOptions) {
-                      item.option.push({ valueCoding: displayCoding })
-                    }
+              case 'quantity':
+                response_item.answer.push({ valueQuantity: prepopulationResult });
+                break;
 
-                    response_item.answer.push({ valueCoding: displayCoding });
-                  });
-                  break;
-
-                case 'quantity':
-                  response_item.answer.push({ valueQuantity: prepopulationResult });
-                  break;
-
-                default:
-                  response_item.answer.push({ valueString: prepopulationResult });
-              }
-
-              if (initial.length > 0) {
-                item.initial = initial;
-              }
+              default:
+                response_item.answer.push({ valueString: prepopulationResult });
             }
-          });
-        }
-
-
+          }
+        });
       }
     });
   }
 
   getDisplayCoding(v, item) {
     if (typeof v == 'string') {
+      const answerValueSetReference = item.answerValueSet || (item.options || {}).reference
+      const answerOption = item.answerOption || item.option
       let selectedCode;
-      if (item.answerOption) {
-        selectedCode = item.answerOption.find(o => o.valueCoding.code == v)
-      } else if (item.option) {
-        selectedCode = item.option.find(o => o.valueCoding.code == v)
+
+      if (answerValueSetReference && this.props.qform.contained) {
+        const vs_id = answerValueSetReference.substr(1);
+        const vs = this.props.qform.contained.find(r => r.id == vs_id);
+        if (vs && vs.expansion && vs.expansion.contains) {
+          selectedCode = vs.expansion.contains.find(o => o.code == v)
+        }
+      } else if (answerOption) {
+        const option = answerOption.find(o => o.valueCoding.code == v)
+        if (option) {
+          selectedCode = option.valueCoding
+        }
       }
 
       if (selectedCode) {
-        return selectedCode.valueCoding
+        return selectedCode
       } else {
         return {
           code: v,
@@ -270,45 +268,11 @@ export default class QuestionnaireForm extends Component {
   }
 
   populateChoices(item) {
-    const answerOptionsReference = item.answerValueSet || (item.options || {}).reference
-
-    if(typeof answerOptionsReference === "string") {
-      // answerValueSet
-      if(answerOptionsReference.startsWith("#")) {
-          // contained resource reference
-          const resource = this.state.containedResources[answerOptionsReference.substr(1,answerOptionsReference.length)];
-          const values = resource.compose.include;
-          let choice = []
-          values.forEach((element)=>{
-              element.concept.forEach((concept)=>{
-                choice.push({valueCoding: concept})
-              });
-          });
-
-          if (this.props.fhirVersion === 'STU3') {
-            item.option = choice
-          } else {
-            item.answerOption = choice
-          }
-      }
-    }
-
     if (this.props.fhirVersion === 'STU3') {
       this.populateMissingDisplay(item.option)
     } else {
       this.populateMissingDisplay(item.answerOption)
     }
-  }
-
-  distributeContained(contained) {
-    // make a key:value map for the contained
-    // resources with their id so they can be
-    // referenced by #{id}
-    const containedResources = {};
-    contained.forEach(resource => {
-      containedResources[resource.id] = resource;
-    });
-    this.state.containedResources = containedResources;
   }
 
   generateAndStoreDocumentReference(questionnaireResponse, dataBundle) {
@@ -411,7 +375,7 @@ export default class QuestionnaireForm extends Component {
     qr.author = {
       reference:
         "Practitioner/" +
-        this.props.cqlPrepoulationResults.BasicPractitionerInfo
+        this.props.cqlPrepoulationResults.BasicPractitionerInfoPrepopulation
           .OrderingProvider.id.value
     };
 
