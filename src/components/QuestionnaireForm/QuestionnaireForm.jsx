@@ -217,9 +217,9 @@ export default class QuestionnaireForm extends Component {
           selectedCode = vs.expansion.contains.find(o => o.code == v)
         }
       } else if (answerOption) {
-        const option = answerOption.find(o => o.valueCoding.code == v)
-        if (option) {
-          selectedCode = option.valueCoding
+        const ao = answerOption.find(o => o.valueCoding.code == v || o.valueCoding.display == v)
+        if (ao) {
+          selectedCode = ao.valueCoding
         }
       }
 
@@ -227,7 +227,6 @@ export default class QuestionnaireForm extends Component {
         return selectedCode
       } else {
         return {
-          code: v,
           display: v
         }
       }
