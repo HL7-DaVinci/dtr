@@ -444,7 +444,7 @@ export default class QuestionnaireForm extends Component {
     priorAuthBundle.entry.unshift({ resource: facility });
     priorAuthBundle.entry.unshift({ resource: insurer });
     priorAuthBundle.entry.unshift({ resource: this.props.deviceRequest });
-    priorAuthBundle.entry.unshift({ resource: response });
+    priorAuthBundle.entry.unshift({ resource: qr });
     console.log(priorAuthBundle);
 
     this.generateAndStoreDocumentReference(qr, priorAuthBundle);
@@ -473,7 +473,7 @@ export default class QuestionnaireForm extends Component {
       },
       use: "preauthorization",
       patient: { reference: this.makeReference(priorAuthBundle, "Patient") },
-      created: authored,
+      created: qr.authored,
       provider: {
         reference: this.makeReference(priorAuthBundle, "Practitioner")
       },
