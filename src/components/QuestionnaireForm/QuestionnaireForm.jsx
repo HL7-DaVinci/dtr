@@ -235,17 +235,19 @@ export default class QuestionnaireForm extends Component {
     let system = '';
     let displayText = v.display
 
-    if (v.system == 'http://snomed.info/sct') {
-      system = 'SNOMED'
-    } else if (v.system.startsWith('http://hl7.org/fhir/sid/icd-10')) {
-      system = "ICD-10"
-    }
+    if(v.type && v.type === 'encounter' && v.periodStart) {
+      displayText = 'Encounter - ' + v.display + ' on ' + v.periodStart
+    } else {
+      if (v.system == 'http://snomed.info/sct') {
+        system = 'SNOMED'
+      } else if (v.system.startsWith('http://hl7.org/fhir/sid/icd-10')) {
+        system = "ICD-10"
+      } else if (v.system == "http://www.nlm.nih.gov/research/umls/rxnorm") {
+        system = "RxNorm"
+      }
 
-    if (system.length > 0) {
-      displayText = displayText + ' - ' + system + ' - ' + v.code
-
-      if(v.type && v.type === 'encounter' && v.periodStart) {
-        displayText = 'Encounter - ' + v.display + ' on ' + v.periodStart
+      if (system.length > 0) {
+        displayText = displayText + ' - ' + system + ' - ' + v.code      
       }
     }
 
