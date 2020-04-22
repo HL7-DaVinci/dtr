@@ -237,7 +237,7 @@ export default class QuestionnaireForm extends Component {
 
     if(v.type && v.type === 'encounter' && v.periodStart) {
       displayText = 'Encounter - ' + v.display + ' on ' + v.periodStart
-    } else {
+    } else if (v.system) {
       if (v.system == 'http://snomed.info/sct') {
         system = 'SNOMED'
       } else if (v.system.startsWith('http://hl7.org/fhir/sid/icd-10')) {
