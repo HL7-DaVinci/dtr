@@ -12,7 +12,7 @@ function getListOfChoices(props, setChoice){
     // parse out the list of choices from 'option'
     let returnAnswer = null;
     // R4 has referenced valuesets at `item.answerValueSet`, in STU3 it is at `item.options.reference`.
-    const answerOptionsReference = props.item.answerValueSet || (props.item.options || {}).reference
+    const answerOptionsReference = props.item.answerValueSet || (props.item.options || {}).reference;
     if(typeof answerOptionsReference === "string") {
         // answerValueSet
         if(answerOptionsReference.startsWith("#")) {
@@ -31,7 +31,7 @@ function getListOfChoices(props, setChoice){
         }
 
     }else{
-        const answerOption = props.item.answerOption || props.item.option // in R4 this is item.answerOption, in STU3 it is item.option
+        const answerOption = props.item.answerOption || props.item.option; // in R4 this is item.answerOption, in STU3 it is item.option
         // list of answerOption options
         answerOption.forEach((concept)=>{
             // TODO: The value could be a code/date/time/reference, need to account for that.
@@ -57,8 +57,76 @@ function getListOfChoices(props, setChoice){
     return returnAnswer;
 }
 
+function postToLogs(log, callback) {
+    const logRequest = new XMLHttpRequest();
+    logRequest.open("POST", "../logs");
+    logRequest.setRequestHeader("Content-Type", "application/json");
+    logRequest.onload = function() {
+        callback(JSON.parse(logRequest.responseText));
+    };
+    logRequest.send(JSON.stringify(log));
+}
+
+function updateLog(log) {
+    const logRequest = new XMLHttpRequest();
+    logRequest.open("PUT", "../logs/"+log.id);
+    logRequest.setRequestHeader("Content-Type", "application/json");
+    logRequest.send(JSON.stringify(log));
+}
+
+function postToClients(log, callback) {
+    getClients((clients)=>{
+        const filteredClients = clients.filter((e)=>{return log.name === e.name;});
+        if(filteredClients.length) {
+            const clientRequest = new XMLHttpRequest();
+            clientRequest.open("PUT", "../clients/" + filteredClients[0].id);
+            clientRequest.setRequestHeader("Content-Type", "application/json");
+            clientRequest.onload = function() {
+                callback(JSON.parse(clientRequest.responseText));
+            };
+            clientRequest.send(JSON.stringify(log));
+        } else {
+            const clientRequest = new XMLHttpRequest();
+            clientRequest.open("POST", "../clients");
+            clientRequest.setRequestHeader("Content-Type", "application/json");
+            clientRequest.onload = function() {
+                callback(JSON.parse(clientRequest.responseText));
+            };
+            clientRequest.send(JSON.stringify(log));
+        }
+
+
+    });
+
+}
+
+function deleteClient(id, callback) {
+    const clientRequest = new XMLHttpRequest();
+    clientRequest.open("DELETE", "../clients/" + id);
+    clientRequest.setRequestHeader("Content-Type", "application/json");
+    clientRequest.onload = function() {
+        callback();
+    };
+    clientRequest.send();
+}
+
+function getClients(callback) {
+    const clientRequest = new XMLHttpRequest();
+    clientRequest.open("GET", "../clients/");
+    clientRequest.setRequestHeader("Content-Type", "application/json");
+    clientRequest.onload = function() {
+        callback(JSON.parse(clientRequest.responseText));
+    };
+    clientRequest.send();
+}
+
 
 export {
     findValueByPrefix,
-    getListOfChoices
+    getListOfChoices,
+    postToLogs,
+    updateLog,
+    postToClients,
+    deleteClient,
+    getClients
 };

@@ -1,0 +1,20 @@
+{
+  "clients": [
+    {
+      "name": "default",
+      "client": "7c47a01b-b7d8-41cf-a290-8ed607108e70",
+      "id": 3
+    },
+    {
+      "name": "https://apporchard.epic.com/interconnect-aocurprd-oauth/api/FHIR/STU3",
+      "client": "c7ecff8d-5e91-48f2-b22e-f423c0c4c009",
+      "createdAt": 1581358188046,
+      "id": 4
+    }
+  ],
+  "logs": [
+  ],
+  "profile": {
+    "name": "dtr"
+  }
+}

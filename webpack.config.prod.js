@@ -24,7 +24,8 @@ module.exports = merge(common, {
       rewrites: [
         { from: /index/, to: "/index.html" },
         { from: /launch/, to: "/launch.html" },
-        { from: /register/, to: "/register.html" }
+        { from: /register/, to: "/register.html" },
+        { from: /log/, to: "/logs.html" }
       ]
     },
     proxy: [
@@ -33,7 +34,12 @@ module.exports = merge(common, {
         target: "https://davinci-crd.logicahealth.org",
         changeOrigin: true,
         secure: false
-      }
+      },
+      {
+        context: ["/logs","/clients"],
+        target: "https://localhost:3006",
+        secure: false
+    }
     ]
   },
   plugins: [new webpack.HotModuleReplacementPlugin()]
