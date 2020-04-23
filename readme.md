@@ -79,6 +79,10 @@ To run configurable template:
 
 The configurable template will use the environment variables passed to the docker run command to replace the `PROXY_TARGET`, `SERVER_PORT`, and `SERVER_HTTPS` values in the webpack configuration file.
 
+# Other Documentation
+
+[Using ValueSets in DTR Rules](./using-valuesets-in-rules.md)
+
 # License
 
 This project is licensed under the Apache License 2.0. See [LICENSE](/LICENSE) for more details.
