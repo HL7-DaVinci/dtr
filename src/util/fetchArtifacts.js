@@ -96,9 +96,8 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
       const dataRequirementsWithValuesets = libraryResource.dataRequirement.filter(dr => dr.codeFilter != null && dr.codeFilter[0].valueSet != null);
       const valueSetUrls = dataRequirementsWithValuesets.map(dr => dr.codeFilter[0].valueSet);
       valueSetUrls.forEach(valueSetUrl => {
-        // assume that the valueSets are full URLs
-        //TODO: handle valuesets that are URN OIDs pointing to a ValueSet repository
-        fetchValueSet(valueSetUrl);
+        // assume that the valueSets are canonical URLs that we need to ask the fhir server for an expansion
+        fetchValueSet(buildFhirUrl("ValueSet/$expand?url=" + valueSetUrl));
       });
     }
 
