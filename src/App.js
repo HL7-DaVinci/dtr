@@ -199,15 +199,15 @@ class App extends Component {
       elm.library.valueSets.def.forEach(valueSetDef => {
         // find FHIR value set artifact
         let valueSet = artifacts.valueSets.find(
-          valueSet => valueSet.id == valueSetDef.id
+          valueSet => valueSet.id == valueSetDef.id || valueSet.url == valueSetDef.id
         );
         if (valueSet != null) {
           // make sure it has an expansion
           if (valueSet.expansion != null) {
             // add all codes to the the value set db. it is a map in a map, where the first layer key
             // is the value set id and second layer key is the value set version. for this purpose we are using un-versioned valuesets
-            executionInputs.valueSetDB[valueSet.id] = {};
-            executionInputs.valueSetDB[valueSet.id][
+            executionInputs.valueSetDB[valueSetDef.id] = {};
+            executionInputs.valueSetDB[valueSetDef.id][
               ""
             ] = valueSet.expansion.contains.map(code => {
               return {
