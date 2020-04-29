@@ -7,16 +7,16 @@ var fs = require("fs"),
   router = jsonServer.router("./src/db.json"),
   middlewares = jsonServer.defaults();
 
-  server.use("/fetchFhirUri", function(req, res) {
-    var url = "https://davinci-crd.logicahealth.org/fetchFhirUri" + req.url;
+  server.use("/fhir", function(req, res) {
+    var url = "https://davinci-crd.logicahealth.org/fhir" + req.url;
     console.log(url);
 
     req.pipe(request({url:url,  agentOptions: {
         rejectUnauthorized: false
       }})).pipe(res);
   });
-  server.use("/getfile", function(req, res) {
-    var url = "https://davinci-crd.logicahealth.org/getfile" + req.url;
+  server.use("/files", function(req, res) {
+    var url = "https://davinci-crd.logicahealth.org/files" + req.url;
     req.pipe(request({url:url,  agentOptions: {
         rejectUnauthorized: false
       }})).pipe(res);
