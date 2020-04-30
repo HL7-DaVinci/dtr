@@ -5,7 +5,8 @@
   "scripts": {
     "build": "webpack --config ./webpack.config.prod.js --progress --colors",
     "start": "webpack-dev-server --config ./webpack.config.dev.js & json-server --watch ./src/db.json --port 3006",
-    "startDev": "webpack-dev-server --config ./webpack.config.dev.js & json-server --watch ./src/db.json --port 3006",
+    "startDev": "node ./setup.js",
+    "startTemplate": "node ./setup.js",
     "startProd": "node ./setup.js",
     "lint": "node ./node_modules/.bin/eslint --ext .js ./"
   },

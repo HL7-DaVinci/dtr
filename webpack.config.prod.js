@@ -13,34 +13,5 @@ module.exports = merge(common, {
       }
     ]
   },
-  devServer: {
-    contentBase: path.resolve(__dirname, "public"),
-    port: 3005,
-    https: false,
-    host: "0.0.0.0",
-    public: "davinci-dtr.logicahealth.org",
-    hotOnly: true,
-    historyApiFallback: {
-      rewrites: [
-        { from: /index/, to: "/index.html" },
-        { from: /launch/, to: "/launch.html" },
-        { from: /register/, to: "/register.html" },
-        { from: /log/, to: "/logs.html" }
-      ]
-    },
-    proxy: [
-      {
-        context: ["/files", "/fhir"],
-        target: "https://davinci-crd.logicahealth.org",
-        changeOrigin: true,
-        secure: false
-      },
-      {
-        context: ["/logs","/clients"],
-        target: "https://localhost:3006",
-        secure: false
-    }
-    ]
-  },
   plugins: [new webpack.HotModuleReplacementPlugin()]
 });
