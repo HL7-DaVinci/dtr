@@ -7,8 +7,38 @@ var fs = require("fs"),
   router = jsonServer.router("./src/db.json"),
   middlewares = jsonServer.defaults();
 
+  // assume Prod (Production) by default
+  version = process.env.VERSION;
+  serverPort = 3005;
+  serverHttps = false;
+  serverHost = "0.0.0.0";
+  serverPublic = "davinci-dtr.logicahealth.org";
+  proxyTarget = "https://davinci-crd.logicahealth.org";
+
+  if (version == "Dev") {
+    serverPort = 3005;
+    serverHttps = false;
+    serverHost = "0.0.0.0";
+    serverPublic = "0.0.0.0";
+    proxyTarget = "http://localhost:8090";
+  } else if (version == "Template") {
+    serverPort = process.env.SERVER_PORT;
+    serverHttps = process.env.SERVER_HTTPS;
+    serverHost = process.env.SERVER_HOST;
+    serverPublic = process.env.SERVER_PUBLIC;
+    proxyTarget = process.env.PROXY_TARGET;
+  }
+
+  console.log("---- Configuration ----");
+  console.log("    VERSION      : " + version);
+  console.log("    SERVER_PORT  : " + serverPort);
+  //console.log("    SERVER_HTTPS : " + serverHttps);
+  //console.log("    SERVER_HOST  : " + serverHost);
+  //console.log("    SERVER_PUBLIC: " + serverPublic);
+  console.log("    PROXY_TARGET : " + proxyTarget);
+
   server.use("/fhir", function(req, res) {
-    var url = "https://davinci-crd.logicahealth.org/fhir" + req.url;
+    var url = proxyTarget + "/fhir" + req.url;
     console.log(url);
 
     req.pipe(request({url:url,  agentOptions: {
@@ -16,7 +46,9 @@ var fs = require("fs"),
       }})).pipe(res);
   });
   server.use("/files", function(req, res) {
-    var url = "https://davinci-crd.logicahealth.org/files" + req.url;
+    var url = proxyTarget + "/files" + req.url;
+    console.log(url);
+
     req.pipe(request({url:url,  agentOptions: {
         rejectUnauthorized: false
       }})).pipe(res);
@@ -56,8 +88,8 @@ var fs = require("fs"),
 //     });
 
 //     server.use(router);
-//     https.createServer(options, server).listen(3005, "0.0.0.0", function() {
-//         console.log("json-server started on port " + 3005);
+//     https.createServer(options, server).listen(serverPort, "0.0.0.0", function() {
+//         console.log("json-server started on port " + serverPort);
 //     });
       
 //   });
@@ -69,7 +101,7 @@ server.use(middlewares);
 server.use(jsonServer.bodyParser);
 server.use((req, res, next) => {
 if (req.method === "POST") {
-req.body.createdAt = Date.now();
+    req.body.createdAt = Date.now();
 }
 // Continue to JSON Server router
 next();
@@ -92,7 +124,7 @@ server.get("/priorauth", function(req, res){
 });
 
 server.use(router);
-http.createServer(options, server).listen(3005, function() {
-    console.log("json-server started on port " + 3005);
+http.createServer(options, server).listen(serverPort, function() {
+    console.log("json-server started on port " + serverPort);
 });
   
