@@ -69,7 +69,9 @@ export default class QuestionnaireForm extends Component {
       showColumnHeaders: false,
       showQuestionCode: false,
       hideFormControls: true,
-      showFormOptionPanelButton: true
+      showFormOptionPanelButton: true//,
+      //allowHTMLInInstructions: true,
+      //showCodingInstruction: true
     };
 
     if (this.state.savedResponse) {
