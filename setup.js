@@ -36,6 +36,11 @@ var fs = require("fs"),
   //console.log("    SERVER_HOST  : " + serverHost);
   //console.log("    SERVER_PUBLIC: " + serverPublic);
   console.log("    PROXY_TARGET : " + proxyTarget);
+  console.log("");
+
+  if ((serverPort == undefined) || (proxyTarget == undefined)) {
+    throw new  Error("Environment variables SERVER_PORT or PROXY_TARGET undefined, must be set with Template mode.");
+  }
 
   server.use("/fhir", function(req, res) {
     var url = proxyTarget + "/fhir" + req.url;
