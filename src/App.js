@@ -35,6 +35,7 @@ class App extends Component {
       cqlPrepoulationResults: null,
       deviceRequest: null,
       bundle: null,
+      filter: true,
       logs: [],
       errors: [
         // uncomment the following for testing UserMessage, in normal operations, this is an empty array
@@ -253,6 +254,53 @@ class App extends Component {
     this.setState({ priorAuthClaim: claimBundle });
   }
 
+  filter() {
+      var items = Array.from(document.getElementsByClassName("ng-not-empty"));
+      var sections = Array.from(document.getElementsByClassName("section"));
+      var empty = Array.from(document.getElementsByClassName("ng-empty"));
+
+      items.map((element) => {
+          // filter all not-empty items
+          if(element.tagName === "INPUT") { 
+            element.closest('.lf-table-item').hidden=this.state.filter;
+          }
+      });
+
+      sections.map((element) => {
+        if(!element.querySelector(".ng-empty")) {
+            // filter out sections without any empty items
+            element.parentElement.hidden=this.state.filter;
+        } else {
+            // deals with case where the only empty question
+            // is a disabled question.
+            // though the disabled question is hidden, the empty
+            // section remains because of it.
+            if(element.querySelector(".ng-empty:not([disabled])")===null) { 
+                element.parentElement.hidden=this.state.filter;
+            };
+        }
+      });
+
+      empty.map((element) => {
+        if(element.type === "checkbox") {
+            // we make an exception for checkboxes we've touched
+            // a checked checkbox that we've unchecked can be filtered out, despite
+            // having the "empty" class.
+            const d = Array.from(element.classList);
+            if( d.includes("ng-touched")) {
+                element.closest('.lf-table-item').hidden=this.state.filter;
+            }
+        }
+        // we don't want to show disabled items in the filtered view
+        if(element.disabled) {
+            element.closest('.lf-table-item').hidden=this.state.filter;
+        }
+
+      });
+
+      this.setState({filter: !this.state.filter})
+  }
+
   render() {
     // set up messages, if any are needed
     let messages;
@@ -278,6 +326,9 @@ class App extends Component {
       return (
         <div className="App">
           {messages}
+          <div className="filter-button">
+              <label>Filter</label>  <input type="checkbox" onChange={()=>{this.filter()}}></input>
+          </div>
           {this.state.priorAuthClaim ? (
             <PriorAuth claimBundle={this.state.priorAuthClaim} />
           ) : (
