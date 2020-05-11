@@ -633,14 +633,13 @@ export default class QuestionnaireForm extends Component {
               Next
             </button>
           )} */}
-           {/*
-           Remove Next button for HIMSS demo in order to not show PAS
+           {           
            <button
             className="btn submit-button"
             onClick={this.outputResponse.bind(this, "completed")}
           >
             Next
-          </button>*/}
+          </button>}
         </div>
       </div>
     );
