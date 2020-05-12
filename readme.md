@@ -34,7 +34,7 @@ http://localhost:3005/launch?iss=http://launch.smarthealthit.org/v/r2/fhir/&laun
 
 ## Connecting with other subprojects:
 
-It is recommmended when first starting out you have all five applications running (**[Request Generator](https://github.com/HL7-DaVinci/crd-request-generator), [Test EHR (FHIR) Server](https://github.com/HL7-DaVinci/test-ehr/tree/master), [CRD Server](https://github.com/HL7-DaVinci/CRD), [DTR Server](https://github.com/HL7-DaVinci/dtr),** and **[KeyCloak  Server](https://github.com/HL7-DaVinci/CRD#setting-up-a-keycloak-instance)**) to test the full SMART on FHIR App launch sequence. After getting these applications up and running you can swap your appliaction if desired.  
+It is recommmended when first starting out you have all five applications running (**[CRD Request Generator](https://github.com/HL7-DaVinci/crd-request-generator), [Test EHR (FHIR) Server](https://github.com/HL7-DaVinci/test-ehr/tree/master), [CRD Server](https://github.com/HL7-DaVinci/CRD), [DTR Server](https://github.com/HL7-DaVinci/dtr),** and **[KeyCloak  Server](https://github.com/HL7-DaVinci/CRD#setting-up-a-keycloak-instance)**) to test the full SMART on FHIR App launch sequence. After getting these applications up and running you can swap your appliaction if desired.  
 
 _Note: If you have your own EHR then you should not need to run the EHR (FHIR) Server, KeyCloak and the Request Generator. Otherwise please follow the below steps._
 
