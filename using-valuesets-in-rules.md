@@ -58,5 +58,5 @@ For ValueSets to be properly used by CQL in the context of FHIR, the correspondi
 
 NOTE: CRD will replace `<server-path>` with the base path of the CRD FHIR endpoint. This is used for ValueSets that are provided locally with the rule set. VSAC ValueSets should use the canonical URL.
 
-The resource type that each ValueSet will be used to filter on is referenced here. This should be used to indicate to the SMART applications or the FHIR server the scope of which resources are required for execution.
+The resource type for each ValueSet will be used to filter on is referenced here. This should be used to indicate to the SMART applications or the FHIR server the scope of which resources are required for execution.
 
