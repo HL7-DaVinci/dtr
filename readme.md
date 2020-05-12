@@ -50,14 +50,14 @@ Steps to prepare local EHR server, Keycloak server, and Request Generator:
    
    Note: You might need to modify the **frame-ancesters** setting in the KeyCloak admin: e.g. Realm | Security Defences | Content-Security-Policy = frame-src 'self'; **frame-ancesters http://localhost:***; object-src 'none';  
 
-5. Then run the **CRD** server, **DTR** server, and **Request Generator**.
+5. Then run the **CRD** server, **DTR** server, and **CRD Request Generator**.
 
-   Note: The DTR app's authorization against the EHR server requires a `client_id` that is registered with the auth server of that EHR to work.  The DTR app has a `/register` endpoint that allows user entry of which `client_id` to use for a specific EHR server.  If following the KeyCloak guide provided in the CRD readme, the client would be called `app-login`.
+   Note: The DTR app's authorization against the EHR server requires a `client_id` that is registered with the auth server of that EHR to work. The DTR app has a `/register` endpoint that allows user entry of which `client_id` to use for a specific EHR server. If following the KeyCloak guide provided in the CRD readme, the client would be called `app-login`.
 
 
 >Test it!
 
->Assuming you have completed the above. You should be able to send a request from the Request Generator in order for the SMART app to launch by clicking the `Patient Select:` button to pre-populate the inputs. Choose a `Device Request` from the drop-down for one of the patients, then click anywhere in the row corresponding to the patient for whom you selected a `Device Request`. The data will be prefetched and you can send the request by prssing the `Submit` button. You should get a CDS Hooks Card back. Click the SMART link button for `Order Form` and you should see a login screen. Login with whatever user you've registered, and the SMART App should proceed to launch.
+>Assuming you have completed the above. You should be able to send a request from the CRD Request Generator in order for the SMART app to launch by clicking the `Patient Select:` button to pre-populate the inputs. Choose a `Device, Service, or Medication Request` from the drop-down for one of the patients, then click anywhere in the row corresponding to the patient for whom you selected a `Device, Service, or Medication Request`. The data will be prefetched and you can send the request by pressing the `Submit` button. You should get a CDS Hooks Card back. Click the SMART link button for `Order Form` and you should see a login screen. Login with whatever user you've registered, and the SMART App should proceed to launch.
 
 ## Building Releases
 
