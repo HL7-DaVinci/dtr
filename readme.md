@@ -46,9 +46,7 @@ Steps to prepare local EHR server, Keycloak server, and Request Generator:
 
 3. Make sure the **Test EHR** server has the data it needs, by running `gradle loadData` to populate it.
 
-4. Then, run the **KeyCloak** server. Follow the guide in the CRD readme if you have never set it up before, make the appropriate **realm/client/user**. 
-   
-   Note: You might need to modify the **frame-ancesters** setting in the KeyCloak admin: e.g. Realm | Security Defences | Content-Security-Policy = frame-src 'self'; **frame-ancesters http://localhost:***; object-src 'none';  
+4. Then, run the **KeyCloak** server. Follow the guide in the CRD readme if you have never set it up before, make the appropriate **realm/client/user**.      
 
 5. Then run the **CRD** server, **DTR** server, and **CRD Request Generator**.
 
