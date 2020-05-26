@@ -64,3 +64,4 @@ typings/
 
 ## webpacked bundle files
 *.bundle.js
+src/db.json
