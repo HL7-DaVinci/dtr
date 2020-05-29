@@ -12,6 +12,8 @@ VSAC ValueSets should be referenced by the canonical URL for VSAC, `http://cts.n
 
 ### Locally Defined ValueSets
 
+**NOTE: Use of locally defined ValueSets is NOT recommended.**
+
 Local ValueSets created specifically for a DTR rule can be stored in the `Shared` or topic's respective `resources` folder. It can be referenced by it's own id in CQL logic. But in the Library or Questionnaire resources it must use a faux canonical URL, `<server-path>ValueSet/{id}`. For example, a local ValueSet with id `copd` should be referenced by `copd` in the CQL valueset definition. In the FHIR Library or Questionnaire, it should be referened by the faux canonical URL. `<server-path>ValueSet/copd`. The CRD server will replace the `<server-path>` chunk with the URL of the FHIR endpoint on the CRD server.
 
 ### HL7 FHIR ValueSets or ValueSets From Other Sources
