@@ -15,6 +15,8 @@ function doSearch(smart, type, fhirVersion, request, callback) {
       q._id = performer;
       if( performer.includes("PractitionerRole")){
           q._id = null;
+      } else if( performer.includes("Practitioner")) {
+          q._id = performer.split("/")[1];
       }
       smart.request(performer,{resolveReferences:"practitioner",flat:true}).then((result)=>{
           if(result && result.practitioner) {
@@ -101,7 +103,6 @@ function doSearch(smart, type, fhirVersion, request, callback) {
   Object.keys(q).forEach((parameter)=>{
       query.set(parameter, q[parameter]);
   });
-  
   if( usePatient ) {
     smart.patient.request(`${type}?${query}`)
     .then(processSuccess(smart, [], callback), processError(smart, callback));
@@ -125,8 +126,7 @@ function processSuccess(smart, resources, callback) {
         response.link.some(l => l.relation === "next" && l.url != null)
       ) {
         // There is a next page, so recursively process that before we do the callback
-        smart.patient.api
-          .nextPage({ bundle: response })
+        smart.request(response.link.find((e)=>{e.relation==="next";}))
           .then(processSuccess(smart, resources, callback), processError(smart, callback));
       } else {
         callback(resources);

@@ -15,6 +15,11 @@
       "name": "http://localhost:8080/test-ehr/r4",
       "client": "app-login",
       "id": 5
+    },
+    {
+      "name": "https://fhir-ehr.sandboxcerner.com/r4/0b8a0111-e8e6-4c26-a91c-5069cbc6b1ca",
+      "client": "caa0daef-bd51-4356-ae3d-8cf2e3e5ab27",
+      "id": 6
     }
   ],
   "logs": [
