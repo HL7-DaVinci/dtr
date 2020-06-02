@@ -86,6 +86,10 @@ class App extends Component {
                 parameterObj = {
                   service_request: fhirWrapper.wrap(this.props.deviceRequest)
                 };
+              } else if (this.props.deviceRequest.resourceType === "MedicationRequest") {
+                parameterObj = {
+                  medication_request: fhirWrapper.wrap(this.props.deviceRequest)
+                };
               }
 
               const executionInputs = {
