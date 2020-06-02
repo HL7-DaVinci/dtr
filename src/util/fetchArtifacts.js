@@ -43,14 +43,15 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
       fetchedUrls.add(questionnaireUrl);
       // grab all main elm urls
       // R4 resources use cqf library. 
-      // STU3 resources use cqif library.
       var mainElmReferences = questionnaire.extension.filter(ext => ext.url == "http://hl7.org/fhir/StructureDefinition/cqf-library")
           .map(lib => lib.valueCanonical)
-
-      if (mainElmReferences == null || mainElmReferences.length == 0)
+      
+      if (mainElmReferences == null || mainElmReferences.length == 0) {
+        // STU3 resources use cqif library.
         mainElmReferences = questionnaire.extension.filter(ext => ext.url == "http://hl7.org/fhir/StructureDefinition/cqif-library")
           .map(lib => lib.valueReference.reference);
-      
+      }
+
       mainElmReferences.forEach((mainElmReference) => {
         const mainElmUrl = buildFhirUrl(mainElmReference);
         fetchElm(mainElmUrl, true);
