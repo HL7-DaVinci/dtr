@@ -42,8 +42,16 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
       retVal.questionnaire = questionnaire;
       fetchedUrls.add(questionnaireUrl);
       // grab all main elm urls
-      const mainElmReferences = questionnaire.extension.filter(ext => ext.url == "http://hl7.org/fhir/StructureDefinition/cqif-library").map(lib => lib.valueReference.reference);
+      // R4 resources use cqf library. 
+      var mainElmReferences = questionnaire.extension.filter(ext => ext.url == "http://hl7.org/fhir/StructureDefinition/cqf-library")
+          .map(lib => lib.valueCanonical)
       
+      if (mainElmReferences == null || mainElmReferences.length == 0) {
+        // STU3 resources use cqif library.
+        mainElmReferences = questionnaire.extension.filter(ext => ext.url == "http://hl7.org/fhir/StructureDefinition/cqif-library")
+          .map(lib => lib.valueReference.reference);
+      }
+
       mainElmReferences.forEach((mainElmReference) => {
         const mainElmUrl = buildFhirUrl(mainElmReference);
         fetchElm(mainElmUrl, true);
@@ -155,7 +163,14 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
     }
 
     function buildFhirUrl(reference) {
-      return fhirPrefix + fhirVersion + "/" + reference;
+      if (reference.startsWith("http")) {
+        var endIndex = reference.lastIndexOf("/");
+        var startIndex = reference.lastIndexOf("/", endIndex -1) + 1;
+        var resoruce = reference.substr(startIndex, endIndex - startIndex);
+        return fhirPrefix + fhirVersion + "/" + resoruce + "?url=" + reference;        
+      } else {        
+        return fhirPrefix + fhirVersion + "/" + reference;
+      }
     }
   });
 }
