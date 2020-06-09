@@ -277,7 +277,21 @@ export default class QuestionnaireForm extends Component {
       this.populateMissingDisplay(item.option)
     } else {
       this.populateMissingDisplay(item.answerOption)
+      this.removeInitialReference(item)
     }
+  }
+
+  // Adding initial.valueRefernece to contained value set is a work around due to a HAPI bug.
+  // https://github.com/jamesagnew/hapi-fhir/issues/1184
+  // The initial does not have impact on Questionnaire visulization since the prepopulated values are saved in QuestionnaireResponse
+  // After HPAI serialize Questionnaire item to JSON, it is not required to remove the not used initial array.
+  // The purpose of this method is to make the Questionnaire JSON object looks cleaner.
+  removeInitialReference(item) {
+    if (item == null || item.initial == null || item.initial.length == 0) {
+      return;
+    }
+
+    item.initial = item.initial.filter(i => i.valueReference != null && !i.valueReference.reference.startsWith("#"));
   }
 
   generateAndStoreDocumentReference(questionnaireResponse, dataBundle) {
