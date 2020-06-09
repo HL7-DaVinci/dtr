@@ -291,7 +291,7 @@ export default class QuestionnaireForm extends Component {
       return;
     }
 
-    item.initial = item.initial.filter(i => i.valueReference != null && !i.valueReference.reference.startsWith("#"));
+    item.initial = item.initial.filter(i => i.valueReference == null || !i.valueReference.reference.startsWith("#"));
   }
 
   generateAndStoreDocumentReference(questionnaireResponse, dataBundle) {
