@@ -1404,6 +1404,93 @@
         "filepath": "_"
       },
       "patient": "pat014"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "b513049c-e059-47d4-bd7c-b6e050cc56fd",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 102,
+      "clientId": "app-login",
+      "scope": "launch",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/HomeBloodGlucoseMonitorLab",
+        "request": "{\\\"resourceType\\\":\\\"DeviceRequest\\\",\\\"id\\\":\\\"devreq236\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"1\\\",\\\"lastUpdated\\\":\\\"2020-06-11T14:01:03.840-04:00\\\",\\\"source\\\":\\\"#fMzyOUJjj1ZR0UJh\\\",\\\"profile\\\":[\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/R4\\/StructureDefinition\\/profile-devicerequest-r4\\\"]},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/build.fhir.org\\/ig\\/HL7\\/davinci-crd\\/R4\\/ext-insurance.html\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}}],\\\"status\\\":\\\"draft\\\",\\\"codeCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"http:\\/\\/www.ama-assn.org\\/go\\/cpt\\\",\\\"code\\\":\\\"95259\\\",\\\"display\\\":\\\"Home Blood Glucose Monitor\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat016\\\"},\\\"performer\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1234\\\"},\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat016"
+    },
+    {
+      "status": "Authorizing",
+      "launchContextId": "b513049c-e059-47d4-bd7c-b6e050cc56fd",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 103,
+      "clientId": "app-login",
+      "scope": "launch",
+      "redirectUri": "http://localhost:3005/index",
+      "error": "Token post request failed. Returned status: 404"
+    },
+    {
+      "status": "Authorizing",
+      "launchContextId": "b513049c-e059-47d4-bd7c-b6e050cc56fd",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 104,
+      "clientId": "app-login",
+      "scope": "launch",
+      "redirectUri": "http://localhost:3005/index",
+      "error": "Token post request failed. Returned status: 404"
+    },
+    {
+      "status": "Authorizing",
+      "launchContextId": "b513049c-e059-47d4-bd7c-b6e050cc56fd",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 105,
+      "clientId": "app-login",
+      "scope": "launch",
+      "redirectUri": "http://localhost:3005/index"
+    },
+    {
+      "status": "Authorizing",
+      "launchContextId": "b513049c-e059-47d4-bd7c-b6e050cc56fd",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 106,
+      "clientId": "app-login",
+      "scope": "launch",
+      "redirectUri": "http://localhost:3005/index",
+      "error": "Token post request failed. Returned status: 404"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "b513049c-e059-47d4-bd7c-b6e050cc56fd",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 107,
+      "clientId": "app-login",
+      "scope": "launch",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/HomeBloodGlucoseMonitorLab",
+        "request": "{\\\"resourceType\\\":\\\"DeviceRequest\\\",\\\"id\\\":\\\"devreq236\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"1\\\",\\\"lastUpdated\\\":\\\"2020-06-11T14:01:03.840-04:00\\\",\\\"source\\\":\\\"#fMzyOUJjj1ZR0UJh\\\",\\\"profile\\\":[\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/R4\\/StructureDefinition\\/profile-devicerequest-r4\\\"]},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/build.fhir.org\\/ig\\/HL7\\/davinci-crd\\/R4\\/ext-insurance.html\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}}],\\\"status\\\":\\\"draft\\\",\\\"codeCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"http:\\/\\/www.ama-assn.org\\/go\\/cpt\\\",\\\"code\\\":\\\"95259\\\",\\\"display\\\":\\\"Home Blood Glucose Monitor\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat016\\\"},\\\"performer\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1234\\\"},\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat016"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "76dd1e4b-43a1-4177-b61e-12dfef054fab",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 108,
+      "clientId": "app-login",
+      "scope": "launch",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/HomeBloodGlucoseMonitorLab",
+        "request": "{\\\"resourceType\\\":\\\"DeviceRequest\\\",\\\"id\\\":\\\"devreq236\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"1\\\",\\\"lastUpdated\\\":\\\"2020-06-11T14:01:03.840-04:00\\\",\\\"source\\\":\\\"#fMzyOUJjj1ZR0UJh\\\",\\\"profile\\\":[\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/R4\\/StructureDefinition\\/profile-devicerequest-r4\\\"]},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/build.fhir.org\\/ig\\/HL7\\/davinci-crd\\/R4\\/ext-insurance.html\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}}],\\\"status\\\":\\\"draft\\\",\\\"codeCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"http:\\/\\/www.ama-assn.org\\/go\\/cpt\\\",\\\"code\\\":\\\"95259\\\",\\\"display\\\":\\\"Home Blood Glucose Monitor\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat016\\\"},\\\"performer\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1234\\\"},\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat016"
     }
   ],
   "profile": {
