@@ -40,7 +40,7 @@ function callback(log) {
     // encoded in a space-separated string:
     //      1. permission to read all of the patient's record
     //      2. permission to launch the app in the specific context
-    log.scope = ["launch"].join(" ");
+    log.scope = ["launch","user/Observation.read","user/Patient.read","patient/Observation.read","patient/Patient.read","patient/Coverage.read", "patient/Condition.read", "user/Practitioner.read" ].join(" ");
 
     // Generate a unique session key string (here we just generate a random number
     // for simplicity, but this is not 100% collision-proof)
