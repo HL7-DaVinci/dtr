@@ -160,6 +160,10 @@ export default class QuestionnaireForm extends Component {
                 response_item.answer.push({ valueInteger: prepopulationResult });
                 break;
 
+              case 'decimal':
+                response_item.answer.push({ valueDecimal: prepopulationResult });
+                break;
+
               case 'date':
                 // LHC form could not correctly parse Date object.
                 // Have to convert Date object to string. 
