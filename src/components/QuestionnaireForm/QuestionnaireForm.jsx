@@ -252,10 +252,12 @@ export default class QuestionnaireForm extends Component {
         system = "ICD-10"
       } else if (v.system == "http://www.nlm.nih.gov/research/umls/rxnorm") {
         system = "RxNorm"
+      } else if (v.system == "https://bluebutton.cms.gov/resources/codesystem/hcpcs") {
+        displayText = v.code + ' - ' + v.display
       }
 
       if (system.length > 0) {
-        displayText = displayText + ' - ' + system + ' - ' + v.code      
+        displayText = v.display + ' - ' + system + ' - ' + v.code      
       }
     }
 
