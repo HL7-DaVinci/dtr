@@ -672,7 +672,7 @@ export default class QuestionnaireForm extends Component {
         <div id="formContainer">
         </div>
         <div className="submit-button-panel">
-          <button className="btn submit-button" onClick={this.sendQuesionnaireResponseToPayer.bind(this)}>
+          <button className="btn submit-button" onClick={this.sendQuestionnaireResponseToPayer.bind(this)}>
             Send to Payer
           </button>
           <button className="btn submit-button" onClick={this.outputResponse.bind(this, "in-progress")}>
