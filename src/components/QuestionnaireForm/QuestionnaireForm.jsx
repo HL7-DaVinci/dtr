@@ -22,6 +22,9 @@ export default class QuestionnaireForm extends Component {
     };
 
     this.outputResponse = this.outputResponse.bind(this);
+    this.smart = props.smart;
+    this.fhirVersion = props.fhirVersion;
+    this.FHIR_PREFIX = props.FHIR_PREFIX;
   }
 
   componentWillMount() {
@@ -284,6 +287,13 @@ export default class QuestionnaireForm extends Component {
     }
   }
 
+  storeQuestionnaireResponseToEhr(questionnaireReponse) {
+    // send the QuestionnaireResponse to the EHR FHIR server
+    var questionnaireUrl = sessionStorage["serviceUri"] + "/QuestionnaireResponse";
+    console.log("Storing QuestionnaireResponse to: " + questionnaireUrl);
+    this.smart.create(questionnaireReponse);
+}
+
   generateAndStoreDocumentReference(questionnaireResponse, dataBundle) {
     var pdfMake = require("pdfmake/build/pdfmake.js");
     var pdfFonts = require("pdfmake/build/vfs_fonts.js");
@@ -375,10 +385,7 @@ export default class QuestionnaireForm extends Component {
     });
   }
 
-  // create the questionnaire response based on the current state
-  outputResponse(status) {
-    console.log(this.state.sectionLinks);
-
+  getQuestionnaireResponse(status) {
     var qr = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', 'R4');
     qr.status = status;
     qr.author = {
@@ -389,6 +396,50 @@ export default class QuestionnaireForm extends Component {
     };
 
     qr.questionnaire = this.props.qform.id;
+
+    return qr;
+  }
+
+  sendQuestionnaireResponseToPayer() {
+    console.log(this.state.sectionLinks);
+    var qr = this.getQuestionnaireResponse("completed");
+
+    // do a fetch back to the dtr server to post the QuestionnaireResponse to CRD
+    const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/fhir+json' },
+        body: JSON.stringify(qr)
+    };
+
+    function handleFetchErrors(response) {
+      if (!response.ok) {
+        let msg = "Failure when fetching resource";
+        let details = `${msg}: ${response.url}: the server responded with a status of ${response.status} (${response.statusText})`;
+        console.log(msg + ": errorClass: " + details);
+      }
+      return response;
+    }
+
+    console.log(requestOptions);
+    let url = this.FHIR_PREFIX + this.fhirVersion + "/QuestionnaireResponse";
+    console.log(url);
+    fetch(url, requestOptions).then(handleFetchErrors).then(r => {
+        let msg = "QuestionnaireResponse sent to Payer";
+        console.log(msg);
+        alert(msg);
+      })
+      .catch(err => {
+        console.log("error sending new QuestionnaireResponse to the Payer: ", err);
+      });
+    
+    return;
+  }
+
+  // create the questionnaire response based on the current state
+  outputResponse(status) {
+    console.log(this.state.sectionLinks);
+
+    var qr = this.getQuestionnaireResponse(status);
 
     if (status == "in-progress") {
       localStorage.setItem(qr.questionnaire, JSON.stringify(qr));
@@ -448,16 +499,6 @@ export default class QuestionnaireForm extends Component {
       }
     };
 
-    if (status == "in-progress") 
-    {
-       localStorage.setItem(response.questionnaire, JSON.stringify(response));      
-    
-       alert("QuestionnaireResponse saved");
-       console.log("QuestionnaireResponse saved.");
-      
-       return;
-    }
-
     const priorAuthBundle = JSON.parse(JSON.stringify(this.props.bundle));
     priorAuthBundle.entry.unshift({ resource: managingOrg });
     priorAuthBundle.entry.unshift({ resource: facility });
@@ -467,6 +508,7 @@ export default class QuestionnaireForm extends Component {
     console.log(priorAuthBundle);
 
     this.generateAndStoreDocumentReference(qr, priorAuthBundle);
+    this.storeQuestionnaireResponseToEhr(qr);
 
     // if (this.props.priorAuthReq) {
     const priorAuthClaim = {
@@ -630,24 +672,15 @@ export default class QuestionnaireForm extends Component {
         <div id="formContainer">
         </div>
         <div className="submit-button-panel">
+          <button className="btn submit-button" onClick={this.sendQuesionnaireResponseToPayer.bind(this)}>
+            Send to Payer
+          </button>
           <button className="btn submit-button" onClick={this.outputResponse.bind(this, "in-progress")}>
             Save
           </button>
-          {/* {this.props.priorAuthReq && (
-            <button
-              className="btn submit-button"
-              onClick={this.outputResponse.bind(this, "completed")}
-            >
-              Next
-            </button>
-          )} */}
-           {           
-           <button
-            className="btn submit-button"
-            onClick={this.outputResponse.bind(this, "completed")}
-          >
+          <button className="btn submit-button" onClick={this.outputResponse.bind(this, "completed")}>
             Next
-          </button>}
+          </button>
         </div>
       </div>
     );

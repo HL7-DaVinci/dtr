@@ -345,6 +345,7 @@ class App extends Component {
               setPriorAuthClaim={this.setPriorAuthClaim.bind(this)}
               fhirVersion={this.fhirVersion.toUpperCase()}
               smart={this.smart}
+              FHIR_PREFIX={this.props.FHIR_PREFIX}
             />
           )}
         </div>
