@@ -28,7 +28,7 @@ export default class QuestionnaireForm extends Component {
     // setup
     // get all contained resources
     let partialResponse = localStorage.getItem(this.props.qform.id);
-    let dynamic_choice_only = false;
+    let saved_response = false;
 
     if (partialResponse) {
       let result = confirm(
@@ -38,7 +38,7 @@ export default class QuestionnaireForm extends Component {
       if (result) {
         //this.state.savedResponse = JSON.parse(partialResponse);
         this.setState({ savedResponse: JSON.parse(partialResponse) })
-        dynamic_choice_only = true;
+        saved_response = true;
       } else {
         localStorage.removeItem(this.props.qform.id);
       }
@@ -52,9 +52,9 @@ export default class QuestionnaireForm extends Component {
     }
 
     const items = this.props.qform.item;
-    this.prepopulate(items, newResponse.item, dynamic_choice_only)
+    this.prepopulate(items, newResponse.item, saved_response)
 
-    if (!dynamic_choice_only) {
+    if (!saved_response) {
       this.state.savedResponse = newResponse
     }
   }
@@ -82,20 +82,21 @@ export default class QuestionnaireForm extends Component {
     LForms.Util.addFormToPage(lform, "formContainer")
   }
 
-  prepopulate(items, response_items, dynamic_choice_only) {
+  prepopulate(items, response_items, saved_response) {
     items.map(item => {
       let response_item = {
         linkId: item.linkId,
       };
 
-      if (!dynamic_choice_only) {
-        response_items.push(response_item);
-      }
-
       if (item.item) {
         // add sub-items
         response_item.item = []
-        this.prepopulate(item.item, response_item.item, dynamic_choice_only);
+        this.prepopulate(item.item, response_item.item, saved_response);
+
+        // Remove empty child item array
+        if (response_item.item.length == 0) {
+          response_item.item = undefined
+        }
       }
 
       if (item.type === 'choice' || item.type === 'open-choice') {
@@ -103,7 +104,7 @@ export default class QuestionnaireForm extends Component {
       }
 
       // autofill fields
-      if (item.extension && (!dynamic_choice_only || item.type == 'open-choice')) {
+      if (item.extension && (!saved_response || item.type == 'open-choice')) {
         response_item.answer = []
         item.extension.forEach(e => {
           let value;
@@ -150,7 +151,7 @@ export default class QuestionnaireForm extends Component {
             console.log(`Couldn't find library "${libraryName}"`);
           }
 
-          if (prepopulationResult != null && !dynamic_choice_only) {
+          if (prepopulationResult != null && !saved_response) {
             switch (item.type) {
               case 'boolean':
                 response_item.answer.push({ valueBoolean: prepopulationResult });
@@ -208,6 +209,17 @@ export default class QuestionnaireForm extends Component {
             }
           }
         });
+
+        // Remove emtpy answer array
+        if (response_item.answer.length == 0) {
+          response_item.answer = undefined
+        }
+      }
+      
+      // Don't need to add item for reloaded QuestionnaireResponse 
+      // Add QuestionnaireReponse item if the item has either answer(s) or child item(s)
+      if (!saved_response && (response_item.answer || response_item.item)) {
+        response_items.push(response_item);
       }
     });
   }
