@@ -258,8 +258,8 @@ export default class QuestionnaireForm extends Component {
     let system = '';
     let displayText = v.display
 
-    if(v.type && v.type === 'encounter' && v.periodStart) {
-      displayText = 'Encounter - ' + v.display + ' on ' + v.periodStart
+    if(v.type && v.type === 'encounter' && v.periodStart && v.encounterReason ) {
+      displayText = 'Encounter - ' + v.display +  ' for ' + v.encounterReason + ' on ' + v.periodStart
     } else if (v.system) {
       if (v.system == 'http://snomed.info/sct') {
         system = 'SNOMED'
