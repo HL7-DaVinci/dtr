@@ -62,7 +62,7 @@ export default class QuestionnaireForm extends Component {
     this.loadAndMergeForms(this.state.savedResponse);
   }
 
-  loadOldForm() {
+  loadPreviousForm() {
     // search for any QuestionnaireResponses 
     this.smart.request("QuestionnaireResponse?" + 
           "&author=" + this.getPractitioner() + 
@@ -799,8 +799,8 @@ export default class QuestionnaireForm extends Component {
           Form Loaded: {this.state.formLoaded}
         </div>
         <div className="submit-button-panel">
-          <button className="btn submit-button" onClick={this.loadOldForm.bind(this)}>
-            Load Old Form
+          <button className="btn submit-button" onClick={this.loadPreviousForm.bind(this)}>
+            Load Previous Form
           </button>
           <button className="btn submit-button" onClick={this.sendQuestionnaireResponseToPayer.bind(this)}>
             Send to Payer
