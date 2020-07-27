@@ -2,6 +2,8 @@ import React, { Component } from "react";
 import cql from "cql-execution";
 import "./QuestionnaireForm.css";
 import { findValueByPrefix } from "../../util/util.js";
+import SelectPopup from './SelectPopup';
+
 
 export default class QuestionnaireForm extends Component {
   constructor(props) {
@@ -17,35 +19,32 @@ export default class QuestionnaireForm extends Component {
       sectionLinks: {},
       fullView: true,
       turnOffValues: [],
-      useSavedResponse: false,
-      savedResponse: null
+      savedResponse: null,
+      formLoaded: "New",
+      popupTitle: "Would you like to continue an in-process questionnaire?",
+      popupOptions: [],
+      popupFinalOption: "Cancel"
     };
 
     this.outputResponse = this.outputResponse.bind(this);
     this.smart = props.smart;
     this.fhirVersion = props.fhirVersion;
     this.FHIR_PREFIX = props.FHIR_PREFIX;
+    this.partialForms = {};
   }
 
+
+
   componentWillMount() {
-    // setup
-    // get all contained resources
-    let partialResponse = localStorage.getItem(this.props.qform.id);
-    let saved_response = false;
+    // search for any partially completed QuestionnaireResponses
+    this.smart.request("QuestionnaireResponse?" + 
+          "status=in-progress" + 
+          "&author=" + this.getPractitioner() + 
+          "&subject=" + this.getPatient()).then((result)=>{
 
-    if (partialResponse) {
-      let result = confirm(
-        "Found previously saved form. Do you want to load existing data from saved from?"
-      );
-
-      if (result) {
-        //this.state.savedResponse = JSON.parse(partialResponse);
-        this.setState({ savedResponse: JSON.parse(partialResponse) })
-        saved_response = true;
-      } else {
-        localStorage.removeItem(this.props.qform.id);
-      }
-    }
+      this.popupClear("Would you like to continue an in-process questionnaire?", "Cancel", false);
+      this.processSavedQuestionnaireResponses(result, false);
+    });
 
     // If not using saved QuestionnaireResponse, create a new one
     let newResponse = {
@@ -55,16 +54,72 @@ export default class QuestionnaireForm extends Component {
     }
 
     const items = this.props.qform.item;
-    this.prepopulate(items, newResponse.item, saved_response)
-
-    if (!saved_response) {
-      this.state.savedResponse = newResponse
-    }
+    this.prepopulate(items, newResponse.item, false)
+    this.state.savedResponse = newResponse;
   }
 
   componentDidMount() {
-    console.log(JSON.stringify(this.props.qform));
-    console.log(JSON.stringify(this.state.savedResponse));
+    this.loadAndMergeForms(this.state.savedResponse);
+  }
+
+  loadOldForm() {
+    // search for any QuestionnaireResponses 
+    this.smart.request("QuestionnaireResponse?" + 
+          "&author=" + this.getPractitioner() + 
+          "&subject=" + this.getPatient()).then((result)=>{
+
+      this.popupClear("Would you like to load a previous form?", "Cancel", false);
+      this.processSavedQuestionnaireResponses(result, true);
+    });
+
+  }
+
+  processSavedQuestionnaireResponses(partialResponses, displayErrorOnNoneFound) {
+    let noneFound = true;
+
+    if (partialResponses && (partialResponses.total > 0)) {
+      const options = {
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric', 
+          hour: 'numeric', 
+          minute: 'numeric', 
+          second: 'numeric'
+        };
+
+      let count = 0;
+
+      partialResponses.entry.forEach(r => {
+        if (this.props.qform.id == r.resource.questionnaire) {
+          count = count + 1;
+          // add the option to the popupOptions
+          let date = new Date(r.resource.authored);
+          let option = date.toLocaleDateString(undefined, options) + " (" + r.resource.status + ")";
+          this.setState({
+            popupOptions: [...this.state.popupOptions, option]
+          });
+          this.partialForms[option] = r.resource;
+        }
+      });
+      console.log(this.state.popupOptions);
+      console.log(this.partialForms);
+
+      // only show the popupOptions if there is one to show
+      if (count > 0) {
+        noneFound = false;
+        this.popupLaunch();
+      }
+    }
+
+    // display a message that none were found if necessary
+    if (noneFound && displayErrorOnNoneFound) {
+        this.popupClear("No saved forms available to load.", "OK", true);
+        this.popupLaunch();
+    }
+  }
+
+  loadAndMergeForms(newResponse) {
     let lform = LForms.Util.convertFHIRQuestionnaireToLForms(this.props.qform, this.props.fhirVersion);
 
     lform.templateOptions = {
@@ -77,29 +132,28 @@ export default class QuestionnaireForm extends Component {
       //showCodingInstruction: true
     };
 
-    if (this.state.savedResponse) {
-      lform = LForms.Util.mergeFHIRDataIntoLForms("QuestionnaireResponse", this.state.savedResponse, lform, this.props.fhirVersion)
+    if (newResponse) {
+      lform = LForms.Util.mergeFHIRDataIntoLForms("QuestionnaireResponse", newResponse, lform, this.props.fhirVersion)
     }
 
-    console.log(JSON.stringify(lform));
     LForms.Util.addFormToPage(lform, "formContainer")
+    console.log(lform);
   }
 
-  prepopulate(items, response_items, saved_response) {
+  prepopulate(items, response_items, dynamic_choice_only) {
     items.map(item => {
       let response_item = {
         linkId: item.linkId,
       };
 
+      if (!dynamic_choice_only) {
+        response_items.push(response_item);
+      }
+
       if (item.item) {
         // add sub-items
         response_item.item = []
-        this.prepopulate(item.item, response_item.item, saved_response);
-
-        // Remove empty child item array
-        if (response_item.item.length == 0) {
-          response_item.item = undefined
-        }
+        this.prepopulate(item.item, response_item.item, dynamic_choice_only);
       }
 
       if (item.type === 'choice' || item.type === 'open-choice') {
@@ -107,7 +161,7 @@ export default class QuestionnaireForm extends Component {
       }
 
       // autofill fields
-      if (item.extension && (!saved_response || item.type == 'open-choice')) {
+      if (item.extension && (!dynamic_choice_only || item.type == 'open-choice')) {
         response_item.answer = []
         item.extension.forEach(e => {
           let value;
@@ -154,7 +208,7 @@ export default class QuestionnaireForm extends Component {
             console.log(`Couldn't find library "${libraryName}"`);
           }
 
-          if (prepopulationResult != null && !saved_response) {
+          if (prepopulationResult != null && !dynamic_choice_only) {
             switch (item.type) {
               case 'boolean':
                 response_item.answer.push({ valueBoolean: prepopulationResult });
@@ -212,17 +266,6 @@ export default class QuestionnaireForm extends Component {
             }
           }
         });
-
-        // Remove emtpy answer array
-        if (response_item.answer.length == 0) {
-          response_item.answer = undefined
-        }
-      }
-      
-      // Don't need to add item for reloaded QuestionnaireResponse 
-      // Add QuestionnaireReponse item if the item has either answer(s) or child item(s)
-      if (!saved_response && (response_item.answer || response_item.item)) {
-        response_items.push(response_item);
       }
     });
   }
@@ -258,8 +301,8 @@ export default class QuestionnaireForm extends Component {
     let system = '';
     let displayText = v.display
 
-    if(v.type && v.type === 'encounter' && v.periodStart && v.encounterReason ) {
-      displayText = 'Encounter - ' + v.display +  ' for ' + v.encounterReason + ' on ' + v.periodStart
+    if(v.type && v.type === 'encounter' && v.periodStart) {
+      displayText = 'Encounter - ' + v.display + ' on ' + v.periodStart
     } else if (v.system) {
       if (v.system == 'http://snomed.info/sct') {
         system = 'SNOMED'
@@ -397,14 +440,30 @@ export default class QuestionnaireForm extends Component {
     });
   }
 
+  getPractitioner() {
+    return "Practitioner/" +
+        this.props.cqlPrepoulationResults.BasicPractitionerInfoPrepopulation
+          .OrderingProvider.id.value;
+  }
+
+  getPatient() {
+    return "Patient/" + 
+        this.props.cqlPrepoulationResults.BasicPatientInfoPrepopulation
+          .Patient.id.value;
+
+  }
+
   getQuestionnaireResponse(status) {
     var qr = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', 'R4');
     qr.status = status;
     qr.author = {
       reference:
-        "Practitioner/" +
-        this.props.cqlPrepoulationResults.BasicPractitionerInfoPrepopulation
-          .OrderingProvider.id.value
+        this.getPractitioner()
+    };
+    this.getPatient();
+    qr.subject = {
+      reference:
+        this.getPatient()
     };
 
     qr.questionnaire = this.props.qform.id;
@@ -449,14 +508,12 @@ export default class QuestionnaireForm extends Component {
 
   // create the questionnaire response based on the current state
   outputResponse(status) {
-    console.log(this.state.sectionLinks);
-
     var qr = this.getQuestionnaireResponse(status);
 
     if (status == "in-progress") {
-      localStorage.setItem(qr.questionnaire, JSON.stringify(qr));
-      alert("Partial QuestionnaireResponse saved");
-      console.log("Partial QuestionnaireResponse saved.");
+      this.storeQuestionnaireResponseToEhr(qr);
+      this.popupClear("Partially completed form (QuestionnaireResponse) saved to EHR", "OK", true);
+      this.popupLaunch();
       return;
     }
 
@@ -649,7 +706,6 @@ export default class QuestionnaireForm extends Component {
     // } else {
     //   alert("NOT submitting for prior auth");
     // }
-    localStorage.removeItem(qr.questionnaire);
   }
 
   isEmptyAnswer(answer) {
@@ -678,12 +734,74 @@ export default class QuestionnaireForm extends Component {
     return resourceType + "/" + entry.resource.id;
   }
 
+  popupClear(title, finalOption, logTitle) {
+    this.setState({
+      popupTitle: title,
+      popupOptions: [],
+      popupFinalOption: finalOption
+    });
+    if (logTitle) {
+      console.log(title);
+    }
+  }
+
+  popupLaunch() {
+    this.clickChild();
+  }
+
+  popupCallback(returnValue) {
+    // display the form loaded
+    this.setState({
+      formLoaded: returnValue
+    });
+    
+    if (this.partialForms[returnValue]) {
+      // load the selected form
+      let partialResponse = this.partialForms[returnValue];
+      let dynamic_choice_only = true;
+
+      console.log(partialResponse);
+
+      this.setState({ savedResponse: partialResponse });
+
+      // If not using saved QuestionnaireResponse, create a new one
+      let newResponse = {
+        resourceType: 'QuestionnaireResponse',
+        status: 'draft',
+        item: []
+      }
+
+      const items = this.props.qform.item;
+      this.prepopulate(items, newResponse.item, dynamic_choice_only)
+
+      // force it to reload the form
+      this.loadAndMergeForms(partialResponse);
+
+    } else {
+      console.log("No form loaded.");
+    }
+  }
+
   render() {
+    console.log(this.state.savedResponse);
     return (
       <div>
         <div id="formContainer">
         </div>
+        <SelectPopup
+          title={this.state.popupTitle}
+          options={this.state.popupOptions}
+          finalOption={this.state.popupFinalOption}
+          selectedCallback={this.popupCallback.bind(this)}
+          setClick={click => this.clickChild = click}
+        />
+        <div className="status-panel">
+          Form Loaded: {this.state.formLoaded}
+        </div>
         <div className="submit-button-panel">
+          <button className="btn submit-button" onClick={this.loadOldForm.bind(this)}>
+            Load Old Form
+          </button>
           <button className="btn submit-button" onClick={this.sendQuestionnaireResponseToPayer.bind(this)}>
             Send to Payer
           </button>
