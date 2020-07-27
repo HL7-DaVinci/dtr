@@ -143,11 +143,15 @@ export default class QuestionnaireForm extends Component {
     console.log(lform);
   }
 
-  prepopulate(items, response_items, saved_response) {
+  prepopulate(items, response_items, dynamic_choice_only) {
     items.map(item => {
       let response_item = {
         linkId: item.linkId,
       };
+
+      if (!dynamic_choice_only) {
+        response_items.push(response_item);
+      }
 
       if (item.item) {
         // add sub-items
@@ -165,7 +169,7 @@ export default class QuestionnaireForm extends Component {
       }
 
       // autofill fields
-      if (item.extension && (!saved_response || item.type == 'open-choice')) {
+      if (item.extension && (!dynamic_choice_only || item.type == 'open-choice')) {
         response_item.answer = []
         item.extension.forEach(e => {
           let value;
@@ -212,7 +216,7 @@ export default class QuestionnaireForm extends Component {
             console.log(`Couldn't find library "${libraryName}"`);
           }
 
-          if (prepopulationResult != null && !saved_response) {
+          if (prepopulationResult != null && !dynamic_choice_only) {
             switch (item.type) {
               case 'boolean':
                 response_item.answer.push({ valueBoolean: prepopulationResult });
@@ -543,6 +547,8 @@ export default class QuestionnaireForm extends Component {
 
     if (status == "in-progress") {
       this.storeQuestionnaireResponseToEhr(qr, true);
+      this.popupClear("Partially completed form (QuestionnaireResponse) saved to EHR", "OK", true);
+      this.popupLaunch();
       return;
     }
 
@@ -817,6 +823,54 @@ export default class QuestionnaireForm extends Component {
 
       const items = this.props.qform.item;
       this.prepopulate(items, newResponse.item, saved_response)
+
+      // force it to reload the form
+      this.loadAndMergeForms(partialResponse);
+
+    } else {
+      console.log("No form loaded.");
+    }
+  }
+
+  popupClear(title, finalOption, logTitle) {
+    this.setState({
+      popupTitle: title,
+      popupOptions: [],
+      popupFinalOption: finalOption
+    });
+    if (logTitle) {
+      console.log(title);
+    }
+  }
+
+  popupLaunch() {
+    this.clickChild();
+  }
+
+  popupCallback(returnValue) {
+    // display the form loaded
+    this.setState({
+      formLoaded: returnValue
+    });
+    
+    if (this.partialForms[returnValue]) {
+      // load the selected form
+      let partialResponse = this.partialForms[returnValue];
+      let dynamic_choice_only = true;
+
+      console.log(partialResponse);
+
+      this.setState({ savedResponse: partialResponse });
+
+      // If not using saved QuestionnaireResponse, create a new one
+      let newResponse = {
+        resourceType: 'QuestionnaireResponse',
+        status: 'draft',
+        item: []
+      }
+
+      const items = this.props.qform.item;
+      this.prepopulate(items, newResponse.item, dynamic_choice_only)
 
       // force it to reload the form
       this.loadAndMergeForms(partialResponse);
