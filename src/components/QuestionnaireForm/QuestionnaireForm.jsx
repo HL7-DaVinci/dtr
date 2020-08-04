@@ -557,9 +557,7 @@ export default class QuestionnaireForm extends Component {
         reference: this.makeReference(priorAuthBundle, "Location")
       },
       priority: { coding: [{ code: "normal" }] },
-      prescription: {
-        reference: this.makeReference(priorAuthBundle, "DeviceRequest")
-      },
+      prescription: {},
       careTeam: [
         {
           sequence: 1,
@@ -672,11 +670,28 @@ export default class QuestionnaireForm extends Component {
   }
 
   makeReference(bundle, resourceType) {
+    try {
+      if (resourceType == undefined || resourceType == null) {
+      console.log("resourceType undefined or null");
+      }
+    } catch (error) {
+      console.log(error.message);
+      console.log(error.name);
+      return;
+    }
+    if (resourceType == "DeviceRequest") {
+      entry.resource.resourceType = resourceType;
+    } else if (resourceType == "ServiceRequest") {
+      entry.resource.resourceType = resourceType;
+    } else if (resourceType == "MedicationRequest") {
+      entry.resource.resourceType = resourceType;
+    }
     var entry = bundle.entry.find(function (entry) {
       return entry.resource.resourceType == resourceType;
     });
     return resourceType + "/" + entry.resource.id;
   }
+  
 
   render() {
     return (
