@@ -39,12 +39,14 @@ export default class QuestionnaireForm extends Component {
     // search for any partially completed QuestionnaireResponses
     this.smart.request("QuestionnaireResponse?" + 
           "status=in-progress" + 
-          "&author=" + this.getPractitioner() + 
           "&subject=" + this.getPatient()).then((result)=>{
 
       this.popupClear("Would you like to continue an in-process questionnaire?", "Cancel", false);
       this.processSavedQuestionnaireResponses(result, false);
-    });
+    }, ((result)=>{
+      this.popupClear("Error: failed to load in-process questionnaires", "OK", true);
+      this.popupLaunch();
+    })).catch(console.error);
 
     // If not using saved QuestionnaireResponse, create a new one
     let newResponse = {
@@ -65,12 +67,14 @@ export default class QuestionnaireForm extends Component {
   loadPreviousForm() {
     // search for any QuestionnaireResponses 
     this.smart.request("QuestionnaireResponse?" + 
-          "&author=" + this.getPractitioner() + 
           "&subject=" + this.getPatient()).then((result)=>{
 
       this.popupClear("Would you like to load a previous form?", "Cancel", false);
       this.processSavedQuestionnaireResponses(result, true);
-    });
+    }, ((result)=>{
+      this.popupClear("Error: failed to load previous forms", "OK", true);
+      this.popupLaunch();
+    })).catch(console.error);
 
   }
 
@@ -342,12 +346,20 @@ export default class QuestionnaireForm extends Component {
     }
   }
 
-  storeQuestionnaireResponseToEhr(questionnaireReponse) {
+  storeQuestionnaireResponseToEhr(questionnaireReponse, showPopup) {
     // send the QuestionnaireResponse to the EHR FHIR server
     var questionnaireUrl = sessionStorage["serviceUri"] + "/QuestionnaireResponse";
     console.log("Storing QuestionnaireResponse to: " + questionnaireUrl);
-    this.smart.create(questionnaireReponse);
-}
+    this.smart.create(questionnaireReponse).then((result)=>{
+      if (showPopup) {
+        this.popupClear("Partially completed form (QuestionnaireResponse) saved to EHR", "OK", true);
+        this.popupLaunch();
+      }
+    }, ((result)=>{
+      this.popupClear("Error: Partially completed form (QuestionnaireResponse) Failed to save to EHR", "OK", true);
+      this.popupLaunch();
+    })).catch(console.error);
+  }
 
   generateAndStoreDocumentReference(questionnaireResponse, dataBundle) {
     var pdfMake = require("pdfmake/build/pdfmake.js");
@@ -511,9 +523,7 @@ export default class QuestionnaireForm extends Component {
     var qr = this.getQuestionnaireResponse(status);
 
     if (status == "in-progress") {
-      this.storeQuestionnaireResponseToEhr(qr);
-      this.popupClear("Partially completed form (QuestionnaireResponse) saved to EHR", "OK", true);
-      this.popupLaunch();
+      this.storeQuestionnaireResponseToEhr(qr, true);
       return;
     }
 
@@ -577,7 +587,7 @@ export default class QuestionnaireForm extends Component {
     console.log(priorAuthBundle);
 
     this.generateAndStoreDocumentReference(qr, priorAuthBundle);
-    this.storeQuestionnaireResponseToEhr(qr);
+    this.storeQuestionnaireResponseToEhr(qr, false);
 
     // if (this.props.priorAuthReq) {
     const priorAuthClaim = {
