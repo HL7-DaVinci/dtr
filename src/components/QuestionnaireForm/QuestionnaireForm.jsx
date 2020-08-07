@@ -222,11 +222,10 @@ export default class QuestionnaireForm extends Component {
       
       if (!saved_response) {
         // If there is no CQL value, check if item has initial value
-        if (!response_item.answer) {
-          if (item.initial) {
-            response_item.answer = item.initial
-          }
+        if (!response_item.answer && item.initial) {
+          response_item.answer = item.initial
         }
+        
         // Don't need to add item for reloaded QuestionnaireResponse 
         // Add QuestionnaireReponse item if the item has either answer(s) or child item(s)
         if (response_item.answer || response_item.item) {
