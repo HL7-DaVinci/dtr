@@ -1409,6 +1409,697 @@
         "filepath": "_"
       },
       "patient": "pat014"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "e9603d06-6f5c-4bc6-bee3-d60fa70c5b6f",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 102,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/UrologicalSuppliesProgressNote",
+        "request": "{\\\"resourceType\\\":\\\"ServiceRequest\\\",\\\"id\\\":\\\"servreq16-a4217\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"1\\\",\\\"lastUpdated\\\":\\\"2020-05-05T10:50:43.113-05:00\\\",\\\"source\\\":\\\"#7tPvmAscmQF2r0kc\\\"},\\\"status\\\":\\\"draft\\\",\\\"intent\\\":\\\"order\\\",\\\"code\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"A4217\\\",\\\"display\\\":\\\"Sterile water\\/saline, 500 ml\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat016\\\"},\\\"occurrenceDateTime\\\":\\\"2016-09-27\\\",\\\"authoredOn\\\":\\\"2016-09-20\\\",\\\"requester\\\":{\\\"display\\\":\\\"Smythe Juliette, MD\\\"},\\\"performer\\\":[{\\\"reference\\\":\\\"Practitioner\\/pra1255\\\"}],\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat016"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "6ebce83b-88e5-4478-95e0-d1833526d1bf",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 103,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/HomeHealthServicesFaceToFace",
+        "request": "{\\\"resourceType\\\":\\\"ServiceRequest\\\",\\\"id\\\":\\\"servreq16-g0155\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"1\\\",\\\"lastUpdated\\\":\\\"2020-07-20T13:17:13.370-05:00\\\",\\\"source\\\":\\\"#R9CbWrmfUJV3iUkV\\\"},\\\"status\\\":\\\"draft\\\",\\\"intent\\\":\\\"order\\\",\\\"code\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"G0155\\\",\\\"display\\\":\\\"Services of clinical social worker in home health or hospice settings, each 15 minutes\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat016\\\"},\\\"occurrenceDateTime\\\":\\\"2016-09-27\\\",\\\"authoredOn\\\":\\\"2016-09-20\\\",\\\"requester\\\":{\\\"display\\\":\\\"Smythe Juliette, MD\\\"},\\\"performer\\\":[{\\\"reference\\\":\\\"Practitioner\\/pra1255\\\"}],\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}]}",
+        "priorauth": "true",
+        "filepath": "_"
+      },
+      "patient": "pat016"
+    },
+    {
+      "status": "Parsing appContext",
+      "launchContextId": "852cd117-2a5f-4ec7-a36c-dbd59aba2e3b",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 104,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "3c59fa9a-2526-4c09-9e3a-2cc4dde7addc",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 105,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/HospitalBedsAndAccessoriesFaceToFace",
+        "request": "{\\\"resourceType\\\":\\\"DeviceRequest\\\",\\\"id\\\":\\\"devreq-014-e0250\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"2\\\",\\\"lastUpdated\\\":\\\"2020-07-20T15:51:10.496-05:00\\\",\\\"source\\\":\\\"#x5jhW67iMNPRNYh3\\\",\\\"profile\\\":[\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/R4\\/StructureDefinition\\/profile-devicerequest-r4\\\"]},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/StructureDefinition\\/ext-insurance\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov014\\\"}}],\\\"status\\\":\\\"draft\\\",\\\"codeCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"E0250\\\",\\\"display\\\":\\\"Hospital bed fixed height with any type of side rails, mattress\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat014\\\"},\\\"performer\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1255\\\"},\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov014\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat014"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "81548b06-692e-4532-a12d-b58064ee3c15",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 106,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/RespiratoryAssistDevicesLab",
+        "request": "{\\\"resourceType\\\":\\\"DeviceRequest\\\",\\\"id\\\":\\\"devreqe0470\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"3\\\",\\\"lastUpdated\\\":\\\"2020-07-20T16:23:16.351-05:00\\\",\\\"source\\\":\\\"#fHEC594pfCEkmz1A\\\",\\\"profile\\\":[\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/R4\\/StructureDefinition\\/profile-devicerequest-r4\\\"]},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/StructureDefinition\\/ext-insurance\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov1234\\\"}}],\\\"status\\\":\\\"draft\\\",\\\"codeCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"E0470\\\",\\\"display\\\":\\\"Respiratory Assist Device\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat015\\\"},\\\"authoredOn\\\":\\\"2020-03-08\\\",\\\"performer\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1234\\\"},\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov1234\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat015"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "0b05d418-d94c-4901-ae09-4b3cdbf22724",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 107,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/ImmunosuppressiveDrugsProgressNote",
+        "request": "{\\\"resourceType\\\":\\\"MedicationRequest\\\",\\\"id\\\":\\\"pat014-mr-azathioprine\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"2\\\",\\\"lastUpdated\\\":\\\"2020-07-20T15:51:10.900-05:00\\\",\\\"source\\\":\\\"#Y3HAuN2ielvj0x5s\\\"},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/StructureDefinition\\/ext-insurance\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov014\\\"}}],\\\"medicationCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"J7500\\\",\\\"display\\\":\\\"Azathioprine, oral, 50 mg\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat014\\\",\\\"display\\\":\\\"Theodor Roosevelt\\\"},\\\"authoredOn\\\":\\\"2020-05-11\\\",\\\"requester\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1234\\\",\\\"display\\\":\\\"Jane Doe\\\"},\\\"reasonCode\\\":[{\\\"coding\\\":[{\\\"system\\\":\\\"http:\\/\\/snomed.info\\/sct\\\",\\\"code\\\":\\\"52042003\\\",\\\"display\\\":\\\"Systemic lupus erythematosus glomerulonephritis syndrome\\\"}]}],\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov014\\\"}],\\\"dosageInstruction\\\":[{\\\"sequence\\\":1,\\\"text\\\":\\\"50 mg PO daily for remission induction\\\",\\\"timing\\\":{\\\"repeat\\\":{\\\"frequency\\\":1,\\\"period\\\":1,\\\"periodUnit\\\":\\\"d\\\"}},\\\"route\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"http:\\/\\/snomed.info\\/sct\\\",\\\"code\\\":\\\"26643006\\\",\\\"display\\\":\\\"Oral route (qualifier value)\\\"}]},\\\"doseAndRate\\\":[{\\\"type\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"http:\\/\\/terminology.hl7.org\\/CodeSystem\\/dose-rate-type\\\",\\\"code\\\":\\\"ordered\\\",\\\"display\\\":\\\"Ordered\\\"}]},\\\"doseQuantity\\\":{\\\"value\\\":50,\\\"unit\\\":\\\"mg\\\",\\\"system\\\":\\\"http:\\/\\/unitsofmeasure.org\\\",\\\"code\\\":\\\"mg\\\"}}]}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat014"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "42f1f7ce-0b96-433a-9000-fd3349aed60f",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 108,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/ImmunosuppressiveDrugsProgressNote",
+        "request": "{\\\"resourceType\\\":\\\"MedicationRequest\\\",\\\"id\\\":\\\"pat014-mr-azathioprine\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"2\\\",\\\"lastUpdated\\\":\\\"2020-07-20T15:51:10.900-05:00\\\",\\\"source\\\":\\\"#Y3HAuN2ielvj0x5s\\\"},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/StructureDefinition\\/ext-insurance\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov014\\\"}}],\\\"medicationCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"J7500\\\",\\\"display\\\":\\\"Azathioprine, oral, 50 mg\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat014\\\",\\\"display\\\":\\\"Theodor Roosevelt\\\"},\\\"authoredOn\\\":\\\"2020-05-11\\\",\\\"requester\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1234\\\",\\\"display\\\":\\\"Jane Doe\\\"},\\\"reasonCode\\\":[{\\\"coding\\\":[{\\\"system\\\":\\\"http:\\/\\/snomed.info\\/sct\\\",\\\"code\\\":\\\"52042003\\\",\\\"display\\\":\\\"Systemic lupus erythematosus glomerulonephritis syndrome\\\"}]}],\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov014\\\"}],\\\"dosageInstruction\\\":[{\\\"sequence\\\":1,\\\"text\\\":\\\"50 mg PO daily for remission induction\\\",\\\"timing\\\":{\\\"repeat\\\":{\\\"frequency\\\":1,\\\"period\\\":1,\\\"periodUnit\\\":\\\"d\\\"}},\\\"route\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"http:\\/\\/snomed.info\\/sct\\\",\\\"code\\\":\\\"26643006\\\",\\\"display\\\":\\\"Oral route (qualifier value)\\\"}]},\\\"doseAndRate\\\":[{\\\"type\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"http:\\/\\/terminology.hl7.org\\/CodeSystem\\/dose-rate-type\\\",\\\"code\\\":\\\"ordered\\\",\\\"display\\\":\\\"Ordered\\\"}]},\\\"doseQuantity\\\":{\\\"value\\\":50,\\\"unit\\\":\\\"mg\\\",\\\"system\\\":\\\"http:\\/\\/unitsofmeasure.org\\\",\\\"code\\\":\\\"mg\\\"}}]}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat014"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "42f1f7ce-0b96-433a-9000-fd3349aed60f",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 109,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/ImmunosuppressiveDrugsProgressNote",
+        "request": "{\\\"resourceType\\\":\\\"MedicationRequest\\\",\\\"id\\\":\\\"pat014-mr-azathioprine\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"2\\\",\\\"lastUpdated\\\":\\\"2020-07-20T15:51:10.900-05:00\\\",\\\"source\\\":\\\"#Y3HAuN2ielvj0x5s\\\"},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/StructureDefinition\\/ext-insurance\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov014\\\"}}],\\\"medicationCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"J7500\\\",\\\"display\\\":\\\"Azathioprine, oral, 50 mg\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat014\\\",\\\"display\\\":\\\"Theodor Roosevelt\\\"},\\\"authoredOn\\\":\\\"2020-05-11\\\",\\\"requester\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1234\\\",\\\"display\\\":\\\"Jane Doe\\\"},\\\"reasonCode\\\":[{\\\"coding\\\":[{\\\"system\\\":\\\"http:\\/\\/snomed.info\\/sct\\\",\\\"code\\\":\\\"52042003\\\",\\\"display\\\":\\\"Systemic lupus erythematosus glomerulonephritis syndrome\\\"}]}],\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov014\\\"}],\\\"dosageInstruction\\\":[{\\\"sequence\\\":1,\\\"text\\\":\\\"50 mg PO daily for remission induction\\\",\\\"timing\\\":{\\\"repeat\\\":{\\\"frequency\\\":1,\\\"period\\\":1,\\\"periodUnit\\\":\\\"d\\\"}},\\\"route\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"http:\\/\\/snomed.info\\/sct\\\",\\\"code\\\":\\\"26643006\\\",\\\"display\\\":\\\"Oral route (qualifier value)\\\"}]},\\\"doseAndRate\\\":[{\\\"type\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"http:\\/\\/terminology.hl7.org\\/CodeSystem\\/dose-rate-type\\\",\\\"code\\\":\\\"ordered\\\",\\\"display\\\":\\\"Ordered\\\"}]},\\\"doseQuantity\\\":{\\\"value\\\":50,\\\"unit\\\":\\\"mg\\\",\\\"system\\\":\\\"http:\\/\\/unitsofmeasure.org\\\",\\\"code\\\":\\\"mg\\\"}}]}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat014"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "b072bfc4-2606-44ed-a8fa-cac1e72462d9",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 110,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/UrologicalSuppliesProgressNote",
+        "request": "{\\\"resourceType\\\":\\\"ServiceRequest\\\",\\\"id\\\":\\\"servreq16-a4217\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"1\\\",\\\"lastUpdated\\\":\\\"2020-05-05T10:50:43.113-05:00\\\",\\\"source\\\":\\\"#7tPvmAscmQF2r0kc\\\"},\\\"status\\\":\\\"draft\\\",\\\"intent\\\":\\\"order\\\",\\\"code\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"A4217\\\",\\\"display\\\":\\\"Sterile water\\/saline, 500 ml\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat016\\\"},\\\"occurrenceDateTime\\\":\\\"2016-09-27\\\",\\\"authoredOn\\\":\\\"2016-09-20\\\",\\\"requester\\\":{\\\"display\\\":\\\"Smythe Juliette, MD\\\"},\\\"performer\\\":[{\\\"reference\\\":\\\"Practitioner\\/pra1255\\\"}],\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat016"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "b072bfc4-2606-44ed-a8fa-cac1e72462d9",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 111,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/UrologicalSuppliesProgressNote",
+        "request": "{\\\"resourceType\\\":\\\"ServiceRequest\\\",\\\"id\\\":\\\"servreq16-a4217\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"1\\\",\\\"lastUpdated\\\":\\\"2020-05-05T10:50:43.113-05:00\\\",\\\"source\\\":\\\"#7tPvmAscmQF2r0kc\\\"},\\\"status\\\":\\\"draft\\\",\\\"intent\\\":\\\"order\\\",\\\"code\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"A4217\\\",\\\"display\\\":\\\"Sterile water\\/saline, 500 ml\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat016\\\"},\\\"occurrenceDateTime\\\":\\\"2016-09-27\\\",\\\"authoredOn\\\":\\\"2016-09-20\\\",\\\"requester\\\":{\\\"display\\\":\\\"Smythe Juliette, MD\\\"},\\\"performer\\\":[{\\\"reference\\\":\\\"Practitioner\\/pra1255\\\"}],\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat016"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "b072bfc4-2606-44ed-a8fa-cac1e72462d9",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 112,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/UrologicalSuppliesProgressNote",
+        "request": "{\\\"resourceType\\\":\\\"ServiceRequest\\\",\\\"id\\\":\\\"servreq16-a4217\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"1\\\",\\\"lastUpdated\\\":\\\"2020-05-05T10:50:43.113-05:00\\\",\\\"source\\\":\\\"#7tPvmAscmQF2r0kc\\\"},\\\"status\\\":\\\"draft\\\",\\\"intent\\\":\\\"order\\\",\\\"code\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"A4217\\\",\\\"display\\\":\\\"Sterile water\\/saline, 500 ml\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat016\\\"},\\\"occurrenceDateTime\\\":\\\"2016-09-27\\\",\\\"authoredOn\\\":\\\"2016-09-20\\\",\\\"requester\\\":{\\\"display\\\":\\\"Smythe Juliette, MD\\\"},\\\"performer\\\":[{\\\"reference\\\":\\\"Practitioner\\/pra1255\\\"}],\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat016"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "b072bfc4-2606-44ed-a8fa-cac1e72462d9",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 113,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/UrologicalSuppliesProgressNote",
+        "request": "{\\\"resourceType\\\":\\\"ServiceRequest\\\",\\\"id\\\":\\\"servreq16-a4217\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"1\\\",\\\"lastUpdated\\\":\\\"2020-05-05T10:50:43.113-05:00\\\",\\\"source\\\":\\\"#7tPvmAscmQF2r0kc\\\"},\\\"status\\\":\\\"draft\\\",\\\"intent\\\":\\\"order\\\",\\\"code\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"A4217\\\",\\\"display\\\":\\\"Sterile water\\/saline, 500 ml\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat016\\\"},\\\"occurrenceDateTime\\\":\\\"2016-09-27\\\",\\\"authoredOn\\\":\\\"2016-09-20\\\",\\\"requester\\\":{\\\"display\\\":\\\"Smythe Juliette, MD\\\"},\\\"performer\\\":[{\\\"reference\\\":\\\"Practitioner\\/pra1255\\\"}],\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat016"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "b072bfc4-2606-44ed-a8fa-cac1e72462d9",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 114,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/UrologicalSuppliesProgressNote",
+        "request": "{\\\"resourceType\\\":\\\"ServiceRequest\\\",\\\"id\\\":\\\"servreq16-a4217\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"1\\\",\\\"lastUpdated\\\":\\\"2020-05-05T10:50:43.113-05:00\\\",\\\"source\\\":\\\"#7tPvmAscmQF2r0kc\\\"},\\\"status\\\":\\\"draft\\\",\\\"intent\\\":\\\"order\\\",\\\"code\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"A4217\\\",\\\"display\\\":\\\"Sterile water\\/saline, 500 ml\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat016\\\"},\\\"occurrenceDateTime\\\":\\\"2016-09-27\\\",\\\"authoredOn\\\":\\\"2016-09-20\\\",\\\"requester\\\":{\\\"display\\\":\\\"Smythe Juliette, MD\\\"},\\\"performer\\\":[{\\\"reference\\\":\\\"Practitioner\\/pra1255\\\"}],\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat016"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "b072bfc4-2606-44ed-a8fa-cac1e72462d9",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 115,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/UrologicalSuppliesProgressNote",
+        "request": "{\\\"resourceType\\\":\\\"ServiceRequest\\\",\\\"id\\\":\\\"servreq16-a4217\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"1\\\",\\\"lastUpdated\\\":\\\"2020-05-05T10:50:43.113-05:00\\\",\\\"source\\\":\\\"#7tPvmAscmQF2r0kc\\\"},\\\"status\\\":\\\"draft\\\",\\\"intent\\\":\\\"order\\\",\\\"code\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"A4217\\\",\\\"display\\\":\\\"Sterile water\\/saline, 500 ml\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat016\\\"},\\\"occurrenceDateTime\\\":\\\"2016-09-27\\\",\\\"authoredOn\\\":\\\"2016-09-20\\\",\\\"requester\\\":{\\\"display\\\":\\\"Smythe Juliette, MD\\\"},\\\"performer\\\":[{\\\"reference\\\":\\\"Practitioner\\/pra1255\\\"}],\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat016"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "26f05527-cb1f-45e2-a3b5-3ec9eecbd75d",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 116,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/HomeOxygenTherapyFaceToFace",
+        "request": "{\\\"resourceType\\\":\\\"DeviceRequest\\\",\\\"id\\\":\\\"devreq016\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"2\\\",\\\"lastUpdated\\\":\\\"2020-07-20T15:51:09.776-05:00\\\",\\\"source\\\":\\\"#fTt8KqEa33v5vDIw\\\",\\\"profile\\\":[\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/R4\\/StructureDefinition\\/profile-devicerequest-r4\\\"]},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/StructureDefinition\\/ext-insurance\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}}],\\\"status\\\":\\\"draft\\\",\\\"codeCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"E0424\\\",\\\"display\\\":\\\"Stationary Compressed Gaseous Oxygen System, Rental\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat016\\\"},\\\"performer\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1234\\\"},\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat016"
+    },
+    {
+      "status": "Parsing appContext",
+      "launchContextId": "50c13064-90e6-4a55-8526-ace65965d533",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 117,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "828932f7-1a35-4943-9de8-130df43e0b98",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 118,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/HospitalBedsAndAccessories",
+        "request": "{\\\"resourceType\\\":\\\"DeviceRequest\\\",\\\"id\\\":\\\"devreq-015-e0250\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"2\\\",\\\"lastUpdated\\\":\\\"2020-07-20T15:51:09.374-05:00\\\",\\\"source\\\":\\\"#fMJYKkgU2rdn4aUK\\\",\\\"profile\\\":[\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/R4\\/StructureDefinition\\/profile-devicerequest-r4\\\"]},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/StructureDefinition\\/ext-insurance\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov015\\\"}}],\\\"status\\\":\\\"draft\\\",\\\"codeCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"E0250\\\",\\\"display\\\":\\\"Hospital bed fixed height with any type of side rails, mattress\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat015\\\"},\\\"performer\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1234\\\"},\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov015\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat015"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "77e4734b-fd4b-49fb-bff5-a595e7ce090a",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 119,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/PositiveAirwayPressureDevices",
+        "request": "{\\\"resourceType\\\":\\\"DeviceRequest\\\",\\\"id\\\":\\\"devreq021\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"3\\\",\\\"lastUpdated\\\":\\\"2020-07-29T15:06:20.538-05:00\\\",\\\"source\\\":\\\"#QV6cjiGLjDb90mcy\\\",\\\"profile\\\":[\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/R4\\/StructureDefinition\\/profile-devicerequest-r4\\\"]},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/StructureDefinition\\/ext-insurance\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov014\\\"}}],\\\"status\\\":\\\"draft\\\",\\\"codeCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"E0601\\\",\\\"display\\\":\\\"Continuous positive airway pressure (cpap) device\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat014\\\"},\\\"encounter\\\":{\\\"reference\\\":\\\"Encounter\\/enc-pat014-cpape0601\\\"},\\\"performer\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1255\\\"},\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov014\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat014"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "231c99ba-0ebd-41b4-b9e1-7b025768500d",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 120,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/PositiveAirwayPressureDevicesFaceToFace",
+        "request": "{\\\"resourceType\\\":\\\"DeviceRequest\\\",\\\"id\\\":\\\"devreq021\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"3\\\",\\\"lastUpdated\\\":\\\"2020-07-29T15:06:20.538-05:00\\\",\\\"source\\\":\\\"#QV6cjiGLjDb90mcy\\\",\\\"profile\\\":[\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/R4\\/StructureDefinition\\/profile-devicerequest-r4\\\"]},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/StructureDefinition\\/ext-insurance\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov014\\\"}}],\\\"status\\\":\\\"draft\\\",\\\"codeCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"E0601\\\",\\\"display\\\":\\\"Continuous positive airway pressure (cpap) device\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat014\\\"},\\\"encounter\\\":{\\\"reference\\\":\\\"Encounter\\/enc-pat014-cpape0601\\\"},\\\"performer\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1255\\\"},\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov014\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat014"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "f270f759-7bc1-40f9-9f5b-fe9647a801cd",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 121,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/PositiveAirwayPressureDevices",
+        "request": "{\\\"resourceType\\\":\\\"DeviceRequest\\\",\\\"id\\\":\\\"devreq021\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"3\\\",\\\"lastUpdated\\\":\\\"2020-07-29T15:06:20.538-05:00\\\",\\\"source\\\":\\\"#QV6cjiGLjDb90mcy\\\",\\\"profile\\\":[\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/R4\\/StructureDefinition\\/profile-devicerequest-r4\\\"]},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/StructureDefinition\\/ext-insurance\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov014\\\"}}],\\\"status\\\":\\\"draft\\\",\\\"codeCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"E0601\\\",\\\"display\\\":\\\"Continuous positive airway pressure (cpap) device\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat014\\\"},\\\"encounter\\\":{\\\"reference\\\":\\\"Encounter\\/enc-pat014-cpape0601\\\"},\\\"performer\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1255\\\"},\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov014\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat014"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "f270f759-7bc1-40f9-9f5b-fe9647a801cd",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 122,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/PositiveAirwayPressureDevices",
+        "request": "{\\\"resourceType\\\":\\\"DeviceRequest\\\",\\\"id\\\":\\\"devreq021\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"3\\\",\\\"lastUpdated\\\":\\\"2020-07-29T15:06:20.538-05:00\\\",\\\"source\\\":\\\"#QV6cjiGLjDb90mcy\\\",\\\"profile\\\":[\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/R4\\/StructureDefinition\\/profile-devicerequest-r4\\\"]},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/StructureDefinition\\/ext-insurance\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov014\\\"}}],\\\"status\\\":\\\"draft\\\",\\\"codeCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"E0601\\\",\\\"display\\\":\\\"Continuous positive airway pressure (cpap) device\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat014\\\"},\\\"encounter\\\":{\\\"reference\\\":\\\"Encounter\\/enc-pat014-cpape0601\\\"},\\\"performer\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1255\\\"},\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov014\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat014"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "231c99ba-0ebd-41b4-b9e1-7b025768500d",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 123,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/PositiveAirwayPressureDevicesFaceToFace",
+        "request": "{\\\"resourceType\\\":\\\"DeviceRequest\\\",\\\"id\\\":\\\"devreq021\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"3\\\",\\\"lastUpdated\\\":\\\"2020-07-29T15:06:20.538-05:00\\\",\\\"source\\\":\\\"#QV6cjiGLjDb90mcy\\\",\\\"profile\\\":[\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/R4\\/StructureDefinition\\/profile-devicerequest-r4\\\"]},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/StructureDefinition\\/ext-insurance\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov014\\\"}}],\\\"status\\\":\\\"draft\\\",\\\"codeCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"E0601\\\",\\\"display\\\":\\\"Continuous positive airway pressure (cpap) device\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat014\\\"},\\\"encounter\\\":{\\\"reference\\\":\\\"Encounter\\/enc-pat014-cpape0601\\\"},\\\"performer\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1255\\\"},\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov014\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat014"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "231c99ba-0ebd-41b4-b9e1-7b025768500d",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 124,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/PositiveAirwayPressureDevicesFaceToFace",
+        "request": "{\\\"resourceType\\\":\\\"DeviceRequest\\\",\\\"id\\\":\\\"devreq021\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"3\\\",\\\"lastUpdated\\\":\\\"2020-07-29T15:06:20.538-05:00\\\",\\\"source\\\":\\\"#QV6cjiGLjDb90mcy\\\",\\\"profile\\\":[\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/R4\\/StructureDefinition\\/profile-devicerequest-r4\\\"]},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/StructureDefinition\\/ext-insurance\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov014\\\"}}],\\\"status\\\":\\\"draft\\\",\\\"codeCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"E0601\\\",\\\"display\\\":\\\"Continuous positive airway pressure (cpap) device\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat014\\\"},\\\"encounter\\\":{\\\"reference\\\":\\\"Encounter\\/enc-pat014-cpape0601\\\"},\\\"performer\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1255\\\"},\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov014\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat014"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "231c99ba-0ebd-41b4-b9e1-7b025768500d",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 125,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/PositiveAirwayPressureDevicesFaceToFace",
+        "request": "{\\\"resourceType\\\":\\\"DeviceRequest\\\",\\\"id\\\":\\\"devreq021\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"3\\\",\\\"lastUpdated\\\":\\\"2020-07-29T15:06:20.538-05:00\\\",\\\"source\\\":\\\"#QV6cjiGLjDb90mcy\\\",\\\"profile\\\":[\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/R4\\/StructureDefinition\\/profile-devicerequest-r4\\\"]},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/StructureDefinition\\/ext-insurance\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov014\\\"}}],\\\"status\\\":\\\"draft\\\",\\\"codeCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"E0601\\\",\\\"display\\\":\\\"Continuous positive airway pressure (cpap) device\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat014\\\"},\\\"encounter\\\":{\\\"reference\\\":\\\"Encounter\\/enc-pat014-cpape0601\\\"},\\\"performer\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1255\\\"},\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov014\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat014"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "231c99ba-0ebd-41b4-b9e1-7b025768500d",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 126,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/PositiveAirwayPressureDevicesFaceToFace",
+        "request": "{\\\"resourceType\\\":\\\"DeviceRequest\\\",\\\"id\\\":\\\"devreq021\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"3\\\",\\\"lastUpdated\\\":\\\"2020-07-29T15:06:20.538-05:00\\\",\\\"source\\\":\\\"#QV6cjiGLjDb90mcy\\\",\\\"profile\\\":[\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/R4\\/StructureDefinition\\/profile-devicerequest-r4\\\"]},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/StructureDefinition\\/ext-insurance\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov014\\\"}}],\\\"status\\\":\\\"draft\\\",\\\"codeCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"E0601\\\",\\\"display\\\":\\\"Continuous positive airway pressure (cpap) device\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat014\\\"},\\\"encounter\\\":{\\\"reference\\\":\\\"Encounter\\/enc-pat014-cpape0601\\\"},\\\"performer\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1255\\\"},\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov014\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat014"
+    },
+    {
+      "status": "Parsing appContext",
+      "launchContextId": "231c99ba-0ebd-41b4-b9e1-7b025768500d",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 127,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "231c99ba-0ebd-41b4-b9e1-7b025768500d",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 128,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/PositiveAirwayPressureDevicesFaceToFace",
+        "request": "{\\\"resourceType\\\":\\\"DeviceRequest\\\",\\\"id\\\":\\\"devreq021\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"3\\\",\\\"lastUpdated\\\":\\\"2020-07-29T15:06:20.538-05:00\\\",\\\"source\\\":\\\"#QV6cjiGLjDb90mcy\\\",\\\"profile\\\":[\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/R4\\/StructureDefinition\\/profile-devicerequest-r4\\\"]},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/StructureDefinition\\/ext-insurance\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov014\\\"}}],\\\"status\\\":\\\"draft\\\",\\\"codeCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"E0601\\\",\\\"display\\\":\\\"Continuous positive airway pressure (cpap) device\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat014\\\"},\\\"encounter\\\":{\\\"reference\\\":\\\"Encounter\\/enc-pat014-cpape0601\\\"},\\\"performer\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1255\\\"},\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov014\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat014"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "231c99ba-0ebd-41b4-b9e1-7b025768500d",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 129,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/PositiveAirwayPressureDevicesFaceToFace",
+        "request": "{\\\"resourceType\\\":\\\"DeviceRequest\\\",\\\"id\\\":\\\"devreq021\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"3\\\",\\\"lastUpdated\\\":\\\"2020-07-29T15:06:20.538-05:00\\\",\\\"source\\\":\\\"#QV6cjiGLjDb90mcy\\\",\\\"profile\\\":[\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/R4\\/StructureDefinition\\/profile-devicerequest-r4\\\"]},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/StructureDefinition\\/ext-insurance\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov014\\\"}}],\\\"status\\\":\\\"draft\\\",\\\"codeCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"E0601\\\",\\\"display\\\":\\\"Continuous positive airway pressure (cpap) device\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat014\\\"},\\\"encounter\\\":{\\\"reference\\\":\\\"Encounter\\/enc-pat014-cpape0601\\\"},\\\"performer\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1255\\\"},\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov014\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat014"
+    },
+    {
+      "status": "Parsing appContext",
+      "launchContextId": "231c99ba-0ebd-41b4-b9e1-7b025768500d",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 130,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "4390620b-3909-4bde-9fb8-db6f98bf3704",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 131,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/UrologicalSuppliesProgressNote",
+        "request": "{\\\"resourceType\\\":\\\"ServiceRequest\\\",\\\"id\\\":\\\"servreq16-a4217\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"1\\\",\\\"lastUpdated\\\":\\\"2020-05-05T10:50:43.113-05:00\\\",\\\"source\\\":\\\"#7tPvmAscmQF2r0kc\\\"},\\\"status\\\":\\\"draft\\\",\\\"intent\\\":\\\"order\\\",\\\"code\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"A4217\\\",\\\"display\\\":\\\"Sterile water\\/saline, 500 ml\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat016\\\"},\\\"occurrenceDateTime\\\":\\\"2016-09-27\\\",\\\"authoredOn\\\":\\\"2016-09-20\\\",\\\"requester\\\":{\\\"display\\\":\\\"Smythe Juliette, MD\\\"},\\\"performer\\\":[{\\\"reference\\\":\\\"Practitioner\\/pra1255\\\"}],\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat016"
+    },
+    {
+      "status": "Parsing appContext",
+      "launchContextId": "571918c9-39b6-44ac-897f-0399cc65d6e1",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 132,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "571918c9-39b6-44ac-897f-0399cc65d6e1",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 133,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/PositiveAirwayPressureDevicesFaceToFace",
+        "request": "{\\\"resourceType\\\":\\\"DeviceRequest\\\",\\\"id\\\":\\\"devreq021\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"3\\\",\\\"lastUpdated\\\":\\\"2020-07-29T15:06:20.538-05:00\\\",\\\"source\\\":\\\"#QV6cjiGLjDb90mcy\\\",\\\"profile\\\":[\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/R4\\/StructureDefinition\\/profile-devicerequest-r4\\\"]},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/StructureDefinition\\/ext-insurance\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov014\\\"}}],\\\"status\\\":\\\"draft\\\",\\\"codeCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"E0601\\\",\\\"display\\\":\\\"Continuous positive airway pressure (cpap) device\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat014\\\"},\\\"encounter\\\":{\\\"reference\\\":\\\"Encounter\\/enc-pat014-cpape0601\\\"},\\\"performer\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1255\\\"},\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov014\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat014"
+    },
+    {
+      "status": "Parsing appContext",
+      "launchContextId": "fccbc772-2f08-44de-be6f-15f25db44800",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 134,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index"
+    },
+    {
+      "status": "Parsing appContext",
+      "launchContextId": "fccbc772-2f08-44de-be6f-15f25db44800",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 135,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "fccbc772-2f08-44de-be6f-15f25db44800",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 136,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/HomeBloodGlucoseMonitorLab",
+        "request": "{\\\"resourceType\\\":\\\"DeviceRequest\\\",\\\"id\\\":\\\"devreq236\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"2\\\",\\\"lastUpdated\\\":\\\"2020-07-20T15:51:09.812-05:00\\\",\\\"source\\\":\\\"#nF3fJvt8Hm6YyUJB\\\",\\\"profile\\\":[\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/R4\\/StructureDefinition\\/profile-devicerequest-r4\\\"]},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/StructureDefinition\\/ext-insurance\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}}],\\\"status\\\":\\\"draft\\\",\\\"codeCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"E0607\\\",\\\"display\\\":\\\"Home blood glucose monitor\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat016\\\"},\\\"performer\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1234\\\"},\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat016"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "fccbc772-2f08-44de-be6f-15f25db44800",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 137,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/HomeBloodGlucoseMonitorLab",
+        "request": "{\\\"resourceType\\\":\\\"DeviceRequest\\\",\\\"id\\\":\\\"devreq236\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"2\\\",\\\"lastUpdated\\\":\\\"2020-07-20T15:51:09.812-05:00\\\",\\\"source\\\":\\\"#nF3fJvt8Hm6YyUJB\\\",\\\"profile\\\":[\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/R4\\/StructureDefinition\\/profile-devicerequest-r4\\\"]},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/StructureDefinition\\/ext-insurance\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}}],\\\"status\\\":\\\"draft\\\",\\\"codeCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"E0607\\\",\\\"display\\\":\\\"Home blood glucose monitor\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat016\\\"},\\\"performer\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1234\\\"},\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat016"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "57fc8cf9-9ec3-4b40-ae72-a3a0ca535c73",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 138,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/HomeBloodGlucoseMonitorOrder",
+        "request": "{\\\"resourceType\\\":\\\"DeviceRequest\\\",\\\"id\\\":\\\"devreq236\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"2\\\",\\\"lastUpdated\\\":\\\"2020-07-20T15:51:09.812-05:00\\\",\\\"source\\\":\\\"#nF3fJvt8Hm6YyUJB\\\",\\\"profile\\\":[\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/R4\\/StructureDefinition\\/profile-devicerequest-r4\\\"]},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/StructureDefinition\\/ext-insurance\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}}],\\\"status\\\":\\\"draft\\\",\\\"codeCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"E0607\\\",\\\"display\\\":\\\"Home blood glucose monitor\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat016\\\"},\\\"performer\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1234\\\"},\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat016"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "799de2cb-8e47-4584-8b74-5181b764501c",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 139,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/HomeOxygenTherapy",
+        "request": "{\\\"resourceType\\\":\\\"DeviceRequest\\\",\\\"id\\\":\\\"devreq016\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"2\\\",\\\"lastUpdated\\\":\\\"2020-07-20T15:51:09.776-05:00\\\",\\\"source\\\":\\\"#fTt8KqEa33v5vDIw\\\",\\\"profile\\\":[\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/R4\\/StructureDefinition\\/profile-devicerequest-r4\\\"]},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/StructureDefinition\\/ext-insurance\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}}],\\\"status\\\":\\\"draft\\\",\\\"codeCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"E0424\\\",\\\"display\\\":\\\"Stationary Compressed Gaseous Oxygen System, Rental\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat016\\\"},\\\"performer\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1234\\\"},\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat016"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "0ab15d1d-ce04-448b-941b-4c25dff63f1d",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 140,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/VentilatorsProgressNote",
+        "request": "{\\\"resourceType\\\":\\\"DeviceRequest\\\",\\\"id\\\":\\\"devreq16-465\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"2\\\",\\\"lastUpdated\\\":\\\"2020-07-20T15:51:09.872-05:00\\\",\\\"source\\\":\\\"#TFDckqYa6txbwC9m\\\",\\\"profile\\\":[\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/R4\\/StructureDefinition\\/profile-devicerequest-r4\\\"]},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/StructureDefinition\\/ext-insurance\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}}],\\\"status\\\":\\\"draft\\\",\\\"codeCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"E0465\\\",\\\"display\\\":\\\"Ventilator\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat016\\\"},\\\"performer\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1234\\\"},\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat016"
+    },
+    {
+      "status": "Parsing appContext",
+      "launchContextId": "0ab15d1d-ce04-448b-941b-4c25dff63f1d",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 141,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "0ab15d1d-ce04-448b-941b-4c25dff63f1d",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 142,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/VentilatorsProgressNote",
+        "request": "{\\\"resourceType\\\":\\\"DeviceRequest\\\",\\\"id\\\":\\\"devreq16-465\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"2\\\",\\\"lastUpdated\\\":\\\"2020-07-20T15:51:09.872-05:00\\\",\\\"source\\\":\\\"#TFDckqYa6txbwC9m\\\",\\\"profile\\\":[\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/R4\\/StructureDefinition\\/profile-devicerequest-r4\\\"]},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/StructureDefinition\\/ext-insurance\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}}],\\\"status\\\":\\\"draft\\\",\\\"codeCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"E0465\\\",\\\"display\\\":\\\"Ventilator\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat016\\\"},\\\"performer\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1234\\\"},\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat016"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "0ab15d1d-ce04-448b-941b-4c25dff63f1d",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 143,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/VentilatorsProgressNote",
+        "request": "{\\\"resourceType\\\":\\\"DeviceRequest\\\",\\\"id\\\":\\\"devreq16-465\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"2\\\",\\\"lastUpdated\\\":\\\"2020-07-20T15:51:09.872-05:00\\\",\\\"source\\\":\\\"#TFDckqYa6txbwC9m\\\",\\\"profile\\\":[\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/R4\\/StructureDefinition\\/profile-devicerequest-r4\\\"]},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/StructureDefinition\\/ext-insurance\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}}],\\\"status\\\":\\\"draft\\\",\\\"codeCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"E0465\\\",\\\"display\\\":\\\"Ventilator\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat016\\\"},\\\"performer\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1234\\\"},\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat016"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "0ab15d1d-ce04-448b-941b-4c25dff63f1d",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 144,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/VentilatorsProgressNote",
+        "request": "{\\\"resourceType\\\":\\\"DeviceRequest\\\",\\\"id\\\":\\\"devreq16-465\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"2\\\",\\\"lastUpdated\\\":\\\"2020-07-20T15:51:09.872-05:00\\\",\\\"source\\\":\\\"#TFDckqYa6txbwC9m\\\",\\\"profile\\\":[\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/R4\\/StructureDefinition\\/profile-devicerequest-r4\\\"]},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/StructureDefinition\\/ext-insurance\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}}],\\\"status\\\":\\\"draft\\\",\\\"codeCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"E0465\\\",\\\"display\\\":\\\"Ventilator\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat016\\\"},\\\"performer\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1234\\\"},\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat016"
+    },
+    {
+      "status": "retrieving conformance statement",
+      "launchContextId": "0ab15d1d-ce04-448b-941b-4c25dff63f1d",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 145,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "0ab15d1d-ce04-448b-941b-4c25dff63f1d",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 146,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/VentilatorsProgressNote",
+        "request": "{\\\"resourceType\\\":\\\"DeviceRequest\\\",\\\"id\\\":\\\"devreq16-465\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"2\\\",\\\"lastUpdated\\\":\\\"2020-07-20T15:51:09.872-05:00\\\",\\\"source\\\":\\\"#TFDckqYa6txbwC9m\\\",\\\"profile\\\":[\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/R4\\/StructureDefinition\\/profile-devicerequest-r4\\\"]},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/StructureDefinition\\/ext-insurance\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}}],\\\"status\\\":\\\"draft\\\",\\\"codeCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"E0465\\\",\\\"display\\\":\\\"Ventilator\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat016\\\"},\\\"performer\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1234\\\"},\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat016"
+    },
+    {
+      "status": "Parsing appContext",
+      "launchContextId": "0ab15d1d-ce04-448b-941b-4c25dff63f1d",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 147,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index"
+    },
+    {
+      "status": "Parsing appContext",
+      "launchContextId": "0ab15d1d-ce04-448b-941b-4c25dff63f1d",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 148,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "0ab15d1d-ce04-448b-941b-4c25dff63f1d",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 149,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/VentilatorsProgressNote",
+        "request": "{\\\"resourceType\\\":\\\"DeviceRequest\\\",\\\"id\\\":\\\"devreq16-465\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"2\\\",\\\"lastUpdated\\\":\\\"2020-07-20T15:51:09.872-05:00\\\",\\\"source\\\":\\\"#TFDckqYa6txbwC9m\\\",\\\"profile\\\":[\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/R4\\/StructureDefinition\\/profile-devicerequest-r4\\\"]},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/StructureDefinition\\/ext-insurance\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}}],\\\"status\\\":\\\"draft\\\",\\\"codeCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"E0465\\\",\\\"display\\\":\\\"Ventilator\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat016\\\"},\\\"performer\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1234\\\"},\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov016\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat016"
     }
   ],
   "profile": {

@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import cql from "cql-execution";
 import "./QuestionnaireForm.css";
 import { findValueByPrefix } from "../../util/util.js";
+import { xor } from "lodash";
 
 export default class QuestionnaireForm extends Component {
   constructor(props) {
@@ -219,10 +220,18 @@ export default class QuestionnaireForm extends Component {
         }
       }
       
-      // Don't need to add item for reloaded QuestionnaireResponse 
-      // Add QuestionnaireReponse item if the item has either answer(s) or child item(s)
-      if (!saved_response && (response_item.answer || response_item.item)) {
-        response_items.push(response_item);
+      if (!saved_response) {
+        // If there is no CQL value, check if item has initial value
+        if (!response_item.answer) {
+          if (item.initial) {
+            response_item.answer = item.initial
+          }
+        }
+        // Don't need to add item for reloaded QuestionnaireResponse 
+        // Add QuestionnaireReponse item if the item has either answer(s) or child item(s)
+        if (response_item.answer || response_item.item) {
+          response_items.push(response_item);
+        }
       }
     });
   }
