@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import cql from "cql-execution";
 import "./QuestionnaireForm.css";
 import { findValueByPrefix } from "../../util/util.js";
 import SelectPopup from './SelectPopup';
@@ -144,20 +143,21 @@ export default class QuestionnaireForm extends Component {
     console.log(lform);
   }
 
-  prepopulate(items, response_items, dynamic_choice_only) {
+  prepopulate(items, response_items, saved_response) {
     items.map(item => {
       let response_item = {
         linkId: item.linkId,
       };
 
-      if (!dynamic_choice_only) {
-        response_items.push(response_item);
-      }
-
       if (item.item) {
         // add sub-items
         response_item.item = []
-        this.prepopulate(item.item, response_item.item, dynamic_choice_only);
+        this.prepopulate(item.item, response_item.item, saved_response);
+      }
+
+      // Remove empty child item array
+      if ((response_item.item != undefined) && (response_item.item.length == 0)) {
+        response_item.item = undefined
       }
 
       if (item.type === 'choice' || item.type === 'open-choice') {
@@ -165,7 +165,7 @@ export default class QuestionnaireForm extends Component {
       }
 
       // autofill fields
-      if (item.extension && (!dynamic_choice_only || item.type == 'open-choice')) {
+      if (item.extension && (!saved_response || item.type == 'open-choice')) {
         response_item.answer = []
         item.extension.forEach(e => {
           let value;
@@ -212,7 +212,7 @@ export default class QuestionnaireForm extends Component {
             console.log(`Couldn't find library "${libraryName}"`);
           }
 
-          if (prepopulationResult != null && !dynamic_choice_only) {
+          if (prepopulationResult != null && !saved_response) {
             switch (item.type) {
               case 'boolean':
                 response_item.answer.push({ valueBoolean: prepopulationResult });
@@ -270,6 +270,25 @@ export default class QuestionnaireForm extends Component {
             }
           }
         });
+
+        // Remove empty answer array
+        if (response_item.answer.length == 0) {
+          response_item.answer = undefined
+        }
+      }
+      
+      if (!saved_response) {
+        // If there is no CQL value, check if item/prescription has initial value
+        // This does NOT work for STU3 questionnaire which use item.initial[x]
+        if (!response_item.answer && item.initial) {
+          response_item.answer = item.initial
+        }
+
+        // Don't need to add item for reloaded QuestionnaireResponse 
+        // Add QuestionnaireReponse item if the item has either answer(s) or child item(s)
+        if (response_item.answer || response_item.item) {
+          response_items.push(response_item);
+        }
       }
     });
   }
@@ -624,9 +643,7 @@ export default class QuestionnaireForm extends Component {
         reference: this.makeReference(priorAuthBundle, "Location")
       },
       priority: { coding: [{ code: "normal" }] },
-      prescription: {
-        reference: this.makeReference(priorAuthBundle, "DeviceRequest")
-      },
+      prescription: {},
       careTeam: [
         {
           sequence: 1,
@@ -738,11 +755,28 @@ export default class QuestionnaireForm extends Component {
   }
 
   makeReference(bundle, resourceType) {
+    try {
+      if (resourceType == undefined || resourceType == null) {
+      console.log("resourceType undefined or null");
+      }
+    } catch (error) {
+      console.log(error.message);
+      console.log(error.name);
+      return;
+    }
+    if (resourceType == "DeviceRequest") {
+      entry.resource.resourceType = resourceType;
+    } else if (resourceType == "ServiceRequest") {
+      entry.resource.resourceType = resourceType;
+    } else if (resourceType == "MedicationRequest") {
+      entry.resource.resourceType = resourceType;
+    }
     var entry = bundle.entry.find(function (entry) {
       return entry.resource.resourceType == resourceType;
     });
     return resourceType + "/" + entry.resource.id;
   }
+  
 
   popupClear(title, finalOption, logTitle) {
     this.setState({
@@ -768,7 +802,7 @@ export default class QuestionnaireForm extends Component {
     if (this.partialForms[returnValue]) {
       // load the selected form
       let partialResponse = this.partialForms[returnValue];
-      let dynamic_choice_only = true;
+      let saved_response = true;
 
       console.log(partialResponse);
 
@@ -782,7 +816,7 @@ export default class QuestionnaireForm extends Component {
       }
 
       const items = this.props.qform.item;
-      this.prepopulate(items, newResponse.item, dynamic_choice_only)
+      this.prepopulate(items, newResponse.item, saved_response)
 
       // force it to reload the form
       this.loadAndMergeForms(partialResponse);
