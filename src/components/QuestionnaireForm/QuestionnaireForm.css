@@ -49,6 +49,7 @@ html {
 .submit-button-panel {
   float:right;
   margin-right: 10px;
+  margin-bottom: 10px;
 }
 
 .submit-button {
@@ -61,6 +62,12 @@ html {
 .submit-button:hover {
   background-color: #f3f3f3;
   border-color:#000;
+}
+
+.status-panel {
+  float:left;
+  margin-left: 10px;
+  margin-bottom: 10px;
 }
 
 .filled {
