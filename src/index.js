@@ -97,7 +97,8 @@ tokenPost.onload = function() {
 
         log.status = "Rendering app";
         updateLog(log);
-
+        const patientId = auth_response.patient;
+        console.log(patientId);
         // log could be passed to app, but we can 
         // TODO that because we've already got some
         // functionality in that portion of the app
@@ -109,12 +110,12 @@ tokenPost.onload = function() {
           FILE_PREFIX={FILE_PREFIX}
           questionnaireUri={appContext.template}
           smart={smart}
+          patientId = {patientId}
           deviceRequest={JSON.parse(appContext.request.replace(/\\/g,""))}
         />,
         document.getElementById("root")
         );
         console.log(auth_response);
-        const patientId = auth_response.patient;
         if (patientId == null) {
         log.error = "Failed to get a patientId from the app params or the authorization response.";
         document.body.innerText = log.error;
