@@ -120,6 +120,26 @@ function getClients(callback) {
     clientRequest.send();
 }
 
+function searchQuestionnaire(questionnaire, attestation) {
+    var result = questionnaire;
+    if(questionnaire.item) {
+        questionnaire.item.forEach((item) => {
+            searchQuestionnaire(item, attestation);
+            console.log(item);
+        });
+    } else {
+        if(attestation.find((e)=>{return e===questionnaire.linkId;})) {
+            return questionnaire.answer.push({
+                valueCoding: {
+                    code: "410515003",
+                    system: "http://snomed.info/sct",
+                    display: "known present"
+                }
+            });
+        }
+    }
+    return result;
+}
 
 export {
     findValueByPrefix,
@@ -128,5 +148,6 @@ export {
     updateLog,
     postToClients,
     deleteClient,
-    getClients
+    getClients,
+    searchQuestionnaire
 };

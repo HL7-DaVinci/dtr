@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import "./QuestionnaireForm.css";
-import { findValueByPrefix } from "../../util/util.js";
+import { findValueByPrefix, searchQuestionnaire } from "../../util/util.js";
 import SelectPopup from './SelectPopup';
 
 
@@ -476,9 +476,12 @@ export default class QuestionnaireForm extends Component {
   }
 
   getPractitioner() {
-    return "Practitioner/" +
+    if(this.props.cqlPrepoulationResults.BasicPractitionerInfoPrepopulation.OrderingProvider) {
+        return "Practitioner/" +
         this.props.cqlPrepoulationResults.BasicPractitionerInfoPrepopulation
           .OrderingProvider.id.value;
+    }
+
   }
 
   getPatient() {
@@ -489,7 +492,8 @@ export default class QuestionnaireForm extends Component {
   }
 
   getQuestionnaireResponse(status) {
-    var qr = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', 'R4');
+    var qr = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', 'R4', "#formContainer");
+    console.log(qr);
     qr.status = status;
     qr.author = {
       reference:
@@ -503,6 +507,9 @@ export default class QuestionnaireForm extends Component {
 
     qr.questionnaire = this.props.qform.id;
 
+    console.log(this.props.attested);
+    const aa = searchQuestionnaire(qr, this.props.attested);
+    console.log(aa);
     return qr;
   }
 
