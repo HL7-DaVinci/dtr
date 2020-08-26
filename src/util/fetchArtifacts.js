@@ -113,7 +113,15 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
     function fetchValueSet(valueSetUrl) {
       pendingFetches += 1;
       consoleLog("about to fetchValueSet:", valueSetUrl);
-      fetch(valueSetUrl).then(handleFetchErrors).then(r => r.json())
+      fetch(valueSetUrl).then((response) => {
+        if (!response.ok) {
+          let msg = "Failure when fetching ValueSet " + valueSetUrl + " Make sure CRD has ValueSets Loaded.";
+          let details = `${msg}: ${response.url}: the server responded with a status of ${response.status} (${response.statusText})`;
+          consoleLog(msg, "errorClass", details);
+          reject(msg);
+        }
+        return response;
+      }).then(r => r.json())
       .then(valueSet => {
         pendingFetches -= 1;
         fetchedUrls.add(valueSetUrl);
@@ -135,7 +143,7 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
       fetch(elmUrl).then(handleFetchErrors).then(r => r.json())
       .then(elm => {
         if ( elm.library.annotation ) {
-          let errors = elm.library.annotation.filter(a => a.errorSeverity != "warning");
+          let errors = elm.library.annotation.filter(a => a.type == "CqlToElmError" && a.errorSeverity != "warning");
           if (errors.length > 0) {
             let msg = "CQL to ELM translation resulted in errors.";
             let details = { "ELM annotation": elm.library.annotation };

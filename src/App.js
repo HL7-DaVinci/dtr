@@ -97,13 +97,18 @@ class App extends Component {
                 // look at main library elms to determine dependent elms to include
                 elmDependencies: mainLibraryElm.library.includes.def.map(
                   includeStatement => {
-                    return artifacts.dependentElms.find(elm => {
+                    let foundLibrary = artifacts.dependentElms.find(elm => {
                       return (
                         elm.library.identifier.id == includeStatement.path &&
                         elm.library.identifier.version ==
                           includeStatement.version
                       );
                     });
+                    if (foundLibrary != null) {
+                      return foundLibrary;
+                    } else {
+                      this.consoleLog(`Could not find library ${includeStatement.path}. Check if it is referenced in FHIR Library (${mainLibraryElm.library.identifier.id}) properly.`, `errorClass`)
+                    }
                   }
                 ),
                 valueSetDB: {},
@@ -222,12 +227,10 @@ class App extends Component {
               };
             });
           } else {
-            console.error(
-              `Valueset ${valueSet.id} does not have an expansion.`
-            );
+            this.consoleLog(`Valueset ${valueSet.id} does not have an expansion.`, 'errorClass');
           }
         } else {
-          console.error(`Could not find valueset ${valueSetDef.id}.`);
+          this.consoleLog(`Could not find valueset ${valueSetDef.id}. Try reloading with VSAC credentials in CRD.`, 'errorClass');
         }
       });
     });
