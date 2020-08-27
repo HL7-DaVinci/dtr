@@ -1,7 +1,13 @@
 # DTR SMART on FHIR App
 This subproject contains a SMART on FHIR app, which provides a standardized way to interact with FHIR servers. This Reference Impementation (RI) supports the **[Documents Templates and Rules (DTR) IG](http://build.fhir.org/ig/HL7/davinci-dtr/)** which specifies how payer rules can be executed in a provider context to ensure that documentation requirements are met. This RI and IG are companions to the **[Coverage Requirements Discovery (CRD) IG](https://build.fhir.org/ig/HL7/davinci-crd/)** and **[Coverage Requirements Discovery (CRD) RI](https://github.com/HL7-DaVinci/CRD)**.
 
+## Running DTR
+
+You can find a complete end-to-end set up guide for DRLS, including DTR, [here](https://github.com/HL7-DaVinci/CRD/blob/master/SetupGuideForMacOS.md).
+
 # Getting Started
+
+If you are running DRLS for the first time, we highly recommend you refer to our comprehensive [setup guide](https://github.com/HL7-DaVinci/CRD/blob/master/SetupGuideForMacOS.md) for instructions on how to install DTR. Once you have DRLS up and running, you can return here to find more detailed information about how DTR works.
 
 ## Prerequisites
 
