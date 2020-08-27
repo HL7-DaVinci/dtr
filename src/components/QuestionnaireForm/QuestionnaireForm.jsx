@@ -143,15 +143,11 @@ export default class QuestionnaireForm extends Component {
     console.log(lform);
   }
 
-  prepopulate(items, response_items, dynamic_choice_only) {
+  prepopulate(items, response_items, saved_response) {
     items.map(item => {
       let response_item = {
         linkId: item.linkId,
       };
-
-      if (!dynamic_choice_only) {
-        response_items.push(response_item);
-      }
 
       if (item.item) {
         // add sub-items
@@ -169,7 +165,7 @@ export default class QuestionnaireForm extends Component {
       }
 
       // autofill fields
-      if (item.extension && (!dynamic_choice_only || item.type == 'open-choice')) {
+      if (item.extension && (!saved_response || item.type == 'open-choice')) {
         response_item.answer = []
         item.extension.forEach(e => {
           let value;
@@ -216,7 +212,7 @@ export default class QuestionnaireForm extends Component {
             console.log(`Couldn't find library "${libraryName}"`);
           }
 
-          if (prepopulationResult != null && !dynamic_choice_only) {
+          if (prepopulationResult != null && !saved_response) {
             switch (item.type) {
               case 'boolean':
                 response_item.answer.push({ valueBoolean: prepopulationResult });
