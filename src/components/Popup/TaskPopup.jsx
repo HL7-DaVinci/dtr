@@ -61,6 +61,7 @@ submitTask() {
         })
 
     }
+    this.setState({open: false})
     createTask(returnValue, this.props.smart);
   }
 renderTaskQuestionnaire() {
