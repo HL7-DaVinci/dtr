@@ -117,7 +117,8 @@ export default class QuestionnaireForm extends Component {
             // stu3
             value = findValueByPrefix(e, "value");
           } else if (
-            e.url === "http://hl7.org/fhir/StructureDefinition/cqf-expression"
+            e.url === "http://hl7.org/fhir/StructureDefinition/cqf-expression" ||
+            e.url === "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression"
           ) {
             // r4
             value = findValueByPrefix(e, "value");
