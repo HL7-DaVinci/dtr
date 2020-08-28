@@ -3,22 +3,15 @@
   font-family: Arial, Helvetica, sans-serif;
 }
 
-.filter-button {
-    position: absolute;
-    z-index: 2;
-    right: 35px;
-    color: white;
-}
-
 .form-container {
     overflow-y: scroll;
 }
 
 .task-button {
-    position: absolute;
+    float: right;
     z-index: 2;
-    right: 135px;
     color: white;
+    margin-right:10px;
 }
 
 .task-input { 
@@ -62,4 +55,8 @@
 
 .off {
     display: none;
+}
+
+#button-container {
+    float:right;
 }

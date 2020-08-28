@@ -139,8 +139,12 @@ export default class QuestionnaireForm extends Component {
       lform = LForms.Util.mergeFHIRDataIntoLForms("QuestionnaireResponse", newResponse, lform, this.props.fhirVersion)
     }
 
-    LForms.Util.addFormToPage(lform, "formContainer")
-    console.log(lform);
+    LForms.Util.addFormToPage(lform, "formContainer");
+    const header = document.getElementsByClassName("lf-form-title")[0];
+    const el = document.createElement('div');
+    el.setAttribute("id", "button-container")
+    header.appendChild(el);
+    this.props.renderButtons(el);
   }
 
   prepopulate(items, response_items, saved_response) {

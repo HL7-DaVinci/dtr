@@ -2,31 +2,11 @@ export default {
     "resourceType": "Questionnaire",
     "id": "Task",
     "name": "Task",
-    "meta": {
-      "profile": [
-        "http://hl7.org/fhir/StructureDefinition/cqf-questionnaire",
-        "http://hl7.org/fhir/us/davinci-dtr/StructureDefinition/dtr-questionnaire-r4"
-      ]
-    },
     "title": "Task",
     "status": "draft",
     "subjectType": ["Patient"],
     "date": "2019-12-06",
     "publisher": "Da Vinci DTR",
-    "extension": [
-      {
-        "url": "http://hl7.org/fhir/StructureDefinition/cqf-library",
-        "valueCanonical": "http://hl7.org/fhir/us/davinci-dtr/Library/HomeOxygenTherapy-prepopulation"
-      },
-      {
-        "url": "http://hl7.org/fhir/StructureDefinition/cqf-library",
-        "valueCanonical": "http://hl7.org/fhir/us/davinci-dtr/Library/BasicPatientInfo-prepopulation"
-      },
-      {
-        "url": "http://hl7.org/fhir/StructureDefinition/cqf-library",
-        "valueCanonical": "http://hl7.org/fhir/us/davinci-dtr/Library/BasicPractitionerInfo-prepopulation"
-      }
-    ],
     "item": [
       {
         "linkId": "1",
@@ -270,12 +250,7 @@ export default {
                 "linkId": "2.8",
                 "text": "note",
                 "type": "text",
-                "required": false,
-                "initial": [
-                    {
-                        "valueString": "sample text"
-                    }
-                ]
+                "required": false
             },
         ]
       }
