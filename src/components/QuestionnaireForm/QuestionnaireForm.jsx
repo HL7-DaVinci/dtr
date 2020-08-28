@@ -123,6 +123,9 @@ export default class QuestionnaireForm extends Component {
   }
 
   loadAndMergeForms(newResponse) {
+    console.log(JSON.stringify(this.props.qform));
+    console.log(JSON.stringify(newResponse));
+
     let lform = LForms.Util.convertFHIRQuestionnaireToLForms(this.props.qform, this.props.fhirVersion);
 
     lform.templateOptions = {
@@ -130,17 +133,15 @@ export default class QuestionnaireForm extends Component {
       showColumnHeaders: false,
       showQuestionCode: false,
       hideFormControls: true,
-      showFormOptionPanelButton: true//,
-      //allowHTMLInInstructions: true,
-      //showCodingInstruction: true
+      showFormOptionPanelButton: true
     };
 
     if (newResponse) {
       lform = LForms.Util.mergeFHIRDataIntoLForms("QuestionnaireResponse", newResponse, lform, this.props.fhirVersion)
     }
 
-    LForms.Util.addFormToPage(lform, "formContainer")
     console.log(lform);
+    LForms.Util.addFormToPage(lform, "formContainer")
   }
 
   prepopulate(items, response_items, saved_response) {
