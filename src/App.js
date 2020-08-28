@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import ReactDOM from 'react-dom'
 import { hot } from "react-hot-loader";
 import "./App.css";
 import cqlfhir from "cql-exec-fhir";
@@ -56,6 +57,7 @@ class App extends Component {
     this.smart = props.smart;
     this.consoleLog = this.consoleLog.bind(this);
     this.fhirVersion = "unknown";
+    this.renderButtons = this.renderButtons.bind(this);
   }
 
   componentDidMount() {
@@ -382,6 +384,17 @@ class App extends Component {
       this.setState({filter: !this.state.filter})
   }
 
+  renderButtons(ref) {
+    const element = (<div><div><TaskPopup smart = {this.smart} />
+    <div className="task-button">
+        <label>Attestation</label>  <input type="checkbox" onChange={()=>{this.setTasks()}}></input>
+    </div>
+    <div className="task-button">
+        <label>Filter</label>  <input type="checkbox" onChange={()=>{this.filter()}}></input>
+    </div></div></div>)
+    ReactDOM.render(element, ref);
+  }
+
   render() {
     // set up messages, if any are needed
     let messages;
@@ -406,7 +419,6 @@ class App extends Component {
     ) {
       return (
           <div>
-        <TaskPopup smart = {this.smart} />
         <div className="App">
           {messages}
           {/* <TextField
@@ -422,12 +434,6 @@ class App extends Component {
           >
 
           </div>
-          <div className="task-button">
-              <label>Attestation</label>  <input type="checkbox" onChange={()=>{this.setTasks()}}></input>
-          </div>
-          <div className="filter-button">
-              <label>Filter</label>  <input type="checkbox" onChange={()=>{this.filter()}}></input>
-          </div>
           {this.state.priorAuthClaim ? (
             <PriorAuth claimBundle={this.state.priorAuthClaim} />
           ) : (
@@ -442,6 +448,7 @@ class App extends Component {
               fhirVersion={this.fhirVersion.toUpperCase()}
               smart={this.smart}
               FHIR_PREFIX={this.props.FHIR_PREFIX}
+              renderButtons={this.renderButtons}
             />
           )}
         </div>

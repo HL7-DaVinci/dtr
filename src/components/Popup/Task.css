@@ -4,22 +4,16 @@
 
 .task-popup-button { 
     z-index: 40;
-    position: absolute;
-    right: 250px;
-    top: 164px;
     border: 1px solid white;
     color: white;
+    float:right;
+    margin-right: 10px;
+    margin-top: 5px;
+    padding: 4px 8px !important;
 }
 
 .openPop {
-    visibility: visible;
     z-index: 900 !important;
-}
-
-.closePop {
-    visibility: hidden !important;
-    z-index: 0 !important;
-
 }
 
 .dialog {

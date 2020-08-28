@@ -79,13 +79,13 @@ renderTaskQuestionnaire() {
 
   render() {
     return (
-        <div>
+        <div style={{"float": "right"}}>
     
-          <button className="task-popup-button btn" onClick={this.handleClickOpen}>
+          <button className="task-popup-button" onClick={this.handleClickOpen}>
             Create Task
           </button>
           <Dialog classes = {{
-            //   root: this.state.open ? "openPop" : "closePop",
+              root: "openPop",
               paperScrollPaper: " dialog",
           }} open={this.state.open} onClose={this.handleClose} aria-labelledby="form-dialog-title">
             <DialogTitle id="form-dialog-title">Task Form</DialogTitle>

@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import './Task.css';
 import questionnaire from './TaskQuestionnaire';
 
-export default class TaskPopup extends Component {
+export default class TaskForm extends Component {
     constructor(props) {
         super(props);
         this.state = {
