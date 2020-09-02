@@ -476,19 +476,37 @@ export default class QuestionnaireForm extends Component {
   }
 
   getPractitioner() {
-    if(this.props.cqlPrepoulationResults.BasicPractitionerInfoPrepopulation.OrderingProvider) {
-        return "Practitioner/" +
-        this.props.cqlPrepoulationResults.BasicPractitionerInfoPrepopulation
-          .OrderingProvider.id.value;
+    var p = "Unknown";
+    var requestType = "Unknown";
+    if (this.props.deviceRequest) {
+      requestType = this.props.deviceRequest.resourceType;
+      if (requestType == "DeviceRequest") {
+        p = this.props.deviceRequest.performer.referencee;
+      } else if (requestType == "ServiceRequest") {
+        p = this.props.deviceRequest.performer.reference;
+      } else if (requestType == "MedicationRequest") {
+        p = this.props.deviceRequest.requester.reference;
+      }
     }
-
+    console.log("getPractitioner(): " + requestType + ": " + p);
+    return p;
   }
 
   getPatient() {
-    return "Patient/" + 
-        this.props.cqlPrepoulationResults.BasicPatientInfoPrepopulation
-          .Patient.id.value;
-
+    var p = "Unknown";
+    var requestType = "Unknown";
+    if (this.props.deviceRequest) {
+      requestType = this.props.deviceRequest.resourceType;
+      if (requestType == "DeviceRequest") {
+        p = this.props.deviceRequest.subject.reference;
+      } else if (requestType == "ServiceRequest") {
+        p = this.props.deviceRequest.subject.reference;
+      } else if (requestType == "MedicationRequest") {
+        p = this.props.deviceRequest.subject.reference;
+      }
+    }
+    console.log("getPatient(): " + requestType + ": " + p);
+    return p;
   }
 
   getQuestionnaireResponse(status) {
