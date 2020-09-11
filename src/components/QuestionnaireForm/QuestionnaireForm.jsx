@@ -509,6 +509,24 @@ export default class QuestionnaireForm extends Component {
     return p;
   }
 
+  getCode() {
+    var c = "Unknown";
+    var requestType = "Unknown";
+    if (this.props.deviceRequest) {
+      requestType = this.props.deviceRequest.resourceType;
+      if (requestType == "DeviceRequest") {
+        c = this.props.deviceRequest.codeCodeableConcept;
+      } else if (requestType == "ServiceRequest") {
+        c = this.props.deviceRequest.code;
+      } else if (requestType == "MedicationRequest") {
+        c = this.props.deviceRequest.medicationCodeableConcept;
+      }
+    }
+    console.log("getCode(): " + requestType + ": ")
+    console.log(c);
+    return c;
+  }
+
   getQuestionnaireResponse(status) {
     var qr = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', 'R4', "#formContainer");
     console.log(qr);
@@ -729,7 +747,7 @@ export default class QuestionnaireForm extends Component {
       item: [
         {
           sequence: "1",
-          productOrService: this.props.deviceRequest.codeCodeableConcept,
+          productOrService: this.getCode(),
           quantity: {
             value: 1
           }
