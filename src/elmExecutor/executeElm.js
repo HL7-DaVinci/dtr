@@ -8,7 +8,7 @@ function executeElm(smart, fhirVersion, request, executionInputs, consoleLog) {
   return new Promise(function(resolve, reject){
     console.log("about to executeElm()");
     const patientSource = getPatientSource(fhirVersion);
-    const neededResources = extractFhirResourcesThatNeedFetching(executionInputs.elm);
+    const neededResources = executionInputs.neededResources;
     consoleLog("need to fetch resources","infoClass");
     console.log("We need to fetch these resources:", neededResources);
     buildPopulatedResourceBundle(smart, neededResources, fhirVersion, request, consoleLog)

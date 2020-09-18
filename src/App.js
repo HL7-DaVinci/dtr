@@ -121,7 +121,8 @@ class App extends Component {
                   }
                 ),
                 valueSetDB: {},
-                parameters: parameterObj
+                parameters: parameterObj,
+                neededResources: artifacts.neededResources
               };
 
               // add the required value sets to the valueSetDB
