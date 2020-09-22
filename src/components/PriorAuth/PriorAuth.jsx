@@ -63,31 +63,22 @@ export default class PriorAuth extends Component {
     const fiveMin = hourInMS / 12;
 
     // Poll every 5 minutes in the first half hour
-    this.getLatestResponse();
     let numPolls = 1;
     let context = this;
     let polling = setInterval(function () {
       context.getLatestResponse();
       if (numPolls >= 6 || context.getClaimResponse().outcome != "queued") {
         clearInterval(polling);
-        context.poll(hourInMS);
         numPolls += 1;
       }
     }, fiveMin);
-  }
 
-  /**
-   * Poll constantly at given interval until the final disposition comes back
-   * @param interval - time in ms to delay between polling
-   */
-  poll(interval) {
-    let context = this;
-    let polling = setInterval(function () {
+    // Poll every hour until claim comes back
+    polling = setInterval(function () {
       context.getLatestResponse();
-      if (context.getClaimResponse().outcome != "queued") {
+      if (context.getClaimResponse().outcome != "queued")
         clearInterval(polling);
-      }
-    }, interval);
+    }, hourInMS);
   }
 
   /**
@@ -260,7 +251,7 @@ export default class PriorAuth extends Component {
   webSocketReceiveMessage(message, id) {
     let msgType = message.replace(" ", "").split(":")[0];
     if (msgType === "ping") {
-      this.poll();
+      this.getLatestResponse();
       let claimResponse = this.getClaimResponse();
       console.log(claimResponse);
       if (
