@@ -10,9 +10,7 @@ import PriorAuth from "./components/PriorAuth/PriorAuth";
 import QuestionnaireForm from "./components/QuestionnaireForm/QuestionnaireForm";
 import Testing from "./components/ConsoleBox/Testing";
 import UserMessage from "./components/UserMessage/UserMessage";
-import {createTask} from "./util/taskCreation";
 import TaskPopup from "./components/Popup/TaskPopup";
-import TextField from '@material-ui/core/TextField';
 
 // uncomment for testing UserMessage
 // let sampleError = {
@@ -122,7 +120,7 @@ class App extends Component {
                 ),
                 valueSetDB: {},
                 parameters: parameterObj,
-                neededResources: artifacts.neededResources
+                mainLibraryMaps: artifacts.mainLibraryMaps
               };
 
               // add the required value sets to the valueSetDB

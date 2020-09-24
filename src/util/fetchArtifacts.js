@@ -14,7 +14,7 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
     }
 
     const fetchedUrls = new Set();
-    const neededResources = new Set();
+    const elmLibraryMaps = new Map();
     let pendingFetches = 0;
 
     const retVal = {
@@ -22,7 +22,7 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
       mainLibraryElms: [],
       dependentElms: [],
       valueSets: [],
-      neededResources: []
+      mainLibraryMaps: null
     };
 
     function resolveIfDone(){
@@ -78,7 +78,6 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
         fetchRelatedElms(libraryResource);
         fetchRequiredValueSets(libraryResource);
         fetchElmFile(libraryResource, isMain);
-        retrieveNeededResource(libraryResource);
         consoleLog("fetched Elm","infoClass");
         // consoleLog(JSON.stringify(libraryResource),"infoClass")
         pendingFetches -= 1;
@@ -87,18 +86,6 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
         console.log("error fetching ELM:", err);
         reject(err);
       });
-    }
-
-    function retrieveNeededResource(libraryResource) {
-      if (libraryResource.dataRequirement == null) return;
-      consoleLog("--retrieving NeededResource from library:", libraryResource.name);
-
-      const requirementTypes = libraryResource.dataRequirement.map(
-        (d) => d.type
-      );
-      requirementTypes.forEach(type => neededResources.add(type));
-      retVal.neededResources = Array.from(neededResources);
-      consoleLog("-- retrieved neededResource:", neededResources);
     }
 
     function fetchRelatedElms(libraryResource){
@@ -170,6 +157,8 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
         fetchedUrls.add(elmUri);
         if (isMain) {
           retVal.mainLibraryElms.push(elm);
+          elmLibraryMaps[elm.library.identifier.id] = libraryResource;
+          retVal.mainLibraryMaps = elmLibraryMaps;
         } else {
           retVal.dependentElms.push(elm);
         }

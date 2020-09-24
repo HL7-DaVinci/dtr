@@ -3,6 +3,7 @@ function doSearch(smart, type, fhirVersion, request, callback) {
   const q = {};
   let usePatient = true;
   // setup the query for Practitioner and Coverage
+  // TODO - handle other resource not associated with Patient? 
   switch (type) {
     case "Practitioner":
       let performer;
