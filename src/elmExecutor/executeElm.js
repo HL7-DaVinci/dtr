@@ -72,7 +72,7 @@ function getPatientSource(fhirVersion) {
 
 // A list of FHIR resources can not be queried based on patient
 // TODO - reconsider how to handle them when implementing codeFilter
-const toRemoveList = ["Medication", "Organization"];
+const toRemoveList = ["Organization"];
 
 function retrieveNeededResource(libraryResource) {
   if (libraryResource.dataRequirement == null) return;
