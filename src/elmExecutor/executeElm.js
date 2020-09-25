@@ -8,12 +8,8 @@ function executeElm(smart, fhirVersion, request, executionInputs, consoleLog) {
   return new Promise(function(resolve, reject){
     console.log("about to executeElm()");
     const patientSource = getPatientSource(fhirVersion);
-    const neededResourcesFromElm = extractFhirResourcesThatNeedFetching(executionInputs.elm);
     const neededResourcesFromLibrary = retrieveNeededResource(executionInputs.mainLibraryMaps[executionInputs.elm.library.identifier.id]);
-    console.log('--- executeElm library: ', executionInputs.elm.library.identifier.id);
-    console.log('******* neededResourceFromLibrary', neededResourcesFromLibrary);
-    console.log('---- ResourceByElm:', neededResourcesFromElm);
-    findDifference(neededResourcesFromElm, neededResourcesFromLibrary);
+    //compareElmAndLibraryOutput(executionInputs, neededResourcesFromLibrary);
     consoleLog("need to fetch resources","infoClass");
     console.log("We need to fetch these resources:", neededResourcesFromLibrary);
     buildPopulatedResourceBundle(smart, neededResourcesFromLibrary, fhirVersion, request, consoleLog)
@@ -32,6 +28,16 @@ function executeElm(smart, fhirVersion, request, executionInputs, consoleLog) {
   });
 }
 
+// Method for debug
+function compareElmAndLibraryOutput(executionInputs, neededResourcesFromLibrary) {
+    const neededResourcesFromElm = extractFhirResourcesThatNeedFetching(executionInputs.elm);
+    console.log('--- executeElm library: ', executionInputs.elm.library.identifier.id);
+    console.log('---- Resources retrieved from Elm:', neededResourcesFromElm);
+    console.log('---- Resources retrieved from Library neededResourceFromLibrary', neededResourcesFromLibrary);
+    findDifference(neededResourcesFromElm, neededResourcesFromLibrary);
+}
+
+// Utility method to find out the difference between two arrays
 function findDifference(array1, array2) {
   let temp = [];
   for (var i = 0; i < array1.length; i++) {
@@ -45,9 +51,9 @@ function findDifference(array1, array2) {
       temp.push(array2[i])
     }
   }
-
   console.log('--- NeededResources Difference: ', temp);
 }
+
 function executeElmAgainstPatientSource(executionInputs, patientSource) {
   // executionInputs.elmDependencies = [ fhirhelpersElm ]
   const repository = new cql.Repository(executionInputs.elmDependencies);
@@ -65,21 +71,24 @@ function getPatientSource(fhirVersion) {
 }
 
 // A list of FHIR resources can not be queried based on patient
-// TODO - reconsider how to handle when implementing codeFilter
+// TODO - reconsider how to handle them when implementing codeFilter
 const toRemoveList = ["Medication", "Organization"];
 
 function retrieveNeededResource(libraryResource) {
   if (libraryResource.dataRequirement == null) return;
-  console.log("--retrieving NeededResource from library:", libraryResource.name);
-
+  
   const requirementTypes = libraryResource.dataRequirement.map(
     (d) => d.type
   );
   let neededResources = new Set();
   requirementTypes.forEach(type => neededResources.add(type));
  
-  console.log("-- retrieved neededResource:", neededResources);
-  return Array.from(neededResources).filter(item => !toRemoveList.includes(item));
+  // RegEx for the dataRequirements only to load the value set
+  // E.g. "type" = "ObservationValueSet" 
+  // the ValueSet is used either in CQl or Questionnaire as a set of codes
+  // but not used to filter out the patient's FHIR resources based on the valueset
+  const regexValueSet = /ValueSet\b/;
+  return Array.from(neededResources).filter(item => (!toRemoveList.includes(item) && !regexValueSet.test(item)));
 }
 
 
