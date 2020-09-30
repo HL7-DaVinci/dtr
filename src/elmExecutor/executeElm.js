@@ -8,7 +8,7 @@ function executeElm(smart, fhirVersion, request, executionInputs, consoleLog) {
   return new Promise(function(resolve, reject){
     console.log("about to executeElm()");
     const patientSource = getPatientSource(fhirVersion);
-    const neededResourcesFromLibrary = retrieveNeededResource(executionInputs.mainLibraryMaps[executionInputs.elm.library.identifier.id]);
+    const neededResourcesFromLibrary = retrieveNeededResources(executionInputs.mainLibraryMaps[executionInputs.elm.library.identifier.id]);
     //compareElmAndLibraryOutput(executionInputs, neededResourcesFromLibrary);
     consoleLog("need to fetch resources","infoClass");
     console.log("We need to fetch these resources:", neededResourcesFromLibrary);
@@ -74,7 +74,7 @@ function getPatientSource(fhirVersion) {
 // TODO - reconsider how to handle them when implementing codeFilter
 const toRemoveList = ["Organization"];
 
-function retrieveNeededResource(libraryResource) {
+function retrieveNeededResources(libraryResource) {
   if (libraryResource.dataRequirement == null) return;
   
   const requirementTypes = libraryResource.dataRequirement.map(
