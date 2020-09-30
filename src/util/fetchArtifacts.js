@@ -14,13 +14,15 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
     }
 
     const fetchedUrls = new Set();
+    const elmLibraryMaps = new Map();
     let pendingFetches = 0;
 
     const retVal = {
       questionnaire: null,
       mainLibraryElms: [],
       dependentElms: [],
-      valueSets: []
+      valueSets: [],
+      mainLibraryMaps: null
     };
 
     function resolveIfDone(){
@@ -155,6 +157,8 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
         fetchedUrls.add(elmUri);
         if (isMain) {
           retVal.mainLibraryElms.push(elm);
+          elmLibraryMaps[elm.library.identifier.id] = libraryResource;
+          retVal.mainLibraryMaps = elmLibraryMaps;
         } else {
           retVal.dependentElms.push(elm);
         }
