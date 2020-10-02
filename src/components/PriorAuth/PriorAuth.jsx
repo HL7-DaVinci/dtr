@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import "./PriorAuth.css";
 
 import SendDMEOrder from "../../util/DMEOrders";
-import endpointConfig from "./endpointConfig.json";
+import PASConfig from "./config.json";
 
 // Note: code to enable/disable DME Orders
 var dMEOrdersEnabled = false;
@@ -16,7 +16,7 @@ export default class PriorAuth extends Component {
       subscribeMsg: "",
       showRestHookForm: false,
       showLink: false,
-      priorAuthBase: endpointConfig[0].url,
+      priorAuthBase: PASConfig.endpoints[0].url,
       isSubmitted: false,
       priorAuthId: null,
       patientId: null,
@@ -57,8 +57,7 @@ export default class PriorAuth extends Component {
    *                at least once every 12 hours
    */
   polling() {
-    // const hourInSec = 3600;
-    const hourInSec = 32; // For testing purposes make an hour 16 seconds
+    const hourInSec = PASConfig.pollingTimeDevelop || 3200; // Use develop value if available for this RI
     const hourInMS = hourInSec * 1000;
     const fiveMin = hourInMS / 12;
 
@@ -507,7 +506,7 @@ export default class PriorAuth extends Component {
                     value={this.state.priorAuthBase}
                     onChange={this.selectBase.bind(this)}
                   >
-                    {endpointConfig.map((e) => {
+                    {PASConfig.endpoints.map((e) => {
                       return (
                         <option key={e.name} value={e.url}>
                           {e.name}: {e.url}

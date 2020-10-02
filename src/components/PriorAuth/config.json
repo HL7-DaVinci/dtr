@@ -1,0 +1,21 @@
+{
+  "endpoints": [
+    {
+      "name": "Logica Health",
+      "url": "https://davinci-prior-auth.logicahealth.org/fhir"
+    },
+    {
+      "name": "Localhost",
+      "url": "http://localhost:9000/fhir"
+    },
+    {
+      "name": "Mettle Solutions",
+      "url": "http://cmsfhir.mettles.com:8080/drfp/fhir"
+    },
+    {
+      "name": "Localhost (Pended)",
+      "url": "http://localhost:9001/fhir"
+    }
+  ],
+  "pollingTimeDevelop": 32
+}
