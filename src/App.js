@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import ReactDOM from 'react-dom'
 import { hot } from "react-hot-loader";
 import "./App.css";
 import cqlfhir from "cql-exec-fhir";
@@ -9,6 +10,7 @@ import PriorAuth from "./components/PriorAuth/PriorAuth";
 import QuestionnaireForm from "./components/QuestionnaireForm/QuestionnaireForm";
 import Testing from "./components/ConsoleBox/Testing";
 import UserMessage from "./components/UserMessage/UserMessage";
+import TaskPopup from "./components/Popup/TaskPopup";
 
 // uncomment for testing UserMessage
 // let sampleError = {
@@ -36,6 +38,10 @@ class App extends Component {
       deviceRequest: null,
       bundle: null,
       filter: true,
+      tasks: false,
+      showPopup: true,
+      showOverlay: false,
+      attested: [],
       logs: [],
       errors: [
         // uncomment the following for testing UserMessage, in normal operations, this is an empty array
@@ -49,6 +55,7 @@ class App extends Component {
     this.smart = props.smart;
     this.consoleLog = this.consoleLog.bind(this);
     this.fhirVersion = "unknown";
+    this.renderButtons = this.renderButtons.bind(this);
   }
 
   componentDidMount() {
@@ -112,7 +119,8 @@ class App extends Component {
                   }
                 ),
                 valueSetDB: {},
-                parameters: parameterObj
+                parameters: parameterObj,
+                mainLibraryMaps: artifacts.mainLibraryMaps
               };
 
               // add the required value sets to the valueSetDB
@@ -261,6 +269,73 @@ class App extends Component {
     this.setState({ priorAuthClaim: claimBundle });
   }
 
+  getQuestionByName(question) {
+      //question should be the HTML node
+      const temp = question.getElementsByClassName("lf-item-code ng-hide")[0].innerText.trim();
+      const linkId = temp.substring(1, temp.length-1);
+      const questionName = question.children[0].innerText;
+      const header = question.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.children[0].children[0].innerText;
+      return linkId;
+  }
+
+
+
+  setAttested(icon, linkId) {
+    this.setState({ attested: [...this.state.attested, linkId] }) //simple value
+    icon.className='fas fa-check';
+    icon.onclick = () => {
+        this.removeAttested(icon, linkId);
+    };
+  }
+
+  removeAttested(icon, linkId) {
+    this.setState({attested: this.state.attested.filter(function(id) { 
+        return id !== linkId
+    })});
+    icon.className='fas fa-clipboard';
+    icon.onclick = () => {
+        this.setAttested(icon, linkId);
+    };
+  }
+  setTasks() { 
+      if(!this.state.tasks) {
+        const questions = Array.from(document.querySelectorAll(`[ng-click="setActiveRow(item)"]:not(.lf-section-header)`));
+
+            questions.map((q)=>{
+                var node = document.createElement("div");
+                node.className = "task-input draft"
+                const linkId = this.getQuestionByName(q);
+                if(this.state.attested && this.state.attested.find((e)=>{return e==linkId})){
+                    const icon = document.createElement('i');
+                    icon.className='fas fa-check';
+                    node.appendChild(icon);
+                    icon.onclick = () => {
+                        this.removeAttested(icon, linkId);
+                    };
+                } else {
+                    const icon = document.createElement('i');
+                    icon.className='fas fa-clipboard';
+                    node.appendChild(icon);
+                    icon.onclick = () => {
+                        this.setAttested(icon, linkId);
+                    };
+                }
+
+                node.className = "task-input"
+
+                q.children[0].children[0].appendChild(node)
+              })
+              this.setState({tasks: true});
+
+      } else {
+          const tasks = Array.from(document.getElementsByClassName('task-input'))
+          tasks.map((task) => {
+              task.remove();
+          })
+          this.setState({tasks: false});
+      }
+  }
+
   filter() {
       var items = Array.from(document.getElementsByClassName("ng-not-empty"));
       var sections = Array.from(document.getElementsByClassName("section"));
@@ -308,6 +383,17 @@ class App extends Component {
       this.setState({filter: !this.state.filter})
   }
 
+  renderButtons(ref) {
+    const element = (<div><div><TaskPopup smart = {this.smart} />
+    <div className="task-button">
+        <label>Attestation</label>  <input type="checkbox" onChange={()=>{this.setTasks()}}></input>
+    </div>
+    <div className="task-button">
+        <label>Filter</label>  <input type="checkbox" onChange={()=>{this.filter()}}></input>
+    </div></div></div>)
+    ReactDOM.render(element, ref);
+  }
+
   render() {
     // set up messages, if any are needed
     let messages;
@@ -331,10 +417,21 @@ class App extends Component {
       this.state.bundle
     ) {
       return (
+          <div>
         <div className="App">
           {messages}
-          <div className="filter-button">
-              <label>Filter</label>  <input type="checkbox" onChange={()=>{this.filter()}}></input>
+          {/* <TextField
+            margin="normal"
+            fullWidth
+            value={name}
+            onChange={e => setName(e.target.value)}
+            label="Enter Name"
+          /> */}
+          <div 
+            className={"overlay " + (this.state.showOverlay ? 'on' : 'off')}
+            onClick={()=>{console.log(this.state.showOverlay); this.toggleOverlay()}}
+          >
+
           </div>
           {this.state.priorAuthClaim ? (
             <PriorAuth claimBundle={this.state.priorAuthClaim} />
@@ -344,13 +441,16 @@ class App extends Component {
               cqlPrepoulationResults={this.state.cqlPrepoulationResults}
               deviceRequest={this.state.deviceRequest}
               bundle={this.state.bundle}
+              attested={this.state.attested}
               priorAuthReq={this.props.priorAuthReq === "true" ? true : false}
               setPriorAuthClaim={this.setPriorAuthClaim.bind(this)}
               fhirVersion={this.fhirVersion.toUpperCase()}
               smart={this.smart}
               FHIR_PREFIX={this.props.FHIR_PREFIX}
+              renderButtons={this.renderButtons}
             />
           )}
+        </div>
         </div>
       );
     } else {

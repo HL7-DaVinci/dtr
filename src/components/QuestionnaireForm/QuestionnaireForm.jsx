@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import "./QuestionnaireForm.css";
-import { findValueByPrefix } from "../../util/util.js";
+import { findValueByPrefix, searchQuestionnaire } from "../../util/util.js";
 import SelectPopup from './SelectPopup';
 
 
@@ -141,7 +141,12 @@ export default class QuestionnaireForm extends Component {
     }
 
     console.log(lform);
-    LForms.Util.addFormToPage(lform, "formContainer")
+    LForms.Util.addFormToPage(lform, "formContainer");
+    const header = document.getElementsByClassName("lf-form-title")[0];
+    const el = document.createElement('div');
+    el.setAttribute("id", "button-container")
+    header.appendChild(el);
+    this.props.renderButtons(el);
   }
 
   prepopulate(items, response_items, saved_response) {
@@ -474,20 +479,60 @@ export default class QuestionnaireForm extends Component {
   }
 
   getPractitioner() {
-    return "Practitioner/" +
-        this.props.cqlPrepoulationResults.BasicPractitionerInfoPrepopulation
-          .OrderingProvider.id.value;
+    var p = "Unknown";
+    var requestType = "Unknown";
+    if (this.props.deviceRequest) {
+      requestType = this.props.deviceRequest.resourceType;
+      if (requestType == "DeviceRequest") {
+        p = this.props.deviceRequest.performer.referencee;
+      } else if (requestType == "ServiceRequest") {
+        p = this.props.deviceRequest.performer.reference;
+      } else if (requestType == "MedicationRequest") {
+        p = this.props.deviceRequest.requester.reference;
+      }
+    }
+    console.log("getPractitioner(): " + requestType + ": " + p);
+    return p;
   }
 
   getPatient() {
-    return "Patient/" + 
-        this.props.cqlPrepoulationResults.BasicPatientInfoPrepopulation
-          .Patient.id.value;
+    var p = "Unknown";
+    var requestType = "Unknown";
+    if (this.props.deviceRequest) {
+      requestType = this.props.deviceRequest.resourceType;
+      if (requestType == "DeviceRequest") {
+        p = this.props.deviceRequest.subject.reference;
+      } else if (requestType == "ServiceRequest") {
+        p = this.props.deviceRequest.subject.reference;
+      } else if (requestType == "MedicationRequest") {
+        p = this.props.deviceRequest.subject.reference;
+      }
+    }
+    console.log("getPatient(): " + requestType + ": " + p);
+    return p;
+  }
 
+  getCode() {
+    var c = "Unknown";
+    var requestType = "Unknown";
+    if (this.props.deviceRequest) {
+      requestType = this.props.deviceRequest.resourceType;
+      if (requestType == "DeviceRequest") {
+        c = this.props.deviceRequest.codeCodeableConcept;
+      } else if (requestType == "ServiceRequest") {
+        c = this.props.deviceRequest.code;
+      } else if (requestType == "MedicationRequest") {
+        c = this.props.deviceRequest.medicationCodeableConcept;
+      }
+    }
+    console.log("getCode(): " + requestType + ": ")
+    console.log(c);
+    return c;
   }
 
   getQuestionnaireResponse(status) {
-    var qr = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', 'R4');
+    var qr = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', 'R4', "#formContainer");
+    console.log(qr);
     qr.status = status;
     qr.author = {
       reference:
@@ -501,6 +546,9 @@ export default class QuestionnaireForm extends Component {
 
     qr.questionnaire = this.props.qform.id;
 
+    console.log(this.props.attested);
+    const aa = searchQuestionnaire(qr, this.props.attested);
+    console.log(aa);
     return qr;
   }
 
@@ -545,6 +593,8 @@ export default class QuestionnaireForm extends Component {
 
     if (status == "in-progress") {
       this.storeQuestionnaireResponseToEhr(qr, true);
+      this.popupClear("Partially completed form (QuestionnaireResponse) saved to EHR", "OK", true);
+      this.popupLaunch();
       return;
     }
 
@@ -700,7 +750,7 @@ export default class QuestionnaireForm extends Component {
       item: [
         {
           sequence: "1",
-          productOrService: this.props.deviceRequest.codeCodeableConcept,
+          productOrService: this.getCode(),
           quantity: {
             value: 1
           }
@@ -819,6 +869,54 @@ export default class QuestionnaireForm extends Component {
 
       const items = this.props.qform.item;
       this.prepopulate(items, newResponse.item, saved_response)
+
+      // force it to reload the form
+      this.loadAndMergeForms(partialResponse);
+
+    } else {
+      console.log("No form loaded.");
+    }
+  }
+
+  popupClear(title, finalOption, logTitle) {
+    this.setState({
+      popupTitle: title,
+      popupOptions: [],
+      popupFinalOption: finalOption
+    });
+    if (logTitle) {
+      console.log(title);
+    }
+  }
+
+  popupLaunch() {
+    this.clickChild();
+  }
+
+  popupCallback(returnValue) {
+    // display the form loaded
+    this.setState({
+      formLoaded: returnValue
+    });
+    
+    if (this.partialForms[returnValue]) {
+      // load the selected form
+      let partialResponse = this.partialForms[returnValue];
+      let dynamic_choice_only = true;
+
+      console.log(partialResponse);
+
+      this.setState({ savedResponse: partialResponse });
+
+      // If not using saved QuestionnaireResponse, create a new one
+      let newResponse = {
+        resourceType: 'QuestionnaireResponse',
+        status: 'draft',
+        item: []
+      }
+
+      const items = this.props.qform.item;
+      this.prepopulate(items, newResponse.item, dynamic_choice_only)
 
       // force it to reload the form
       this.loadAndMergeForms(partialResponse);
