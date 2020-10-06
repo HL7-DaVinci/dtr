@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import "./PriorAuth.css";
 
 import SendDMEOrder from "../../util/DMEOrders";
-import endpointConfig from "./endpointConfig.json";
+import PASConfig from "./config.json";
 
 // Note: code to enable/disable DME Orders
 var dMEOrdersEnabled = false;
@@ -16,22 +16,22 @@ export default class PriorAuth extends Component {
       subscribeMsg: "",
       showRestHookForm: false,
       showLink: false,
-      priorAuthBase: endpointConfig[0].url,
+      priorAuthBase: PASConfig.endpoints[0].url,
       isSubmitted: false,
       priorAuthId: null,
-      patientId: null
+      patientId: null,
     };
     this.subscriptionType = {
       WEBSOCKET: "WebSocket",
       RESTHOOK: "Rest-Hook",
-      POLLING: "Polling"
+      POLLING: "Polling",
     };
     this.priorAuthService = {
       CLAIM_RESPONSE: "/ClaimResponse",
       SUBSCRIPTION: "/Subscription",
       WS_CONNECT: "/connect",
       WS_SUBSCRIBE: "/private/notification",
-      WS_BIND: "/subscribe"
+      WS_BIND: "/subscribe",
     };
   }
 
@@ -46,46 +46,38 @@ export default class PriorAuth extends Component {
     this.setState({
       subscriptionType: subscriptionType,
       showRestHookForm:
-        subscriptionType === this.subscriptionType.RESTHOOK ? true : false
+        subscriptionType === this.subscriptionType.RESTHOOK ? true : false,
     });
   }
 
   /**
    * Poll for a pended claim based on the IG specification
-   * Specification: no more than 4 times in first hour
+   * Specification: every 5 min for the first half hour
    *                no more than once per hour after that
    *                at least once every 12 hours
    */
   polling() {
-    // let hourInSec = 3600;
-    let hourInSec = 32; // For testing purposes make an hour 16 seconds
+    const hourInSec = PASConfig.pollingTimeDevelop || 3200; // Use develop value if available for this RI
+    const hourInMS = hourInSec * 1000;
+    const fiveMin = hourInMS / 12;
 
-    // Poll every 15 minutes in the first hour
-    this.getLatestResponse();
+    // Poll every 5 minutes in the first half hour
     let numPolls = 1;
     let context = this;
-    let polling = setInterval(function() {
+    let polling = setInterval(function () {
       context.getLatestResponse();
-      numPolls += 1;
-      if (numPolls >= 4 || context.getClaimResponse().outcome != "queued") {
+      if (numPolls >= 6 || context.getClaimResponse().outcome != "queued") {
         clearInterval(polling);
-        context.poll(hourInSec * 1000);
+        numPolls += 1;
       }
-    }, (hourInSec * 1000) / 4);
-  }
+    }, fiveMin);
 
-  /**
-   * Poll constantly at given interval until the final disposition comes back
-   * @param interval - time in ms to delay between polling
-   */
-  poll(interval) {
-    let context = this;
-    let polling = setInterval(function() {
+    // Poll every hour until claim comes back
+    polling = setInterval(function () {
       context.getLatestResponse();
-      if (context.getClaimResponse().outcome != "queued") {
+      if (context.getClaimResponse().outcome != "queued")
         clearInterval(polling);
-      }
-    }, interval);
+    }, hourInMS);
   }
 
   /**
@@ -103,15 +95,15 @@ export default class PriorAuth extends Component {
       this.state.patientId;
     console.log("polling: " + claimResponseUri);
     this.setState({
-      subscribeMsg: "Last updated " + new Date()
+      subscribeMsg: "Last updated " + new Date(),
     });
     const claimResponseGet = new XMLHttpRequest();
     claimResponseGet.open("GET", claimResponseUri, false);
     claimResponseGet.setRequestHeader("Accept", "application/json");
-    claimResponseGet.onload = function() {
+    claimResponseGet.onload = function () {
       if (this.status === 200) {
         priorAuth.setState({
-          claimResponseBundle: JSON.parse(this.responseText)
+          claimResponseBundle: JSON.parse(this.responseText),
         });
       } else {
         let message = "Unable to retrieve update\n";
@@ -131,7 +123,7 @@ export default class PriorAuth extends Component {
   handleGetLink() {
     console.log(window.location.href);
     this.setState({
-      showLink: true
+      showLink: true,
     });
   }
 
@@ -142,13 +134,13 @@ export default class PriorAuth extends Component {
     let claimResponse = this.getClaimResponse();
     if (this.state.subscriptionType == null) {
       this.setState({
-        subscribeMsg: "Unable to subscribe. Select a subscription type"
+        subscribeMsg: "Unable to subscribe. Select a subscription type",
       });
     } else if (claimResponse.outcome !== "queued") {
       this.setState({
         subscribeMsg:
           "Unable to subscribe. ClaimResponse outcome is " +
-          claimResponse.outcome
+          claimResponse.outcome,
       });
     } else if (this.state.subscriptionType === this.subscriptionType.RESTHOOK)
       this.handleRestHookSubscribe();
@@ -170,19 +162,19 @@ export default class PriorAuth extends Component {
         "&status=active",
       channel: {
         type: "rest-hook",
-        endpoint: restHookEndpoint
-      }
+        endpoint: restHookEndpoint,
+      },
     };
     const subscriptionUri =
       this.state.priorAuthBase + this.priorAuthService.SUBSCRIPTION;
     const subscriptionPost = new XMLHttpRequest();
     subscriptionPost.open("POST", subscriptionUri);
     subscriptionPost.setRequestHeader("Content-Type", "application/fhir+json");
-    subscriptionPost.onload = function() {
+    subscriptionPost.onload = function () {
       let subscriptionResponse = JSON.parse(this.responseText);
       console.log(subscriptionResponse);
       this.setState({
-        subscribeMsg: "Rest-Hook Subscription Successful!"
+        subscribeMsg: "Rest-Hook Subscription Successful!",
       });
     };
     subscriptionPost.send(JSON.stringify(subscription));
@@ -199,8 +191,8 @@ export default class PriorAuth extends Component {
         this.state.patientId +
         "&status=active",
       channel: {
-        type: "websocket"
-      }
+        type: "websocket",
+      },
     };
     let priorAuth = this;
     const subscriptionUri =
@@ -208,7 +200,7 @@ export default class PriorAuth extends Component {
     const subscriptionPost = new XMLHttpRequest();
     subscriptionPost.open("POST", subscriptionUri);
     subscriptionPost.setRequestHeader("Content-Type", "application/fhir+json");
-    subscriptionPost.onload = function() {
+    subscriptionPost.onload = function () {
       let subscriptionResponse = JSON.parse(this.responseText);
       // TODO: update this to use conformance statement
       let subscriptionBase = priorAuth.state.priorAuthBase.replace(
@@ -231,13 +223,13 @@ export default class PriorAuth extends Component {
     let priorAuth = this;
     let socket = new WebSocket(ws);
     this.setState({
-      stompClient: Stomp.over(socket)
+      stompClient: Stomp.over(socket),
     });
-    this.state.stompClient.connect({}, function(frame) {
+    this.state.stompClient.connect({}, function (frame) {
       console.log("Connected: " + frame);
       priorAuth.state.stompClient.subscribe(
         priorAuth.priorAuthService.WS_SUBSCRIBE,
-        function(msg) {
+        function (msg) {
           priorAuth.webSocketReceiveMessage(msg.body, id);
         }
       );
@@ -258,7 +250,7 @@ export default class PriorAuth extends Component {
   webSocketReceiveMessage(message, id) {
     let msgType = message.replace(" ", "").split(":")[0];
     if (msgType === "ping") {
-      this.poll();
+      this.getLatestResponse();
       let claimResponse = this.getClaimResponse();
       console.log(claimResponse);
       if (
@@ -266,17 +258,17 @@ export default class PriorAuth extends Component {
         claimResponse.outcome === "error"
       ) {
         this.setState({
-          subscribeMsg: "Updated ClaimResponse loaded"
+          subscribeMsg: "Updated ClaimResponse loaded",
         });
         this.deleteSubscription(id);
       }
     } else if (msgType === "bound") {
       this.setState({
-        subscribeMsg: "WebSocket Subscription Successful!"
+        subscribeMsg: "WebSocket Subscription Successful!",
       });
     } else {
       this.setState({
-        subscribeMsg: message
+        subscribeMsg: message,
       });
     }
   }
@@ -297,7 +289,7 @@ export default class PriorAuth extends Component {
     const subscriptionDelete = new XMLHttpRequest();
     subscriptionDelete.open("DELETE", subscriptionUri);
     subscriptionDelete.setRequestHeader("Content-Type", "application/json");
-    subscriptionDelete.onload = function() {
+    subscriptionDelete.onload = function () {
       if (this.status === 200) {
         console.log("Deleted subscription: " + id);
       } else {
@@ -331,7 +323,7 @@ export default class PriorAuth extends Component {
     Http.setRequestHeader("Content-Type", "application/fhir+json");
     Http.send(JSON.stringify(this.props.claimBundle));
     let priorAuth = this;
-    Http.onreadystatechange = function() {
+    Http.onreadystatechange = function () {
       if (this.readyState === XMLHttpRequest.DONE) {
         var message =
           "Prior Authorization Failed.\nNo ClaimResponse found within bundle.";
@@ -352,7 +344,7 @@ export default class PriorAuth extends Component {
         console.log(message);
 
         // TODO pass the message to the PriorAuth page instead of having it query again
-        let patientEntry = claimResponseBundle.entry.find(function(entry) {
+        let patientEntry = claimResponseBundle.entry.find(function (entry) {
           return entry.resource.resourceType == "Patient";
         });
 
@@ -368,7 +360,7 @@ export default class PriorAuth extends Component {
           isSubmitted: true,
           claimResponseBundle: claimResponseBundle,
           priorAuthId: claimResponse.identifier[0].value,
-          patientId: patientId
+          patientId: patientId,
         });
       }
     };
@@ -514,7 +506,7 @@ export default class PriorAuth extends Component {
                     value={this.state.priorAuthBase}
                     onChange={this.selectBase.bind(this)}
                   >
-                    {endpointConfig.map(e => {
+                    {PASConfig.endpoints.map((e) => {
                       return (
                         <option key={e.name} value={e.url}>
                           {e.name}: {e.url}
