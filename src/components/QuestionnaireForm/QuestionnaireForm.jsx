@@ -30,6 +30,7 @@ export default class QuestionnaireForm extends Component {
     this.fhirVersion = props.fhirVersion;
     this.FHIR_PREFIX = props.FHIR_PREFIX;
     this.partialForms = {};
+    this.handleGtable = this.handleGtable.bind(this);
   }
 
 
@@ -54,7 +55,9 @@ export default class QuestionnaireForm extends Component {
       item: []
     }
 
+    
     const items = this.props.qform.item;
+    this.handleGtable(items);
     this.prepopulate(items, newResponse.item, false)
     this.state.savedResponse = newResponse;
   }
@@ -149,6 +152,139 @@ export default class QuestionnaireForm extends Component {
     this.props.renderButtons(el);
   }
 
+  handleGtable(items) {
+    for(let i = 0; i < items.length; i++) {
+      let item = items[i];
+      if (item.type == "group" && item.extension) {
+        let isGtable = item.extension.some( e => 
+          e.url == "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl" && e.valueCodeableConcept.coding[0].code == "gtable"  
+        );
+        let containsValueExpression = item.extension.some ( e =>
+          e.url == "http://hl7.org/fhir/StructureDefinition/cqf-expression" || e.url == "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression"
+        );
+
+        if (isGtable && containsValueExpression) {
+          // check if the prepopulationResult contains any value 
+          // if yes, then need to add corresponding sub-items then provide the answer
+          // need to figure out which value is provided from the prepopulationResult though
+          
+          // grab the population result
+          let prepopulationResult;
+
+          item.extension.forEach(e => {
+            let value;
+              if (
+                e.url ===
+                "http://hl7.org/fhir/StructureDefinition/cqif-calculatedValue"
+              ) {
+                // stu3
+                value = findValueByPrefix(e, "value");
+              } else if (
+                e.url === "http://hl7.org/fhir/StructureDefinition/cqf-expression" ||
+                e.url === "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression"
+              ) {
+                // r4
+                value = findValueByPrefix(e, "value");
+                value = value.expression;
+              } else {
+                // not a cql statement reference
+                return;
+              }
+
+            // split library designator from statement
+            const valueComponents = value.split(".");
+            let libraryName;
+            let statementName;
+            if (valueComponents.length > 1) {
+              libraryName = valueComponents[0].substring(
+                1,
+                valueComponents[0].length - 1
+              );
+              statementName = valueComponents[1];
+            } else {
+              // if there is not library name grab the first library name
+              statementName = value;
+              libraryName = Object.keys(this.props.cqlPrepoulationResults)[0];
+            }
+            
+            if (this.props.cqlPrepoulationResults[libraryName] != null) {
+              prepopulationResult = this.props.cqlPrepoulationResults[
+                libraryName
+              ][statementName];
+            } else {
+              prepopulationResult = null;
+              console.log(`Couldn't find library "${libraryName}"`);
+            }
+          });    
+
+          console.log("prepopulationResult: ", prepopulationResult);
+            if(prepopulationResult && prepopulationResult.length > 0) {
+                //remove extension
+                let expressionExtension = item.extension.filter ( e =>
+                  e.url == "http://hl7.org/fhir/StructureDefinition/cqf-expression" || e.url == "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression"
+                );
+                expressionExtension = {};
+                item.extension.pop();
+                //add item answer to the subitem
+                let itemLinkId = item.linkId;
+                const itemLinkIdName = itemLinkId.split(".")[0];
+                let itemLinkIdNumber = Number(itemLinkId.split(".")[1]);
+                let itemSubItems = item.item;
+              
+                let itemIndex = i;
+                let newItemList = [];
+
+                for(let index = 0; index < prepopulationResult.length; index++) {
+                  let result = prepopulationResult[index];
+                  let newItem = {
+                    "extension": item.extension,
+                    "type": "group"
+                  };
+                  if (index == 0) {
+                    newItem.text = item.text;
+                  }
+                  if (index == prepopulationResult.length -1) {
+                    newItem.repeats = true;
+                  }
+                  newItem.linkId = itemLinkIdName + "." + itemLinkIdNumber;
+                  let newItemSubItems = [];
+                  itemSubItems.forEach(subItem => {
+                    let targetItem = {};
+                    newItemSubItems.push(Object.assign(targetItem, subItem));
+                  });
+                  newItem.item = newItemSubItems;
+                  
+                  newItem.item.forEach(subItem => {
+                      let resultTextValue = result[subItem.text];
+                      if (resultTextValue) {
+                          subItem.answer = [{
+                              "valueString": resultTextValue
+                          }];
+                      }
+                  });
+                  newItemList.push(newItem);
+                  itemLinkIdNumber += 1; 
+                }
+
+                for(let i = 0; i < newItemList.length; i++) {
+                  if(i == 0) {
+                    items.splice(itemIndex, 1, newItemList[i]);
+                  } else {
+                    items.splice(itemIndex+1, 0, newItemList[i]);
+                  }
+                }
+            } 
+        } 
+      }
+
+      if(item.item) {
+        this.handleGtable(item.item);
+      }
+    }
+
+    console.log("items:", items);
+  }
+
   prepopulate(items, response_items, saved_response) {
     items.map(item => {
       let response_item = {
@@ -168,6 +304,14 @@ export default class QuestionnaireForm extends Component {
 
       if (item.type === 'choice' || item.type === 'open-choice') {
         this.populateChoices(item)
+      }
+
+      // fill the response if the answer is already there
+      if (item.answer) {
+        if(!response_item.answer) {
+          response_item.answer = [];
+        }
+        response_item.answer.push({valueString: item.answer[0].valueString});
       }
 
       // autofill fields
@@ -891,39 +1035,6 @@ export default class QuestionnaireForm extends Component {
 
   popupLaunch() {
     this.clickChild();
-  }
-
-  popupCallback(returnValue) {
-    // display the form loaded
-    this.setState({
-      formLoaded: returnValue
-    });
-    
-    if (this.partialForms[returnValue]) {
-      // load the selected form
-      let partialResponse = this.partialForms[returnValue];
-      let dynamic_choice_only = true;
-
-      console.log(partialResponse);
-
-      this.setState({ savedResponse: partialResponse });
-
-      // If not using saved QuestionnaireResponse, create a new one
-      let newResponse = {
-        resourceType: 'QuestionnaireResponse',
-        status: 'draft',
-        item: []
-      }
-
-      const items = this.props.qform.item;
-      this.prepopulate(items, newResponse.item, dynamic_choice_only)
-
-      // force it to reload the form
-      this.loadAndMergeForms(partialResponse);
-
-    } else {
-      console.log("No form loaded.");
-    }
   }
 
   render() {
