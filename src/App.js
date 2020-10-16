@@ -34,7 +34,7 @@ class App extends Component {
     this.state = {
       questionnaire: null,
       priorAuthClaim: null,
-      cqlPrepoulationResults: null,
+      cqlPrepopulationResults: null,
       deviceRequest: null,
       bundle: null,
       filter: true,
@@ -182,7 +182,7 @@ class App extends Component {
           });
           console.log(fullBundle);
           this.setState({ bundle: fullBundle });
-          this.setState({ cqlPrepoulationResults: allLibrariesResults });
+          this.setState({ cqlPrepopulationResults: allLibrariesResults });
         });
     });
   }
@@ -413,7 +413,7 @@ class App extends Component {
 
     if (
       this.state.questionnaire &&
-      this.state.cqlPrepoulationResults &&
+      this.state.cqlPrepopulationResults &&
       this.state.bundle
     ) {
       return (
@@ -438,7 +438,7 @@ class App extends Component {
           ) : (
             <QuestionnaireForm
               qform={this.state.questionnaire}
-              cqlPrepoulationResults={this.state.cqlPrepoulationResults}
+              cqlPrepopulationResults={this.state.cqlPrepopulationResults}
               deviceRequest={this.state.deviceRequest}
               bundle={this.state.bundle}
               attested={this.state.attested}

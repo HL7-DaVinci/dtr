@@ -31,6 +31,8 @@ export default class QuestionnaireForm extends Component {
     this.FHIR_PREFIX = props.FHIR_PREFIX;
     this.partialForms = {};
     this.handleGtable = this.handleGtable.bind(this);
+    this.getLibraryPrepopulationResult = this.getLibraryPrepopulationResult.bind(this);
+    this.buildGTableItems = this.buildGTableItems.bind(this);
   }
 
 
@@ -152,9 +154,17 @@ export default class QuestionnaireForm extends Component {
     this.props.renderButtons(el);
   }
 
+  // handlGtable expands the items with contains a table level expression
+  // the expression should be a list of objects 
+  // this function creates the controls based on the size of the expression
+  // then set the value of for each item
+  // the expression should be a list of objects with keys, the keys will have to match
+  // with the question text
+  // e.g. expression object list is [{"RxNorm":"content", "Description": "description"}]
+  // the corresponding item would be "item": [{"text": "RxNorm", "type": "string", "linkId": "MED.1.1"}, {"text": "Description", "type": "string", "linkId": "MED.1.2"} ]
   handleGtable(items) {
-    for(let i = 0; i < items.length; i++) {
-      let item = items[i];
+    for(let itemIndex = 0; itemIndex < items.length; itemIndex++) {
+      let item = items[itemIndex];
       if (item.type == "group" && item.extension) {
         let isGtable = item.extension.some( e => 
           e.url == "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl" && e.valueCodeableConcept.coding[0].code == "gtable"  
@@ -169,110 +179,19 @@ export default class QuestionnaireForm extends Component {
           // need to figure out which value is provided from the prepopulationResult though
           
           // grab the population result
-          let prepopulationResult;
-
-          item.extension.forEach(e => {
-            let value;
-              if (
-                e.url ===
-                "http://hl7.org/fhir/StructureDefinition/cqif-calculatedValue"
-              ) {
-                // stu3
-                value = findValueByPrefix(e, "value");
-              } else if (
-                e.url === "http://hl7.org/fhir/StructureDefinition/cqf-expression" ||
-                e.url === "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression"
-              ) {
-                // r4
-                value = findValueByPrefix(e, "value");
-                value = value.expression;
-              } else {
-                // not a cql statement reference
-                return;
-              }
-
-            // split library designator from statement
-            const valueComponents = value.split(".");
-            let libraryName;
-            let statementName;
-            if (valueComponents.length > 1) {
-              libraryName = valueComponents[0].substring(
-                1,
-                valueComponents[0].length - 1
-              );
-              statementName = valueComponents[1];
-            } else {
-              // if there is not library name grab the first library name
-              statementName = value;
-              libraryName = Object.keys(this.props.cqlPrepoulationResults)[0];
-            }
-            
-            if (this.props.cqlPrepoulationResults[libraryName] != null) {
-              prepopulationResult = this.props.cqlPrepoulationResults[
-                libraryName
-              ][statementName];
-            } else {
-              prepopulationResult = null;
-              console.log(`Couldn't find library "${libraryName}"`);
-            }
-          });    
+          let prepopulationResult = this.getLibraryPrepopulationResult(item, this.props.cqlPrepopulationResults);
 
           console.log("prepopulationResult: ", prepopulationResult);
-            if(prepopulationResult && prepopulationResult.length > 0) {
-                //remove extension
-                let expressionExtension = item.extension.filter ( e =>
-                  e.url == "http://hl7.org/fhir/StructureDefinition/cqf-expression" || e.url == "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression"
-                );
-                expressionExtension = {};
-                item.extension.pop();
-                //add item answer to the subitem
-                let itemLinkId = item.linkId;
-                const itemLinkIdName = itemLinkId.split(".")[0];
-                let itemLinkIdNumber = Number(itemLinkId.split(".")[1]);
-                let itemSubItems = item.item;
-              
-                let itemIndex = i;
-                let newItemList = [];
+          if(prepopulationResult && prepopulationResult.length > 0) {
+              let newItemList = this.buildGTableItems(item, prepopulationResult);
 
-                for(let index = 0; index < prepopulationResult.length; index++) {
-                  let result = prepopulationResult[index];
-                  let newItem = {
-                    "extension": item.extension,
-                    "type": "group"
-                  };
-                  if (index == 0) {
-                    newItem.text = item.text;
-                  }
-                  if (index == prepopulationResult.length -1) {
-                    newItem.repeats = true;
-                  }
-                  newItem.linkId = itemLinkIdName + "." + itemLinkIdNumber;
-                  let newItemSubItems = [];
-                  itemSubItems.forEach(subItem => {
-                    let targetItem = {};
-                    newItemSubItems.push(Object.assign(targetItem, subItem));
-                  });
-                  newItem.item = newItemSubItems;
-                  
-                  newItem.item.forEach(subItem => {
-                      let resultTextValue = result[subItem.text];
-                      if (resultTextValue) {
-                          subItem.answer = [{
-                              "valueString": resultTextValue
-                          }];
-                      }
-                  });
-                  newItemList.push(newItem);
-                  itemLinkIdNumber += 1; 
+              for(let i = 0; i < newItemList.length; i++) {
+                if(i == 0) {
+                  items.splice(itemIndex, 1, newItemList[i]);
+                } else {
+                  items.splice(itemIndex+1, 0, newItemList[i]);
                 }
-
-                for(let i = 0; i < newItemList.length; i++) {
-                  if(i == 0) {
-                    items.splice(itemIndex, 1, newItemList[i]);
-                  } else {
-                    items.splice(itemIndex+1, 0, newItemList[i]);
-                  }
-                }
+              }
             } 
         } 
       }
@@ -281,8 +200,106 @@ export default class QuestionnaireForm extends Component {
         this.handleGtable(item.item);
       }
     }
+  }
 
-    console.log("items:", items);
+  buildGTableItems(item, prepopulationResult) {
+    //remove expression extension
+    let expressionExtensionIndex = item.extension.findIndex ( e =>
+      e.url == "http://hl7.org/fhir/StructureDefinition/cqf-expression" || e.url == "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression"
+    );
+    item.extension.splice(expressionExtensionIndex, 1);
+    //add item answer to the subitem
+    let itemLinkId = item.linkId;
+    const itemLinkIdName = itemLinkId.split(".")[0];
+    let itemLinkIdNumber = Number(itemLinkId.split(".")[1]);
+    let itemSubItems = item.item;
+  
+    let newItemList = [];
+
+    for(let index = 0; index < prepopulationResult.length; index++) {
+      let result = prepopulationResult[index];
+      let newItem = {
+        "extension": item.extension,
+        "type": "group"
+      };
+      if (index == 0) {
+        newItem.text = item.text;
+      }
+      if (index == prepopulationResult.length -1) {
+        newItem.repeats = true;
+      }
+      newItem.linkId = itemLinkIdName + "." + itemLinkIdNumber;
+      let newItemSubItems = [];
+      itemSubItems.forEach(subItem => {
+        let targetItem = {};
+        newItemSubItems.push(Object.assign(targetItem, subItem));
+      });
+      newItem.item = newItemSubItems;
+      
+      newItem.item.forEach(subItem => {
+          let resultTextValue = result[subItem.text];
+          if (resultTextValue) {
+              subItem.answer = [{
+                  "valueString": resultTextValue
+              }];
+          }
+      });
+      newItemList.push(newItem);
+      itemLinkIdNumber += 1; 
+    }
+
+    return newItemList;
+  }
+
+  getLibraryPrepopulationResult(item, cqlResults) {
+    let prepopulationResult;
+    item.extension.forEach(e => {
+      let value;
+      if (
+        e.url ===
+        "http://hl7.org/fhir/StructureDefinition/cqif-calculatedValue"
+      ) {
+        // stu3
+        value = findValueByPrefix(e, "value");
+      } else if (
+        e.url === "http://hl7.org/fhir/StructureDefinition/cqf-expression" ||
+        e.url === "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression"
+      ) {
+        // r4
+        value = findValueByPrefix(e, "value");
+        value = value.expression;
+      } else {
+        // not a cql statement reference
+        return;
+      }
+
+      // split library designator from statement
+      const valueComponents = value.split(".");
+      let libraryName;
+      let statementName;
+      if (valueComponents.length > 1) {
+        libraryName = valueComponents[0].substring(
+          1,
+          valueComponents[0].length - 1
+        );
+        statementName = valueComponents[1];
+      } else {
+        // if there is not library name grab the first library name
+        statementName = value;
+        libraryName = Object.keys(cqlResults)[0];
+      }
+      
+      if (cqlResults[libraryName] != null) {
+        prepopulationResult = cqlResults[
+          libraryName
+        ][statementName];
+      } else {
+        prepopulationResult = null;
+        console.log(`Couldn't find library "${libraryName}"`);
+      }
+    });  
+    return prepopulationResult;
+
   }
 
   prepopulate(items, response_items, saved_response) {
@@ -318,50 +335,7 @@ export default class QuestionnaireForm extends Component {
       if (item.extension && (!saved_response || item.type == 'open-choice')) {
         response_item.answer = []
         item.extension.forEach(e => {
-          let value;
-          if (
-            e.url ===
-            "http://hl7.org/fhir/StructureDefinition/cqif-calculatedValue"
-          ) {
-            // stu3
-            value = findValueByPrefix(e, "value");
-          } else if (
-            e.url === "http://hl7.org/fhir/StructureDefinition/cqf-expression" ||
-            e.url === "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression"
-          ) {
-            // r4
-            value = findValueByPrefix(e, "value");
-            value = value.expression;
-          } else {
-            // not a cql statement reference
-            return;
-          }
-
-          // split library designator from statement
-          const valueComponents = value.split(".");
-          let libraryName;
-          let statementName;
-          if (valueComponents.length > 1) {
-            libraryName = valueComponents[0].substring(
-              1,
-              valueComponents[0].length - 1
-            );
-            statementName = valueComponents[1];
-          } else {
-            // if there is not library name grab the first library name
-            statementName = value;
-            libraryName = Object.keys(this.props.cqlPrepoulationResults)[0];
-          }
-          // grab the population result
-          let prepopulationResult;
-          if (this.props.cqlPrepoulationResults[libraryName] != null) {
-            prepopulationResult = this.props.cqlPrepoulationResults[
-              libraryName
-            ][statementName];
-          } else {
-            prepopulationResult = null;
-            console.log(`Couldn't find library "${libraryName}"`);
-          }
+          let prepopulationResult = this.getLibraryPrepopulationResult(item, this.props.cqlPrepopulationResults);
 
           if (prepopulationResult != null && !saved_response) {
             switch (item.type) {
@@ -436,7 +410,7 @@ export default class QuestionnaireForm extends Component {
         }
 
         // Don't need to add item for reloaded QuestionnaireResponse 
-        // Add QuestionnaireReponse item if the item has either answer(s) or child item(s)
+        // Add QuestionnaireResponse item if the item has either answer(s) or child item(s)
         if (response_item.answer || response_item.item) {
           response_items.push(response_item);
         }
