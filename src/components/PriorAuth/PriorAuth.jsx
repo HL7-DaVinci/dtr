@@ -3,6 +3,9 @@ import "./PriorAuth.css";
 
 import SendDMEOrder from "../../util/DMEOrders";
 import PASConfig from "./config.json";
+import { createSign } from "crypto";
+import base64 from "base64url";
+import shortid from "shortid";
 
 // Note: code to enable/disable DME Orders
 var dMEOrdersEnabled = false;
@@ -19,19 +22,19 @@ export default class PriorAuth extends Component {
       priorAuthBase: PASConfig.endpoints[0].url,
       isSubmitted: false,
       priorAuthId: null,
-      patientId: null,
+      patientId: null
     };
     this.subscriptionType = {
       WEBSOCKET: "WebSocket",
       RESTHOOK: "Rest-Hook",
-      POLLING: "Polling",
+      POLLING: "Polling"
     };
     this.priorAuthService = {
       CLAIM_RESPONSE: "/ClaimResponse",
       SUBSCRIPTION: "/Subscription",
       WS_CONNECT: "/connect",
       WS_SUBSCRIBE: "/private/notification",
-      WS_BIND: "/subscribe",
+      WS_BIND: "/subscribe"
     };
   }
 
@@ -46,7 +49,7 @@ export default class PriorAuth extends Component {
     this.setState({
       subscriptionType: subscriptionType,
       showRestHookForm:
-        subscriptionType === this.subscriptionType.RESTHOOK ? true : false,
+        subscriptionType === this.subscriptionType.RESTHOOK ? true : false
     });
   }
 
@@ -95,7 +98,7 @@ export default class PriorAuth extends Component {
       this.state.patientId;
     console.log("polling: " + claimResponseUri);
     this.setState({
-      subscribeMsg: "Last updated " + new Date(),
+      subscribeMsg: "Last updated " + new Date()
     });
     const claimResponseGet = new XMLHttpRequest();
     claimResponseGet.open("GET", claimResponseUri, false);
@@ -103,7 +106,7 @@ export default class PriorAuth extends Component {
     claimResponseGet.onload = function () {
       if (this.status === 200) {
         priorAuth.setState({
-          claimResponseBundle: JSON.parse(this.responseText),
+          claimResponseBundle: JSON.parse(this.responseText)
         });
       } else {
         let message = "Unable to retrieve update\n";
@@ -123,7 +126,7 @@ export default class PriorAuth extends Component {
   handleGetLink() {
     console.log(window.location.href);
     this.setState({
-      showLink: true,
+      showLink: true
     });
   }
 
@@ -134,13 +137,13 @@ export default class PriorAuth extends Component {
     let claimResponse = this.getClaimResponse();
     if (this.state.subscriptionType == null) {
       this.setState({
-        subscribeMsg: "Unable to subscribe. Select a subscription type",
+        subscribeMsg: "Unable to subscribe. Select a subscription type"
       });
     } else if (claimResponse.outcome !== "queued") {
       this.setState({
         subscribeMsg:
           "Unable to subscribe. ClaimResponse outcome is " +
-          claimResponse.outcome,
+          claimResponse.outcome
       });
     } else if (this.state.subscriptionType === this.subscriptionType.RESTHOOK)
       this.handleRestHookSubscribe();
@@ -162,8 +165,8 @@ export default class PriorAuth extends Component {
         "&status=active",
       channel: {
         type: "rest-hook",
-        endpoint: restHookEndpoint,
-      },
+        endpoint: restHookEndpoint
+      }
     };
     const subscriptionUri =
       this.state.priorAuthBase + this.priorAuthService.SUBSCRIPTION;
@@ -174,7 +177,7 @@ export default class PriorAuth extends Component {
       let subscriptionResponse = JSON.parse(this.responseText);
       console.log(subscriptionResponse);
       this.setState({
-        subscribeMsg: "Rest-Hook Subscription Successful!",
+        subscribeMsg: "Rest-Hook Subscription Successful!"
       });
     };
     subscriptionPost.send(JSON.stringify(subscription));
@@ -191,8 +194,8 @@ export default class PriorAuth extends Component {
         this.state.patientId +
         "&status=active",
       channel: {
-        type: "websocket",
-      },
+        type: "websocket"
+      }
     };
     let priorAuth = this;
     const subscriptionUri =
@@ -223,7 +226,7 @@ export default class PriorAuth extends Component {
     let priorAuth = this;
     let socket = new WebSocket(ws);
     this.setState({
-      stompClient: Stomp.over(socket),
+      stompClient: Stomp.over(socket)
     });
     this.state.stompClient.connect({}, function (frame) {
       console.log("Connected: " + frame);
@@ -258,17 +261,17 @@ export default class PriorAuth extends Component {
         claimResponse.outcome === "error"
       ) {
         this.setState({
-          subscribeMsg: "Updated ClaimResponse loaded",
+          subscribeMsg: "Updated ClaimResponse loaded"
         });
         this.deleteSubscription(id);
       }
     } else if (msgType === "bound") {
       this.setState({
-        subscribeMsg: "WebSocket Subscription Successful!",
+        subscribeMsg: "WebSocket Subscription Successful!"
       });
     } else {
       this.setState({
-        subscribeMsg: message,
+        subscribeMsg: message
       });
     }
   }
@@ -313,10 +316,46 @@ export default class PriorAuth extends Component {
       : null;
   }
 
+  createJWT() {
+    const header = {
+      alg: "RS384",
+      typ: "JWT",
+      kid: "3ab8b05b64d799e289e10a201786b38c"
+    };
+    const headerStr = JSON.stringify(header);
+
+    const fiveMinutes = 350;
+    const payload = {
+      iss: PASConfig.clientId,
+      sub: PASConfig.clientId,
+      aud: "https://localhost:9000/fhir/auth/token",
+      exp: Math.floor(Date.now() / 1000) + fiveMinutes,
+      jti: shortid.generate()
+    };
+    const payloadStr = JSON.stringify(payload);
+
+    const data = base64(headerStr) + "." + base64(payloadStr);
+    const sign = createSign("RSA-SHA384");
+    sign.update(data);
+
+    const signature = base64.fromBase64(
+      sign.sign(PASConfig.privateKey, "base64")
+    );
+    const jwt = data + "." + signature;
+
+    console.log(jwt);
+  }
+
+  // Hijack this method to test server-server oauth
+  submitClaim() {
+    this.createJWT();
+    console.log(PASConfig.clientId);
+  }
+
   /**
    * Submit the claim (this.props.claimBundle) to the correct PAS endpoint
    */
-  submitClaim() {
+  submitClaimREAL() {
     const Http = new XMLHttpRequest();
     const priorAuthUrl = this.state.priorAuthBase + "/Claim/$submit";
     Http.open("POST", priorAuthUrl);
@@ -360,7 +399,7 @@ export default class PriorAuth extends Component {
           isSubmitted: true,
           claimResponseBundle: claimResponseBundle,
           priorAuthId: claimResponse.identifier[0].value,
-          patientId: patientId,
+          patientId: patientId
         });
       }
     };
@@ -385,13 +424,6 @@ export default class PriorAuth extends Component {
         : this.state.subscriptionType;
     return (
       <div className="row">
-        <div className="raw-claim-response col col-md-6">
-          {this.state.isSubmitted ? (
-            <pre>{JSON.stringify(claimResponse, undefined, 2)}</pre>
-          ) : (
-            <pre>{JSON.stringify(this.props.claimBundle, undefined, 2)}</pre>
-          )}
-        </div>
         {this.state.isSubmitted ? (
           <div className="right col col-md-6">
             <div>
@@ -530,6 +562,13 @@ export default class PriorAuth extends Component {
             </form>
           </div>
         )}
+        <div className="raw-claim-response col col-md-6">
+          {this.state.isSubmitted ? (
+            <pre>{JSON.stringify(claimResponse, undefined, 2)}</pre>
+          ) : (
+            <pre>{JSON.stringify(this.props.claimBundle, undefined, 2)}</pre>
+          )}
+        </div>
       </div>
     );
   }
