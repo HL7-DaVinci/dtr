@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import "./QuestionnaireForm.css";
 import { findValueByPrefix, searchQuestionnaire } from "../../util/util.js";
 import SelectPopup from './SelectPopup';
+import _ from "lodash";
 
 
 export default class QuestionnaireForm extends Component {
@@ -33,6 +34,7 @@ export default class QuestionnaireForm extends Component {
     this.handleGtable = this.handleGtable.bind(this);
     this.getLibraryPrepopulationResult = this.getLibraryPrepopulationResult.bind(this);
     this.buildGTableItems = this.buildGTableItems.bind(this);
+    this.mergeResponse = this.mergeResponse.bind(this);
   }
 
 
@@ -59,9 +61,11 @@ export default class QuestionnaireForm extends Component {
 
     
     const items = this.props.qform.item;
-    this.handleGtable(items);
-    this.prepopulate(items, newResponse.item, false)
-    this.state.savedResponse = newResponse;
+    const parentItems = [];
+    this.handleGtable(items, parentItems, newResponse.item);
+    this.prepopulate(items, newResponse.item, false);
+    let mergedResponse = this.mergeResponse(newResponse);
+    this.state.savedResponse = mergedResponse;
   }
 
   componentDidMount() {
@@ -154,6 +158,30 @@ export default class QuestionnaireForm extends Component {
     this.props.renderButtons(el);
   }
 
+  // Merge the items for the same linkId to comply with the LHCForm
+  mergeResponse(response) {
+    let mergedResponse = {
+      resourceType: response.resourceType,
+      status: response.status,
+      item: []
+    };
+    const responseItems = response.item;
+    let itemKeyList = new Set();
+    for(let i = 0; i < responseItems.length; i++) {
+        itemKeyList.add(responseItems[i].linkId);
+    }
+    itemKeyList.forEach(linkId => {
+        let linkIdItem = {
+            linkId,
+            item: []
+        };
+        responseItems.filter(responseItem => responseItem.linkId == linkId
+        ).forEach(foundItem => linkIdItem.item.push(...foundItem.item));
+        mergedResponse.item.push(linkIdItem);
+    });
+    return mergedResponse;
+  }
+
   // handlGtable expands the items with contains a table level expression
   // the expression should be a list of objects 
   // this function creates the controls based on the size of the expression
@@ -162,9 +190,16 @@ export default class QuestionnaireForm extends Component {
   // with the question text
   // e.g. expression object list is [{"RxNorm":"content", "Description": "description"}]
   // the corresponding item would be "item": [{"text": "RxNorm", "type": "string", "linkId": "MED.1.1"}, {"text": "Description", "type": "string", "linkId": "MED.1.2"} ]
-  handleGtable(items) {
+  handleGtable(items, parentItems, responseItems) {
     for(let itemIndex = 0; itemIndex < items.length; itemIndex++) {
       let item = items[itemIndex];
+      let response_item = {
+        "linkId": item.linkId
+      };
+      if(item.item) {
+        parentItems.push(response_item);
+      }
+      
       if (item.type == "group" && item.extension) {
         let isGtable = item.extension.some( e => 
           e.url == "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl" && e.valueCodeableConcept.coding[0].code == "gtable"  
@@ -182,24 +217,26 @@ export default class QuestionnaireForm extends Component {
           let prepopulationResult = this.getLibraryPrepopulationResult(item, this.props.cqlPrepopulationResults);
 
           console.log("prepopulationResult: ", prepopulationResult);
-          if(prepopulationResult && prepopulationResult.length > 0) {
-              let newItemList = this.buildGTableItems(item, prepopulationResult);
-
-              for(let i = 0; i < newItemList.length; i++) {
-                if(i == 0) {
-                  items.splice(itemIndex, 1, newItemList[i]);
-                } else {
-                  items.splice(itemIndex+1, 0, newItemList[i]);
-                }
-              }
+            if(prepopulationResult && prepopulationResult.length > 0) {
+                let newItemList = this.buildGTableItems(item, prepopulationResult);
+                parentItems.pop();
+                let parentItem = parentItems.pop();
+                if (newItemList.length > 0) {
+                  parentItem.item = [];
+                  for(let i = 0; i < newItemList.length; i++) {
+                    parentItem.item.push(newItemList[i])
+                  }
+                  responseItems.push(parentItem);
+                } 
             } 
-        } 
+          }
+          break;
+        }  
+        
+        if(item.item) {
+          this.handleGtable(item.item, parentItems, responseItems);
+        }
       }
-
-      if(item.item) {
-        this.handleGtable(item.item);
-      }
-    }
   }
 
   buildGTableItems(item, prepopulationResult) {
@@ -209,46 +246,36 @@ export default class QuestionnaireForm extends Component {
     );
     item.extension.splice(expressionExtensionIndex, 1);
     //add item answer to the subitem
-    let itemLinkId = item.linkId;
-    const itemLinkIdName = itemLinkId.split(".")[0];
-    let itemLinkIdNumber = Number(itemLinkId.split(".")[1]);
     let itemSubItems = item.item;
-  
-    let newItemList = [];
+    let newItemResponseList = [];
 
     for(let index = 0; index < prepopulationResult.length; index++) {
       let result = prepopulationResult[index];
-      let newItem = {
-        "extension": item.extension,
-        "type": "group"
-      };
-      if (index == 0) {
-        newItem.text = item.text;
+      
+      let newItemResponse = {
+        "linkId": item.linkId,
+        "text": item.text
       }
-      if (index == prepopulationResult.length -1) {
-        newItem.repeats = true;
-      }
-      newItem.linkId = itemLinkIdName + "." + itemLinkIdNumber;
-      let newItemSubItems = [];
+      
+      let newItemResponseSubItems = [];
       itemSubItems.forEach(subItem => {
         let targetItem = {};
-        newItemSubItems.push(Object.assign(targetItem, subItem));
+        newItemResponseSubItems.push(Object.assign(targetItem, subItem));
       });
-      newItem.item = newItemSubItems;
+      newItemResponse.item = newItemResponseSubItems;
       
-      newItem.item.forEach(subItem => {
-          let resultTextValue = result[subItem.text];
-          if (resultTextValue) {
-              subItem.answer = [{
-                  "valueString": resultTextValue
-              }];
-          }
+      newItemResponse.item.forEach(subItem => {
+        let resultTextValue = result[subItem.text];
+        if (resultTextValue) {
+            subItem.answer = [{
+                "valueString": resultTextValue
+            }];
+        }
       });
-      newItemList.push(newItem);
-      itemLinkIdNumber += 1; 
+      newItemResponseList.push(newItemResponse);
     }
 
-    return newItemList;
+    return newItemResponseList;
   }
 
   getLibraryPrepopulationResult(item, cqlResults) {
