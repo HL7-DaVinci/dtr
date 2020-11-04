@@ -34,7 +34,7 @@ export default class QuestionnaireForm extends Component {
     this.handleGtable = this.handleGtable.bind(this);
     this.getLibraryPrepopulationResult = this.getLibraryPrepopulationResult.bind(this);
     this.buildGTableItems = this.buildGTableItems.bind(this);
-    this.mergeResponse = this.mergeResponse.bind(this);
+    this.mergeResponseForSameLinkId = this.mergeResponseForSameLinkId.bind(this);
   }
 
 
@@ -64,7 +64,7 @@ export default class QuestionnaireForm extends Component {
     const parentItems = [];
     this.handleGtable(items, parentItems, newResponse.item);
     this.prepopulate(items, newResponse.item, false);
-    let mergedResponse = this.mergeResponse(newResponse);
+    let mergedResponse = this.mergeResponseForSameLinkId(newResponse);
     this.state.savedResponse = mergedResponse;
   }
 
@@ -159,7 +159,7 @@ export default class QuestionnaireForm extends Component {
   }
 
   // Merge the items for the same linkId to comply with the LHCForm
-  mergeResponse(response) {
+  mergeResponseForSameLinkId(response) {
     let mergedResponse = {
       resourceType: response.resourceType,
       status: response.status,
@@ -216,29 +216,30 @@ export default class QuestionnaireForm extends Component {
           // grab the population result
           let prepopulationResult = this.getLibraryPrepopulationResult(item, this.props.cqlPrepopulationResults);
 
-          console.log("prepopulationResult: ", prepopulationResult);
-            if(prepopulationResult && prepopulationResult.length > 0) {
-                let newItemList = this.buildGTableItems(item, prepopulationResult);
-                parentItems.pop();
-                let parentItem = parentItems.pop();
-                if (newItemList.length > 0) {
-                  parentItem.item = [];
-                  for(let i = 0; i < newItemList.length; i++) {
-                    parentItem.item.push(newItemList[i])
-                  }
-                  responseItems.push(parentItem);
-                } 
-            } 
-          }
-          break;
-        }  
-        
-        if(item.item) {
-          this.handleGtable(item.item, parentItems, responseItems);
+          // console.log("prepopulationResult: ", prepopulationResult);
+          if(prepopulationResult && prepopulationResult.length > 0) {
+              let newItemList = this.buildGTableItems(item, prepopulationResult);
+              parentItems.pop();
+              let parentItem = parentItems.pop();
+              if (newItemList.length > 0) {
+                parentItem.item = [];
+                for(let i = 0; i < newItemList.length; i++) {
+                  parentItem.item.push(newItemList[i])
+                }
+                responseItems.push(parentItem);
+              } 
+          } 
         }
+        continue;
+      }  
+        
+      if(item.item) {
+        this.handleGtable(item.item, parentItems, responseItems);
       }
+    }
   }
 
+  // build multiple items if there are multiple items for the gtable
   buildGTableItems(item, prepopulationResult) {
     //remove expression extension
     let expressionExtensionIndex = item.extension.findIndex ( e =>
