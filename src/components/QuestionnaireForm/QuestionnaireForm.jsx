@@ -201,6 +201,7 @@ export default class QuestionnaireForm extends Component {
       }
       
       if (item.type == "group" && item.extension) {
+
         let isGtable = item.extension.some( e => 
           e.url == "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl" && e.valueCodeableConcept.coding[0].code == "gtable"  
         );
@@ -228,6 +229,10 @@ export default class QuestionnaireForm extends Component {
                 }
                 responseItems.push(parentItem);
               } 
+          } else {
+            // remove valueExpression from item to prevent prepopulate function to fill empty response
+            let valueExpressionIndex = item.extension.findIndex( e => e.url == "http://hl7.org/fhir/StructureDefinition/cqf-expression" || e.url == "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression");
+            item.extension.splice(valueExpressionIndex, 1);
           } 
         }
         continue;
@@ -349,14 +354,6 @@ export default class QuestionnaireForm extends Component {
 
       if (item.type === 'choice' || item.type === 'open-choice') {
         this.populateChoices(item)
-      }
-
-      // fill the response if the answer is already there
-      if (item.answer) {
-        if(!response_item.answer) {
-          response_item.answer = [];
-        }
-        response_item.answer.push({valueString: item.answer[0].valueString});
       }
 
       // autofill fields
