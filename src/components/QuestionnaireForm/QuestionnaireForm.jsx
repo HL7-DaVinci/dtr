@@ -175,9 +175,19 @@ export default class QuestionnaireForm extends Component {
             linkId,
             item: []
         };
-        responseItems.filter(responseItem => responseItem.linkId == linkId
-        ).forEach(foundItem => linkIdItem.item.push(...foundItem.item));
-        mergedResponse.item.push(linkIdItem);
+        let filteredItems = responseItems.filter(responseItem => responseItem.linkId == linkId
+        );
+        if(filteredItems) {
+          filteredItems.forEach(foundItem => {
+            if(foundItem.item) {
+              linkIdItem.item.push(...foundItem.item);
+            } else {
+              linkIdItem = foundItem;
+              linkIdItem.item = null;
+            }
+          });
+          mergedResponse.item.push(linkIdItem);
+        } 
     });
     return mergedResponse;
   }
