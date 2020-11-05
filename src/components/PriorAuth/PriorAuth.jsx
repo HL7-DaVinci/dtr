@@ -328,7 +328,7 @@ export default class PriorAuth extends Component {
     const payload = {
       iss: PASConfig.clientId,
       sub: PASConfig.clientId,
-      aud: "https://localhost:9000/fhir/auth/token",
+      aud: "https://localhost:9000/fhir/auth",
       exp: Math.floor(Date.now() / 1000) + fiveMinutes,
       jti: shortid.generate()
     };
