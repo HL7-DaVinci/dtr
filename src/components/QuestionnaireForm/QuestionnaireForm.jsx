@@ -123,6 +123,9 @@ export default class QuestionnaireForm extends Component {
   }
 
   loadAndMergeForms(newResponse) {
+    console.log(JSON.stringify(this.props.qform));
+    console.log(JSON.stringify(newResponse));
+
     let lform = LForms.Util.convertFHIRQuestionnaireToLForms(this.props.qform, this.props.fhirVersion);
 
     lform.templateOptions = {
@@ -130,15 +133,14 @@ export default class QuestionnaireForm extends Component {
       showColumnHeaders: false,
       showQuestionCode: false,
       hideFormControls: true,
-      showFormOptionPanelButton: true//,
-      //allowHTMLInInstructions: true,
-      //showCodingInstruction: true
+      showFormOptionPanelButton: true
     };
 
     if (newResponse) {
       lform = LForms.Util.mergeFHIRDataIntoLForms("QuestionnaireResponse", newResponse, lform, this.props.fhirVersion)
     }
 
+    console.log(lform);
     LForms.Util.addFormToPage(lform, "formContainer");
     const header = document.getElementsByClassName("lf-form-title")[0];
     const el = document.createElement('div');
@@ -180,7 +182,8 @@ export default class QuestionnaireForm extends Component {
             // stu3
             value = findValueByPrefix(e, "value");
           } else if (
-            e.url === "http://hl7.org/fhir/StructureDefinition/cqf-expression"
+            e.url === "http://hl7.org/fhir/StructureDefinition/cqf-expression" ||
+            e.url === "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression"
           ) {
             // r4
             value = findValueByPrefix(e, "value");

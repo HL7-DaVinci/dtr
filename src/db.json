@@ -52,6 +52,47 @@
       "clientId": "app-login",
       "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
       "redirectUri": "http://localhost:3005/index"
+    },
+    {
+      "status": "Parsing appContext",
+      "launchContextId": "22ce2b73-2584-40db-b0d1-4bac476b8a1b",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 4,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "22ce2b73-2584-40db-b0d1-4bac476b8a1b",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 5,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/HomeOxygenTherapy",
+        "request": "{\\\"resourceType\\\":\\\"DeviceRequest\\\",\\\"id\\\":\\\"devreq015\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"1\\\",\\\"lastUpdated\\\":\\\"2020-10-05T10:25:10.574-04:00\\\",\\\"source\\\":\\\"#8Km8UuIOyq5xJw2S\\\",\\\"profile\\\":[\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/R4\\/StructureDefinition\\/profile-devicerequest-r4\\\"]},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/StructureDefinition\\/ext-insurance\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov015\\\"}}],\\\"status\\\":\\\"draft\\\",\\\"intent\\\":\\\"original-order\\\",\\\"codeCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"E0424\\\",\\\"display\\\":\\\"Stationary Compressed Gaseous Oxygen System, Rental\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat015\\\"},\\\"occurrenceTiming\\\":{\\\"repeat\\\":{\\\"boundsDuration\\\":{\\\"value\\\":8,\\\"unit\\\":\\\"mo\\\",\\\"system\\\":\\\"http:\\/\\/unitsofmeasure.org\\\",\\\"code\\\":\\\"mo\\\"}},\\\"code\\\":{\\\"text\\\":\\\"During sleep AND During exertion\\\"}},\\\"performer\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1234\\\"},\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov015\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat015"
+    },
+    {
+      "status": "Rendering app",
+      "launchContextId": "22ce2b73-2584-40db-b0d1-4bac476b8a1b",
+      "serviceUri": "http://localhost:8080/test-ehr/r4",
+      "id": 6,
+      "clientId": "app-login",
+      "scope": "launch user/Observation.read user/Patient.read patient/Observation.read patient/Patient.read patient/Coverage.read patient/Condition.read user/Practitioner.read",
+      "redirectUri": "http://localhost:3005/index",
+      "appContext": {
+        "template": "Questionnaire/HomeOxygenTherapy",
+        "request": "{\\\"resourceType\\\":\\\"DeviceRequest\\\",\\\"id\\\":\\\"devreq015\\\",\\\"meta\\\":{\\\"versionId\\\":\\\"1\\\",\\\"lastUpdated\\\":\\\"2020-10-05T10:25:10.574-04:00\\\",\\\"source\\\":\\\"#8Km8UuIOyq5xJw2S\\\",\\\"profile\\\":[\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/R4\\/StructureDefinition\\/profile-devicerequest-r4\\\"]},\\\"extension\\\":[{\\\"url\\\":\\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/StructureDefinition\\/ext-insurance\\\",\\\"valueReference\\\":{\\\"reference\\\":\\\"Coverage\\/cov015\\\"}}],\\\"status\\\":\\\"draft\\\",\\\"intent\\\":\\\"original-order\\\",\\\"codeCodeableConcept\\\":{\\\"coding\\\":[{\\\"system\\\":\\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\\",\\\"code\\\":\\\"E0424\\\",\\\"display\\\":\\\"Stationary Compressed Gaseous Oxygen System, Rental\\\"}]},\\\"subject\\\":{\\\"reference\\\":\\\"Patient\\/pat015\\\"},\\\"occurrenceTiming\\\":{\\\"repeat\\\":{\\\"boundsDuration\\\":{\\\"value\\\":8,\\\"unit\\\":\\\"mo\\\",\\\"system\\\":\\\"http:\\/\\/unitsofmeasure.org\\\",\\\"code\\\":\\\"mo\\\"}},\\\"code\\\":{\\\"text\\\":\\\"During sleep AND During exertion\\\"}},\\\"performer\\\":{\\\"reference\\\":\\\"Practitioner\\/pra1234\\\"},\\\"insurance\\\":[{\\\"reference\\\":\\\"Coverage\\/cov015\\\"}]}",
+        "priorauth": "false",
+        "filepath": "_"
+      },
+      "patient": "pat015"
     }
   ],
   "profile": {
