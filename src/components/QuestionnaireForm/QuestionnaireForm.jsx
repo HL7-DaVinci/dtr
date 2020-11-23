@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import "./QuestionnaireForm.css";
 import { findValueByPrefix, searchQuestionnaire } from "../../util/util.js";
 import SelectPopup from './SelectPopup';
+import _ from "lodash";
 
 
 export default class QuestionnaireForm extends Component {
@@ -30,6 +31,10 @@ export default class QuestionnaireForm extends Component {
     this.fhirVersion = props.fhirVersion;
     this.FHIR_PREFIX = props.FHIR_PREFIX;
     this.partialForms = {};
+    this.handleGtable = this.handleGtable.bind(this);
+    this.getLibraryPrepopulationResult = this.getLibraryPrepopulationResult.bind(this);
+    this.buildGTableItems = this.buildGTableItems.bind(this);
+    this.mergeResponseForSameLinkId = this.mergeResponseForSameLinkId.bind(this);
   }
 
 
@@ -54,9 +59,13 @@ export default class QuestionnaireForm extends Component {
       item: []
     }
 
+    
     const items = this.props.qform.item;
-    this.prepopulate(items, newResponse.item, false)
-    this.state.savedResponse = newResponse;
+    const parentItems = [];
+    this.handleGtable(items, parentItems, newResponse.item);
+    this.prepopulate(items, newResponse.item, false);
+    let mergedResponse = this.mergeResponseForSameLinkId(newResponse);
+    this.state.savedResponse = mergedResponse;
   }
 
   componentDidMount() {
@@ -123,6 +132,9 @@ export default class QuestionnaireForm extends Component {
   }
 
   loadAndMergeForms(newResponse) {
+    console.log(JSON.stringify(this.props.qform));
+    console.log(JSON.stringify(newResponse));
+
     let lform = LForms.Util.convertFHIRQuestionnaireToLForms(this.props.qform, this.props.fhirVersion);
 
     lform.templateOptions = {
@@ -130,21 +142,207 @@ export default class QuestionnaireForm extends Component {
       showColumnHeaders: false,
       showQuestionCode: false,
       hideFormControls: true,
-      showFormOptionPanelButton: true//,
-      //allowHTMLInInstructions: true,
-      //showCodingInstruction: true
+      showFormOptionPanelButton: true
     };
 
     if (newResponse) {
       lform = LForms.Util.mergeFHIRDataIntoLForms("QuestionnaireResponse", newResponse, lform, this.props.fhirVersion)
     }
 
+    console.log(lform);
     LForms.Util.addFormToPage(lform, "formContainer");
     const header = document.getElementsByClassName("lf-form-title")[0];
     const el = document.createElement('div');
     el.setAttribute("id", "button-container")
     header.appendChild(el);
     this.props.renderButtons(el);
+  }
+
+  // Merge the items for the same linkId to comply with the LHCForm
+  mergeResponseForSameLinkId(response) {
+    let mergedResponse = {
+      resourceType: response.resourceType,
+      status: response.status,
+      item: []
+    };
+    const responseItems = response.item;
+    let itemKeyList = new Set();
+    for(let i = 0; i < responseItems.length; i++) {
+        itemKeyList.add(responseItems[i].linkId);
+    }
+    itemKeyList.forEach(linkId => {
+        let linkIdItem = {
+            linkId,
+            item: []
+        };
+        let filteredItems = responseItems.filter(responseItem => responseItem.linkId == linkId
+        );
+        if(filteredItems) {
+          filteredItems.forEach(foundItem => {
+            if(foundItem.item) {
+              linkIdItem.item.push(...foundItem.item);
+            } else {
+              linkIdItem = foundItem;
+              linkIdItem.item = null;
+            }
+          });
+          mergedResponse.item.push(linkIdItem);
+        } 
+    });
+    return mergedResponse;
+  }
+
+  // handlGtable expands the items with contains a table level expression
+  // the expression should be a list of objects 
+  // this function creates the controls based on the size of the expression
+  // then set the value of for each item
+  // the expression should be a list of objects with keys, the keys will have to match
+  // with the question text
+  // e.g. expression object list is [{"RxNorm":"content", "Description": "description"}]
+  // the corresponding item would be "item": [{"text": "RxNorm", "type": "string", "linkId": "MED.1.1"}, {"text": "Description", "type": "string", "linkId": "MED.1.2"} ]
+  handleGtable(items, parentItems, responseItems) {
+    for(let itemIndex = 0; itemIndex < items.length; itemIndex++) {
+      let item = items[itemIndex];
+      let response_item = {
+        "linkId": item.linkId
+      };
+      if(item.item) {
+        parentItems.push(response_item);
+      }
+      
+      if (item.type == "group" && item.extension) {
+
+        let isGtable = item.extension.some( e => 
+          e.url == "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl" && e.valueCodeableConcept.coding[0].code == "gtable"  
+        );
+        let containsValueExpression = item.extension.some ( e =>
+          e.url == "http://hl7.org/fhir/StructureDefinition/cqf-expression" || e.url == "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression"
+        );
+
+        if (isGtable && containsValueExpression) {
+          // check if the prepopulationResult contains any value 
+          // if yes, then need to add corresponding sub-items then provide the answer
+          // need to figure out which value is provided from the prepopulationResult though
+          
+          // grab the population result
+          let prepopulationResult = this.getLibraryPrepopulationResult(item, this.props.cqlPrepopulationResults);
+
+          // console.log("prepopulationResult: ", prepopulationResult);
+          if(prepopulationResult && prepopulationResult.length > 0) {
+              let newItemList = this.buildGTableItems(item, prepopulationResult);
+              parentItems.pop();
+              let parentItem = parentItems.pop();
+              if (newItemList.length > 0) {
+                parentItem.item = [];
+                for(let i = 0; i < newItemList.length; i++) {
+                  parentItem.item.push(newItemList[i])
+                }
+                responseItems.push(parentItem);
+              } 
+          } else {
+            // remove valueExpression from item to prevent prepopulate function to fill empty response
+            let valueExpressionIndex = item.extension.findIndex( e => e.url == "http://hl7.org/fhir/StructureDefinition/cqf-expression" || e.url == "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression");
+            item.extension.splice(valueExpressionIndex, 1);
+          } 
+        }
+        continue;
+      }  
+        
+      if(item.item) {
+        this.handleGtable(item.item, parentItems, responseItems);
+      }
+    }
+  }
+
+  // build multiple items if there are multiple items for the gtable
+  buildGTableItems(item, prepopulationResult) {
+    //remove expression extension
+    let expressionExtensionIndex = item.extension.findIndex ( e =>
+      e.url == "http://hl7.org/fhir/StructureDefinition/cqf-expression" || e.url == "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression"
+    );
+    item.extension.splice(expressionExtensionIndex, 1);
+    //add item answer to the subitem
+    let itemSubItems = item.item;
+    let newItemResponseList = [];
+
+    for(let index = 0; index < prepopulationResult.length; index++) {
+      let result = prepopulationResult[index];
+      
+      let newItemResponse = {
+        "linkId": item.linkId,
+        "text": item.text
+      }
+      
+      let newItemResponseSubItems = [];
+      itemSubItems.forEach(subItem => {
+        let targetItem = {};
+        newItemResponseSubItems.push(Object.assign(targetItem, subItem));
+      });
+      newItemResponse.item = newItemResponseSubItems;
+      
+      newItemResponse.item.forEach(subItem => {
+        let resultTextValue = result[subItem.text];
+        if (resultTextValue) {
+            subItem.answer = [{
+                "valueString": resultTextValue
+            }];
+        }
+      });
+      newItemResponseList.push(newItemResponse);
+    }
+
+    return newItemResponseList;
+  }
+
+  getLibraryPrepopulationResult(item, cqlResults) {
+    let prepopulationResult;
+    item.extension.forEach(e => {
+      let value;
+      if (
+        e.url ===
+        "http://hl7.org/fhir/StructureDefinition/cqif-calculatedValue"
+      ) {
+        // stu3
+        value = findValueByPrefix(e, "value");
+      } else if (
+        e.url === "http://hl7.org/fhir/StructureDefinition/cqf-expression" ||
+        e.url === "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression"
+      ) {
+        // r4
+        value = findValueByPrefix(e, "value");
+        value = value.expression;
+      } else {
+        // not a cql statement reference
+        return;
+      }
+
+      // split library designator from statement
+      const valueComponents = value.split(".");
+      let libraryName;
+      let statementName;
+      if (valueComponents.length > 1) {
+        libraryName = valueComponents[0].substring(
+          1,
+          valueComponents[0].length - 1
+        );
+        statementName = valueComponents[1];
+      } else {
+        // if there is not library name grab the first library name
+        statementName = value;
+        libraryName = Object.keys(cqlResults)[0];
+      }
+      
+      if (cqlResults[libraryName] != null) {
+        prepopulationResult = cqlResults[
+          libraryName
+        ][statementName];
+      } else {
+        prepopulationResult = null;
+        console.log(`Couldn't find library "${libraryName}"`);
+      }
+    });  
+    return prepopulationResult;
+
   }
 
   prepopulate(items, response_items, saved_response) {
@@ -172,49 +370,7 @@ export default class QuestionnaireForm extends Component {
       if (item.extension && (!saved_response || item.type == 'open-choice')) {
         response_item.answer = []
         item.extension.forEach(e => {
-          let value;
-          if (
-            e.url ===
-            "http://hl7.org/fhir/StructureDefinition/cqif-calculatedValue"
-          ) {
-            // stu3
-            value = findValueByPrefix(e, "value");
-          } else if (
-            e.url === "http://hl7.org/fhir/StructureDefinition/cqf-expression"
-          ) {
-            // r4
-            value = findValueByPrefix(e, "value");
-            value = value.expression;
-          } else {
-            // not a cql statement reference
-            return;
-          }
-
-          // split library designator from statement
-          const valueComponents = value.split(".");
-          let libraryName;
-          let statementName;
-          if (valueComponents.length > 1) {
-            libraryName = valueComponents[0].substring(
-              1,
-              valueComponents[0].length - 1
-            );
-            statementName = valueComponents[1];
-          } else {
-            // if there is not library name grab the first library name
-            statementName = value;
-            libraryName = Object.keys(this.props.cqlPrepoulationResults)[0];
-          }
-          // grab the population result
-          let prepopulationResult;
-          if (this.props.cqlPrepoulationResults[libraryName] != null) {
-            prepopulationResult = this.props.cqlPrepoulationResults[
-              libraryName
-            ][statementName];
-          } else {
-            prepopulationResult = null;
-            console.log(`Couldn't find library "${libraryName}"`);
-          }
+          let prepopulationResult = this.getLibraryPrepopulationResult(item, this.props.cqlPrepopulationResults);
 
           if (prepopulationResult != null && !saved_response) {
             switch (item.type) {
@@ -289,7 +445,7 @@ export default class QuestionnaireForm extends Component {
         }
 
         // Don't need to add item for reloaded QuestionnaireResponse 
-        // Add QuestionnaireReponse item if the item has either answer(s) or child item(s)
+        // Add QuestionnaireResponse item if the item has either answer(s) or child item(s)
         if (response_item.answer || response_item.item) {
           response_items.push(response_item);
         }
@@ -888,39 +1044,6 @@ export default class QuestionnaireForm extends Component {
 
   popupLaunch() {
     this.clickChild();
-  }
-
-  popupCallback(returnValue) {
-    // display the form loaded
-    this.setState({
-      formLoaded: returnValue
-    });
-    
-    if (this.partialForms[returnValue]) {
-      // load the selected form
-      let partialResponse = this.partialForms[returnValue];
-      let dynamic_choice_only = true;
-
-      console.log(partialResponse);
-
-      this.setState({ savedResponse: partialResponse });
-
-      // If not using saved QuestionnaireResponse, create a new one
-      let newResponse = {
-        resourceType: 'QuestionnaireResponse',
-        status: 'draft',
-        item: []
-      }
-
-      const items = this.props.qform.item;
-      this.prepopulate(items, newResponse.item, dynamic_choice_only)
-
-      // force it to reload the form
-      this.loadAndMergeForms(partialResponse);
-
-    } else {
-      console.log("No form loaded.");
-    }
   }
 
   render() {
