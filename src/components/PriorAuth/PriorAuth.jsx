@@ -6,6 +6,7 @@ import PASConfig from "./config.json";
 import { createSign } from "crypto";
 import base64 from "base64url";
 import shortid from "shortid";
+import axios from "axios";
 
 // Note: code to enable/disable DME Orders
 var dMEOrdersEnabled = false;
@@ -22,7 +23,9 @@ export default class PriorAuth extends Component {
       priorAuthBase: PASConfig.endpoints[0].url,
       isSubmitted: false,
       priorAuthId: null,
-      patientId: null
+      patientId: null,
+      useOauth: false,
+      accessToken: null
     };
     this.subscriptionType = {
       WEBSOCKET: "WebSocket",
@@ -87,8 +90,7 @@ export default class PriorAuth extends Component {
    * Query the PriorAuth server for the most updated ClaimRespnose
    * Sets this.state.claimResponseBundle
    */
-  getLatestResponse() {
-    let priorAuth = this; // Save this context to use in the onload function
+  async getLatestResponse() {
     const claimResponseUri =
       this.state.priorAuthBase +
       this.priorAuthService.CLAIM_RESPONSE +
@@ -100,23 +102,40 @@ export default class PriorAuth extends Component {
     this.setState({
       subscribeMsg: "Last updated " + new Date()
     });
-    const claimResponseGet = new XMLHttpRequest();
-    claimResponseGet.open("GET", claimResponseUri, false);
-    claimResponseGet.setRequestHeader("Accept", "application/json");
-    claimResponseGet.onload = function () {
-      if (this.status === 200) {
-        priorAuth.setState({
-          claimResponseBundle: JSON.parse(this.responseText)
-        });
-      } else {
-        let message = "Unable to retrieve update\n";
-        message += "Uri: " + claimResponseUri;
-        console.log(e);
-        console.log(message);
-        return;
+
+    const options = {
+      headers: {
+        Accept: "application/json"
       }
     };
-    claimResponseGet.send();
+    if (this.state.useOauth) {
+      const accessToken = this.state.accessToken
+        ? this.state.accessToken
+        : await this.getNewAccessToken();
+      options.headers["Authorization"] = `Bearer ${accessToken}`;
+    }
+    return axios
+      .get(claimResponseUri, options)
+      .then((data) => {
+        if (data.status !== 200) {
+          alert(
+            "GET ClaimResponse must return 200. More details printed to console.error"
+          );
+          console.error(`GET ${claimResponseUri} returned ${data.status}`);
+          return null;
+        } else {
+          this.setState({ claimResponseBundle: data.data });
+          return data.data;
+        }
+      })
+      .catch((err) => {
+        alert(
+          "Error getting ClaimResponse. More details printed to console.error"
+        );
+        console.error(`Unable to GET ${claimResponseUri}`);
+        console.error(err);
+        return null;
+      });
   }
 
   /**
@@ -145,15 +164,18 @@ export default class PriorAuth extends Component {
           "Unable to subscribe. ClaimResponse outcome is " +
           claimResponse.outcome
       });
-    } else if (this.state.subscriptionType === this.subscriptionType.RESTHOOK)
+    } else if (this.state.subscriptionType === this.subscriptionType.RESTHOOK) {
       this.handleRestHookSubscribe();
-    else if (this.state.subscriptionType === this.subscriptionType.WEBSOCKET)
+    } else if (
+      this.state.subscriptionType === this.subscriptionType.WEBSOCKET
+    ) {
       this.handleWebSocketSubscribe();
-    else if (this.state.subscriptionType === this.subscriptionType.POLLING)
+    } else if (this.state.subscriptionType === this.subscriptionType.POLLING) {
       this.polling();
+    }
   }
 
-  handleRestHookSubscribe() {
+  async handleRestHookSubscribe() {
     let restHookEndpoint = document.getElementById("restHookEndpoint").value;
     const subscription = {
       resourceType: "Subscription",
@@ -170,21 +192,20 @@ export default class PriorAuth extends Component {
     };
     const subscriptionUri =
       this.state.priorAuthBase + this.priorAuthService.SUBSCRIPTION;
-    const subscriptionPost = new XMLHttpRequest();
-    subscriptionPost.open("POST", subscriptionUri);
-    subscriptionPost.setRequestHeader("Content-Type", "application/fhir+json");
-    subscriptionPost.onload = function () {
-      let subscriptionResponse = JSON.parse(this.responseText);
-      console.log(subscriptionResponse);
-      this.setState({
-        subscribeMsg: "Rest-Hook Subscription Successful!"
-      });
-    };
-    subscriptionPost.send(JSON.stringify(subscription));
+
+    const options = await this.getAxiosOptions();
+    axios
+      .post(subscriptionUri, subscription, options)
+      .then((data) => {
+        console.log(data.data);
+        this.setState({
+          subscribeMsg: "Rest-Hook Subscription Successful!"
+        });
+      })
+      .catch((err) => console.error(err));
   }
 
-  handleWebSocketSubscribe() {
-    // Post subscription
+  async handleWebSocketSubscribe() {
     const subscription = {
       resourceType: "Subscription",
       criteria:
@@ -197,23 +218,22 @@ export default class PriorAuth extends Component {
         type: "websocket"
       }
     };
-    let priorAuth = this;
     const subscriptionUri =
       this.state.priorAuthBase + this.priorAuthService.SUBSCRIPTION;
-    const subscriptionPost = new XMLHttpRequest();
-    subscriptionPost.open("POST", subscriptionUri);
-    subscriptionPost.setRequestHeader("Content-Type", "application/fhir+json");
-    subscriptionPost.onload = function () {
-      let subscriptionResponse = JSON.parse(this.responseText);
-      // TODO: update this to use conformance statement
-      let subscriptionBase = priorAuth.state.priorAuthBase.replace(
-        /^http/g,
-        "ws"
-      );
-      let ws = subscriptionBase + priorAuth.priorAuthService.WS_CONNECT;
-      priorAuth.webSocketConnectAndBind(ws, subscriptionResponse.id);
-    };
-    subscriptionPost.send(JSON.stringify(subscription));
+
+    const options = await this.getAxiosOptions();
+    axios
+      .post(subscriptionUri, subscription, options)
+      .then((data) => {
+        // TODO: update this to use conformance statement
+        const subscriptionBase = this.state.priorAuthBase.replace(
+          /^http/g,
+          "ws"
+        );
+        const ws = subscriptionBase + this.priorAuthService.WS_CONNECT;
+        this.webSocketConnectAndBind(ws, data.data.id);
+      })
+      .catch((err) => console.error(err));
   }
 
   /**
@@ -250,12 +270,11 @@ export default class PriorAuth extends Component {
    * @param message - ws message body
    * @param id -
    */
-  webSocketReceiveMessage(message, id) {
+  async webSocketReceiveMessage(message, id) {
     let msgType = message.replace(" ", "").split(":")[0];
     if (msgType === "ping") {
-      this.getLatestResponse();
-      let claimResponse = this.getClaimResponse();
-      console.log(claimResponse);
+      const claimResponseBundle = await this.getLatestResponse();
+      const claimResponse = this.getClaimResponse(claimResponseBundle);
       if (
         claimResponse.outcome === "complete" ||
         claimResponse.outcome === "error"
@@ -281,7 +300,7 @@ export default class PriorAuth extends Component {
    *
    * @param id - the Subscription id to delete
    */
-  deleteSubscription(id) {
+  async deleteSubscription(id) {
     const subscriptionUri =
       this.state.priorAuthBase +
       this.priorAuthService.SUBSCRIPTION +
@@ -289,33 +308,38 @@ export default class PriorAuth extends Component {
       id +
       "&patient.identifier=" +
       this.state.patientId;
-    const subscriptionDelete = new XMLHttpRequest();
-    subscriptionDelete.open("DELETE", subscriptionUri);
-    subscriptionDelete.setRequestHeader("Content-Type", "application/json");
-    subscriptionDelete.onload = function () {
-      if (this.status === 200) {
-        console.log("Deleted subscription: " + id);
-      } else {
-        console.log(
-          "Unable to performd delete\nSubscription: " +
-            id +
-            "\nStatus: " +
-            this.status
+    const options = await this.getAxiosOptions();
+    axios
+      .delete(subscriptionUri, options)
+      .then((data) => {
+        if (data.status !== 200) {
+          alert("DELETE response must be 200. More details in console.error");
+          console.error(`DELETE ${subscriptionUri} returned ${data.status}`);
+        } else {
+          console.log(`Deleted Subscription: ${id}`);
+        }
+      })
+      .catch((err) => {
+        alert(
+          `Error deleting Subscription ${id}. More details in console.error`
         );
-      }
-    };
-    subscriptionDelete.send();
+        console.error(err);
+      });
   }
 
   /**
    * Get the current ClaimResponse resource from the bundle loaded
    */
-  getClaimResponse() {
+  getClaimResponse(claimResponseBundle = undefined) {
+    if (claimResponseBundle) return claimResponseBundle.entry[0].resource;
     return this.state.claimResponseBundle
       ? this.state.claimResponseBundle.entry[0].resource
       : null;
   }
 
+  /**
+   * Create the client_assertion JWT for server-server oauth
+   */
   createJWT() {
     const header = {
       alg: "RS384",
@@ -328,7 +352,7 @@ export default class PriorAuth extends Component {
     const payload = {
       iss: PASConfig.clientId,
       sub: PASConfig.clientId,
-      aud: "https://localhost:9000/fhir/auth",
+      aud: "https://localhost:9000/fhir/auth", // TODO make this endpoint
       exp: Math.floor(Date.now() / 1000) + fiveMinutes,
       jti: shortid.generate()
     };
@@ -343,70 +367,107 @@ export default class PriorAuth extends Component {
     );
     const jwt = data + "." + signature;
 
-    console.log(jwt);
+    return jwt;
   }
 
-  // Hijack this method to test server-server oauth
-  submitClaim() {
-    this.createJWT();
-    console.log(PASConfig.clientId);
+  /**
+   * Construct the axios headers adding the Authorization header
+   * only if this.state.useOauth is enabled
+   */
+  async getAxiosOptions() {
+    const options = {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/fhir+json"
+      }
+    };
+    if (this.state.useOauth) {
+      const accessToken = this.state.accessToken
+        ? this.state.accessToken
+        : await this.getNewAccessToken();
+      options.headers["Authorization"] = `Bearer ${accessToken}`;
+    }
+    return options;
+  }
+
+  /**
+   * Request a new access token from the authorization server
+   */
+  async getNewAccessToken() {
+    const jwt = this.createJWT();
+
+    // TODO: get from metadata
+    const tokenAuthBaseUrl = `${this.state.priorAuthBase}/auth/token`;
+    const tokenAuthUrl = `${tokenAuthBaseUrl}?scope=system/*.read&&grant_type=client_credentials&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer&client_assertion=${jwt}`;
+    const { data } = await axios.post(tokenAuthUrl);
+    this.setState({ accessToken: data.access_token });
+    return data.access_token;
   }
 
   /**
    * Submit the claim (this.props.claimBundle) to the correct PAS endpoint
    */
-  submitClaimREAL() {
-    const Http = new XMLHttpRequest();
-    const priorAuthUrl = this.state.priorAuthBase + "/Claim/$submit";
-    Http.open("POST", priorAuthUrl);
-    Http.setRequestHeader("Content-Type", "application/fhir+json");
-    Http.send(JSON.stringify(this.props.claimBundle));
-    let priorAuth = this;
-    Http.onreadystatechange = function () {
-      if (this.readyState === XMLHttpRequest.DONE) {
-        var message =
-          "Prior Authorization Failed.\nNo ClaimResponse found within bundle.";
-        if (this.status === 201 || this.status === 200) {
-          var claimResponseBundle = JSON.parse(this.responseText);
-          var claimResponse = claimResponseBundle.entry[0].resource;
-          message = "Prior Authorization " + claimResponse.disposition + "\n";
-          message +=
-            "Prior Authorization Number: " + claimResponse.identifier[0].value;
+  async submitClaim() {
+    const options = await this.getAxiosOptions();
+    const priorAuthUrl = `${this.state.priorAuthBase}/Claim/$submit`;
+    axios
+      .post(priorAuthUrl, this.props.claimBundle, options)
+      .then((data) => {
+        console.log(data);
+        if (data.status === 201 || data.status === 200) {
+          const claimResponseBundle = data.data;
+          const claimResponse = claimResponseBundle.entry[0].resource;
+          console.log(
+            `Prior Authorization ${claimResponse.disposition}\nPrior Authorization Number: ${claimResponse.identifier[0].value}`
+          );
 
           // DME Orders
-          if (dMEOrdersEnabled) SendDMEOrder(priorAuth, response);
+          if (dMEOrdersEnabled) SendDMEOrder(this, claimResponse);
+
+          // TODO pass the message to the PriorAuth page instead of having it query again
+          let patientEntry = claimResponseBundle.entry.find(function (entry) {
+            return entry.resource.resourceType == "Patient";
+          });
+
+          // fall back to resource.id if resource.identifier is not populated
+          let patientId;
+          if (patientEntry.resource.identifier == null) {
+            patientId = patientEntry.resource.id;
+          } else {
+            patientId = patientEntry.resource.identifier[0].value;
+          }
+
+          this.setState({
+            isSubmitted: true,
+            claimResponseBundle: claimResponseBundle,
+            priorAuthId: claimResponse.identifier[0].value,
+            patientId: patientId
+          });
         } else {
-          console.log(this);
-          console.log(this.responseText);
-          message = "Prior Authorization Request Failed.";
+          console.error(
+            `Prior Authorization must return 200 or 201. Request returned ${data.status}`
+          );
+          console.error(data);
+          alert(
+            "Prior Authorization must return 200 or 201. Details printed to console.error"
+          );
         }
-        console.log(message);
-
-        // TODO pass the message to the PriorAuth page instead of having it query again
-        let patientEntry = claimResponseBundle.entry.find(function (entry) {
-          return entry.resource.resourceType == "Patient";
-        });
-
-        // fall back to resource.id if resource.identifier is not populated
-        let patientId;
-        if (patientEntry.resource.identifier == null) {
-          patientId = patientEntry.resource.id;
-        } else {
-          patientId = patientEntry.resource.identifier[0].value;
-        }
-
-        priorAuth.setState({
-          isSubmitted: true,
-          claimResponseBundle: claimResponseBundle,
-          priorAuthId: claimResponse.identifier[0].value,
-          patientId: patientId
-        });
-      }
-    };
+      })
+      .catch((err) => {
+        console.error(`Prior Authorization Failed`);
+        console.error(err);
+        alert(
+          "Prior Authorization Request Failed. Details printed to console.error"
+        );
+      });
   }
 
   selectBase(e) {
     this.setState({ priorAuthBase: e.target.value });
+  }
+
+  setOauth(e) {
+    this.setState({ useOauth: e.target.checked });
   }
 
   render() {
@@ -546,6 +607,14 @@ export default class PriorAuth extends Component {
                       );
                     })}
                   </select>
+                  <br />
+                  <input
+                    type="checkbox"
+                    id="use_oauth"
+                    value="oauth"
+                    onChange={this.setOauth.bind(this)}
+                  />
+                  <label htmlFor="use_oauth">Use OAuth</label>
                 </div>
               </div>
               <div className="row">
