@@ -25,7 +25,8 @@ export default class PriorAuth extends Component {
       priorAuthId: null,
       patientId: null,
       useOauth: false,
-      accessToken: null
+      accessToken: null,
+      tokenUrl: null
     };
     this.subscriptionType = {
       WEBSOCKET: "WebSocket",
@@ -329,6 +330,7 @@ export default class PriorAuth extends Component {
 
   /**
    * Get the current ClaimResponse resource from the bundle loaded
+   * @param claimResponseBundle (optional) - get the ClaimResponse resource
    */
   getClaimResponse(claimResponseBundle = undefined) {
     if (claimResponseBundle) return claimResponseBundle.entry[0].resource;
@@ -352,7 +354,7 @@ export default class PriorAuth extends Component {
     const payload = {
       iss: PASConfig.clientId,
       sub: PASConfig.clientId,
-      aud: "https://localhost:9000/fhir/auth", // TODO make this endpoint
+      aud: this.state.tokenUrl,
       exp: Math.floor(Date.now() / 1000) + fiveMinutes,
       jti: shortid.generate()
     };
@@ -394,11 +396,10 @@ export default class PriorAuth extends Component {
    * Request a new access token from the authorization server
    */
   async getNewAccessToken() {
+    const tokenUrl = await this.getTokenUrl();
     const jwt = this.createJWT();
 
-    // TODO: get from metadata
-    const tokenAuthBaseUrl = `${this.state.priorAuthBase}/auth/token`;
-    const tokenAuthUrl = `${tokenAuthBaseUrl}?scope=system/*.read&&grant_type=client_credentials&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer&client_assertion=${jwt}`;
+    const tokenAuthUrl = `${tokenUrl}?scope=system/*.read&grant_type=client_credentials&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer&client_assertion=${jwt}`;
     const { data } = await axios.post(tokenAuthUrl);
     this.setState({ accessToken: data.access_token });
     return data.access_token;
@@ -459,6 +460,46 @@ export default class PriorAuth extends Component {
         alert(
           "Prior Authorization Request Failed. Details printed to console.error"
         );
+      });
+  }
+
+  /**
+   * Get the token oauth url from the metadata and set this.state.tokenUrl
+   */
+  async getTokenUrl() {
+    if (!this.state.priorAuthBase) return;
+
+    if (this.state.tokenUrl) return this.state.tokenUrl;
+
+    const options = {
+      headers: {
+        Accept: "application/json"
+      }
+    };
+    return axios
+      .get(`${this.state.priorAuthBase}/metadata`, options)
+      .then((data) => {
+        if (data.status !== 200) {
+          console.error(data);
+          alert("GET /metadata did not return 200");
+        }
+        data.data.rest[0].security.extension.forEach((ext) => {
+          if (
+            ext.url ===
+            "http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris"
+          ) {
+            ext.extension.forEach((uri) => {
+              if (uri.url === "token") {
+                this.setState({ tokenUrl: uri.valueUri });
+                return uri.valueUri;
+              }
+            });
+          }
+        });
+      })
+      .catch((err) => {
+        console.error(err);
+        alert("ERROR on GET /metadata");
       });
   }
 
