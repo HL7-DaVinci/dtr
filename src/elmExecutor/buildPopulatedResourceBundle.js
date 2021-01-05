@@ -13,6 +13,8 @@ function doSearch(smart, type, fhirVersion, request, callback) {
         performer = request.performer[0] && request.performer[0].reference;
       } else if (request.resourceType === "MedicationRequest") {
         performer = request.requester && request.requester.reference;
+      } else if (request.resourceType === "MedicationDispense") {
+        performer = request.performer[0] && request.performer[0].actor.reference;
       }
 
       q._id = performer;
