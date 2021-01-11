@@ -369,6 +369,7 @@ export default class PriorAuth extends Component {
     );
     const jwt = data + "." + signature;
 
+    console.log(jwt);
     return jwt;
   }
 
@@ -399,6 +400,7 @@ export default class PriorAuth extends Component {
     const tokenUrl = await this.getTokenUrl();
     const jwt = this.createJWT();
 
+    console.log(tokenUrl);
     const tokenAuthUrl = `${tokenUrl}?scope=system/*.read&grant_type=client_credentials&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer&client_assertion=${jwt}`;
     const { data } = await axios.post(tokenAuthUrl);
     this.setState({ accessToken: data.access_token });
@@ -467,7 +469,10 @@ export default class PriorAuth extends Component {
    * Get the token oauth url from the metadata and set this.state.tokenUrl
    */
   async getTokenUrl() {
-    if (!this.state.priorAuthBase) return;
+    if (!this.state.priorAuthBase) {
+      alert("Cannot get token url since prior auth base is not set");
+      return;
+    }
 
     if (this.state.tokenUrl) return this.state.tokenUrl;
 
@@ -483,19 +488,19 @@ export default class PriorAuth extends Component {
           console.error(data);
           alert("GET /metadata did not return 200");
         }
-        data.data.rest[0].security.extension.forEach((ext) => {
+        for (const ext of data.data.rest[0].security.extension) {
           if (
             ext.url ===
             "http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris"
           ) {
-            ext.extension.forEach((uri) => {
+            for (const uri of ext.extension) {
               if (uri.url === "token") {
                 this.setState({ tokenUrl: uri.valueUri });
                 return uri.valueUri;
               }
-            });
+            }
           }
-        });
+        }
       })
       .catch((err) => {
         console.error(err);
