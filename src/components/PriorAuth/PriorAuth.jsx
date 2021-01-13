@@ -474,8 +474,10 @@ export default class PriorAuth extends Component {
       return;
     }
 
+    // Return the cached token url
     if (this.state.tokenUrl) return this.state.tokenUrl;
 
+    // Get the token url from the server metadata
     const options = {
       headers: {
         Accept: "application/json"
