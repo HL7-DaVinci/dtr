@@ -83,21 +83,21 @@ tokenPost.onload = function() {
         }
 
         log.appContext = appContext;
-        log.patient = auth_response.patientId;
+        log.patient = auth_response.patient;
       
         var smart = FHIR.client({
         serverUrl: serviceUri,
-        patientId: auth_response.patientId,
+        patientId: log.patient,
         tokenResponse: {
             type: "bearer",
             access_token: auth_response.access_token,
-            patient: auth_response.patientId,
+            patient: log.patient,
         }
         });
 
         log.status = "Rendering app";
         updateLog(log);
-        const patientId = auth_response.patientId;
+        const patientId = log.patient;
         console.log(patientId);
         // log could be passed to app, but we can 
         // TODO that because we've already got some
