@@ -28,6 +28,7 @@ export default class QuestionnaireForm extends Component {
 
     this.outputResponse = this.outputResponse.bind(this);
     this.smart = props.smart;
+    this.patientId = props.patientId;
     this.fhirVersion = props.fhirVersion;
     this.FHIR_PREFIX = props.FHIR_PREFIX;
     this.partialForms = {};
@@ -41,31 +42,38 @@ export default class QuestionnaireForm extends Component {
 
   componentWillMount() {
     // search for any partially completed QuestionnaireResponses
-    this.smart.request("QuestionnaireResponse?" + 
-          "status=in-progress" + 
-          "&subject=" + this.getPatient()).then((result)=>{
+    if(this.props.standalone) {
+        const response = this.props.response;
+        const items = this.props.qform.item;
+        const parentItems = [];
+        this.handleGtable(items, parentItems, response.item);
+        // this.prepopulate(items, response.item, true);
+        const mergedResponse = this.mergeResponseForSameLinkId(response);
+        this.state.savedResponse = mergedResponse;
+    } else {
+        this.smart.request("QuestionnaireResponse?" + 
+        "status=in-progress" + 
+        "&subject=" + this.getPatient()).then((result)=>{
+            this.popupClear("Would you like to continue an in-process questionnaire?", "Cancel", false);
+            this.processSavedQuestionnaireResponses(result, false);
+        }, ((result)=>{
+            this.popupClear("Error: failed to load in-process questionnaires", "OK", true);
+            this.popupLaunch();
+        })).catch(console.error);
 
-      this.popupClear("Would you like to continue an in-process questionnaire?", "Cancel", false);
-      this.processSavedQuestionnaireResponses(result, false);
-    }, ((result)=>{
-      this.popupClear("Error: failed to load in-process questionnaires", "OK", true);
-      this.popupLaunch();
-    })).catch(console.error);
-
-    // If not using saved QuestionnaireResponse, create a new one
-    let newResponse = {
-      resourceType: 'QuestionnaireResponse',
-      status: 'draft',
-      item: []
+        // If not using saved QuestionnaireResponse, create a new one
+        let newResponse = {
+            resourceType: 'QuestionnaireResponse',
+            status: 'draft',
+            item: []
+        }     
+        const items = this.props.qform.item;
+        const parentItems = [];
+        this.handleGtable(items, parentItems, newResponse.item);
+        this.prepopulate(items, newResponse.item, false);
+        let mergedResponse = this.mergeResponseForSameLinkId(newResponse);
+        this.state.savedResponse = mergedResponse;
     }
-
-    
-    const items = this.props.qform.item;
-    const parentItems = [];
-    this.handleGtable(items, parentItems, newResponse.item);
-    this.prepopulate(items, newResponse.item, false);
-    let mergedResponse = this.mergeResponseForSameLinkId(newResponse);
-    this.state.savedResponse = mergedResponse;
   }
 
   componentDidMount() {
@@ -651,7 +659,9 @@ export default class QuestionnaireForm extends Component {
   getPatient() {
     var p = "Unknown";
     var requestType = "Unknown";
-    if (this.props.deviceRequest) {
+    if (this.patientId) {
+        p = `Patient/${this.patientId}`;
+    } else if (this.props.deviceRequest) {
       requestType = this.props.deviceRequest.resourceType;
       if (requestType == "DeviceRequest") {
         p = this.props.deviceRequest.subject.reference;
