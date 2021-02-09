@@ -1,4 +1,5 @@
 import "isomorphic-fetch";
+import { buildFhirUrl } from "./util";
 
 function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVersion, smart, consoleLog) {
 
@@ -32,7 +33,7 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
     }
 
     //fetch questionnaire and all elms
-    const questionnaireUrl = buildFhirUrl(questionnaireReference);
+    const questionnaireUrl = buildFhirUrl(questionnaireReference, fhirPrefix, fhirVersion);
 
     pendingFetches += 1;
     consoleLog("fetching questionnaire and elms", "infoClass");
@@ -46,7 +47,7 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
       // grab all main elm urls
       // R4 resources use cqf library. 
       var mainElmReferences = questionnaire.extension.filter(ext => ext.url == "http://hl7.org/fhir/StructureDefinition/cqf-library")
-          .map(lib => lib.valueCanonical)
+          .map(lib => lib.valueCanonical);
       
       if (mainElmReferences == null || mainElmReferences.length == 0) {
         // STU3 resources use cqif library.
@@ -55,7 +56,7 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
       }
 
       mainElmReferences.forEach((mainElmReference) => {
-        const mainElmUrl = buildFhirUrl(mainElmReference);
+        const mainElmUrl = buildFhirUrl(mainElmReference, fhirPrefix, fhirVersion);
         fetchElm(mainElmUrl, true);
       });
       pendingFetches -= 1;
@@ -92,7 +93,7 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
       if (libraryResource.relatedArtifact == null) return;
       const libReferences = libraryResource.relatedArtifact.filter(a => a.type == "depends-on").map(a => a.resource.reference);
       libReferences.forEach(libReference => {
-        const libUrl = buildFhirUrl(libReference);
+        const libUrl = buildFhirUrl(libReference, fhirPrefix, fhirVersion);
         fetchElm(libUrl);
       });
     }
@@ -107,7 +108,7 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
       const valueSetUrls = dataRequirementsWithValuesets.map(dr => dr.codeFilter[0].valueSet);
       valueSetUrls.forEach(valueSetUrl => {
         // assume that the valueSets are canonical URLs that we need to ask the fhir server for an expansion
-        fetchValueSet(buildFhirUrl("ValueSet/$expand?url=" + valueSetUrl));
+        fetchValueSet(buildFhirUrl("ValueSet/$expand?url=" + valueSetUrl, fhirPrefix, fhirVersion));
       });
     }
 
@@ -172,17 +173,6 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
 
     function buildFileUrl(file) {
       return filePrefix + file;
-    }
-
-    function buildFhirUrl(reference) {
-      if (reference.startsWith("http")) {
-        var endIndex = reference.lastIndexOf("/");
-        var startIndex = reference.lastIndexOf("/", endIndex -1) + 1;
-        var resoruce = reference.substr(startIndex, endIndex - startIndex);
-        return fhirPrefix + fhirVersion + "/" + resoruce + "?url=" + reference;        
-      } else {        
-        return fhirPrefix + fhirVersion + "/" + reference;
-      }
     }
   });
 }

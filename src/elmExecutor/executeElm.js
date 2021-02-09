@@ -31,9 +31,9 @@ function executeElm(smart, fhirVersion, request, executionInputs, consoleLog) {
 // Method for debug
 function compareElmAndLibraryOutput(executionInputs, neededResourcesFromLibrary) {
     const neededResourcesFromElm = extractFhirResourcesThatNeedFetching(executionInputs.elm);
-    console.log('--- executeElm library: ', executionInputs.elm.library.identifier.id);
-    console.log('---- Resources retrieved from Elm:', neededResourcesFromElm);
-    console.log('---- Resources retrieved from Library neededResourceFromLibrary', neededResourcesFromLibrary);
+    console.log("--- executeElm library: ", executionInputs.elm.library.identifier.id);
+    console.log("---- Resources retrieved from Elm:", neededResourcesFromElm);
+    console.log("---- Resources retrieved from Library neededResourceFromLibrary", neededResourcesFromLibrary);
     findDifference(neededResourcesFromElm, neededResourcesFromLibrary);
 }
 
@@ -42,16 +42,16 @@ function findDifference(array1, array2) {
   let temp = [];
   for (var i = 0; i < array1.length; i++) {
     if (!array2.includes(array1[i])) {
-      temp.push(array1[i])
+      temp.push(array1[i]);
     } 
   }
 
   for(var i = 0; i < array2.length; i++) {
     if (!array1.includes(array2[i])) {
-      temp.push(array2[i])
+      temp.push(array2[i]);
     }
   }
-  console.log('--- NeededResources Difference: ', temp);
+  console.log("--- NeededResources Difference: ", temp);
 }
 
 function executeElmAgainstPatientSource(executionInputs, patientSource) {

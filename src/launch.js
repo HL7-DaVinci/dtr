@@ -42,6 +42,9 @@ function callback(log) {
     //      2. permission to launch the app in the specific context
     log.scope = ["launch","user/Observation.read","user/Patient.read","patient/Observation.read","patient/Patient.read","patient/Coverage.read", "patient/Condition.read", "user/Practitioner.read" ].join(" ");
 
+    if (log.launchContextId) {
+        log.scope+= " launch/patient";
+    }
     // Generate a unique session key string (here we just generate a random number
     // for simplicity, but this is not 100% collision-proof)
     var state = Math.round(Math.random() * 100000000).toString();
@@ -108,12 +111,12 @@ function callback(log) {
         serviceUri: log.serviceUri,
         redirectUri: log.redirectUri,
         tokenUri: tokenUri,
-        log: log
+        log: log,
     });
 
     // finally, redirect the browser to the authorizatin server and pass the needed
     // parameters for the authorization request in the URL
-    window.location.href =
+    let authRedirect =         
         authUri +
         "?" +
         "response_type=code&" +
@@ -129,10 +132,16 @@ function callback(log) {
         "aud=" +
         encodeURIComponent(log.serviceUri) +
         "&" +
-        "launch=" +
-        encodeURIComponent(log.launchContextId) +
-        "&" +
         "state=" +
         state;
+
+    if (log.launchContextId) {
+        // ehr launch
+        authRedirect += "&" +
+            "launch=" +
+            encodeURIComponent(log.launchContextId);
+    }
+    window.location.href = authRedirect;
+
     }
 }
