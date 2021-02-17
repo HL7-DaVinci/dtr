@@ -42,9 +42,6 @@ function callback(log) {
     //      2. permission to launch the app in the specific context
     log.scope = ["launch","user/Observation.read","user/Patient.read","patient/Observation.read","patient/Patient.read","patient/Coverage.read", "patient/Condition.read", "user/Practitioner.read" ].join(" ");
 
-    if (log.launchContextId) {
-        log.scope+= " launch/patient";
-    }
     // Generate a unique session key string (here we just generate a random number
     // for simplicity, but this is not 100% collision-proof)
     var state = Math.round(Math.random() * 100000000).toString();

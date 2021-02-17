@@ -47,7 +47,7 @@ export default class QuestionnaireForm extends Component {
         const items = this.props.qform.item;
         const parentItems = [];
         this.handleGtable(items, parentItems, response.item);
-        // this.prepopulate(items, response.item, true);
+        this.prepopulate(items, response.item, true);
         const mergedResponse = this.mergeResponseForSameLinkId(response);
         this.state.savedResponse = mergedResponse;
     } else {
@@ -375,7 +375,7 @@ export default class QuestionnaireForm extends Component {
       }
 
       // autofill fields
-      if (item.extension && (!saved_response || item.type == 'open-choice')) {
+      if (item.extension && (!saved_response || item.type == 'open-choice') && !this.props.standalone) {
         response_item.answer = []
         item.extension.forEach(e => {
           let prepopulationResult = this.getLibraryPrepopulationResult(item, this.props.cqlPrepopulationResults);
