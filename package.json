@@ -4,11 +4,11 @@
   "private": true,
   "scripts": {
     "build": "webpack --config ./webpack.config.prod.js --progress --colors",
-    "start": "npm-run-all --parallel startServer startJson",
-    "startServer": "webpack-dev-server --config ./webpack.config.dev.js",
-    "startJson": "json-server --watch ./src/db.json --port 3006",
+    "start": "npm-run-all --parallel startBackend startFrontend",
+    "startFrontend": "webpack-dev-server --config ./webpack.config.dev.js",
+    "startBackend": "VERSION=Dev node ./bin/www",
     "startTemplate": "VERSION=Template node ./setup.js",
-    "startProd": "VERSION=Prod node ./setup.js",
+    "startProd": "VERSION=Prod node ./bin/www",
     "lint": "node ./node_modules/.bin/eslint --ext .js ./"
   },
   "devDependencies": {
@@ -40,10 +40,12 @@
     "cql-execution": "^2.0.0-beta.1",
     "crypto": "^1.0.1",
     "es6-promise": "^4.2.6",
+    "express": "^4.17.1",
     "fhirclient": "2.1.0",
     "isomorphic-fetch": "^2.2.1",
     "json-server": "^0.15.1",
     "lodash": "^4.17.19",
+    "lowdb": "^1.0.0",
     "node-fetch": "^2.6.1",
     "pdfmake": "^0.1.56",
     "pem": "^1.14.4",
