@@ -15,7 +15,7 @@ let serverPublic = "davinci-dtr.logicahealth.org";
 let proxyTarget = "https://davinci-crd.logicahealth.org";
 
 if (version == "Dev") {
-  serverPort = 3006;
+  serverPort = 3005;
   serverHttps = false;
   serverHost = "0.0.0.0";
   serverPublic = "0.0.0.0";
