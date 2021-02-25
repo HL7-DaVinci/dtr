@@ -13,7 +13,7 @@ let serverHttps = false;
 let serverHost = "0.0.0.0";
 let serverPublic = "davinci-dtr.logicahealth.org";
 let proxyTarget = "https://davinci-crd.logicahealth.org";
-
+console.log("Version: " + version);
 if (version == "Dev") {
   serverPort = 3005;
   serverHttps = false;
@@ -50,24 +50,24 @@ server.listen(port);
 server.on("error", onError);
 server.on("listening", onListening);
 
-if (version!=="Dev") {
-    app.use("/fhir", function(req, res) {
-        var url = proxyTarget + "/fhir" + req.url;
-        console.log(url);
-    
-        req.pipe(request({url:url,  agentOptions: {
-            rejectUnauthorized: false
-          }})).pipe(res);
-      });
-      app.use("/files", function(req, res) {
-        var url = proxyTarget + "/files" + req.url;
-        console.log(url);
-    
-        req.pipe(request({url:url,  agentOptions: {
-            rejectUnauthorized: false
-          }})).pipe(res);
-      });
-}
+
+app.use("/fhir", function(req, res) {
+    var url = proxyTarget + "/fhir" + req.url;
+    console.log(url);
+
+    req.pipe(request({url:url,  agentOptions: {
+        rejectUnauthorized: false
+        }})).pipe(res);
+    });
+    app.use("/files", function(req, res) {
+    var url = proxyTarget + "/files" + req.url;
+    console.log(url);
+
+    req.pipe(request({url:url,  agentOptions: {
+        rejectUnauthorized: false
+        }})).pipe(res);
+    });
+
 
 app.use((req, res, next) => {
     if (req.method === "POST") {
