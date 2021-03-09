@@ -7,132 +7,119 @@ const request = require("request");
 const app = require("../src/backend/app");
 const http = require("http");
 const debug = require("debug")("dtr:backend");
-let version = process.env.VERSION;
-let serverPort = 3005;
-let serverHttps = false;
-let serverHost = "0.0.0.0";
-let serverPublic = "davinci-dtr.logicahealth.org";
-let proxyTarget = "https://davinci-crd.logicahealth.org";
-console.log("Version: " + version);
-if (version == "Dev") {
-  serverPort = 3005;
-  serverHttps = false;
-  serverHost = "0.0.0.0";
-  serverPublic = "0.0.0.0";
-  proxyTarget = "http://localhost:8090";
-} else if (version == "Template") {
-  serverPort = process.env.SERVER_PORT;
-  serverHttps = process.env.SERVER_HTTPS;
-  serverHost = process.env.SERVER_HOST;
-  serverPublic = process.env.SERVER_PUBLIC;
-  proxyTarget = process.env.PROXY_TARGET;
-}
-
 
 /**
  * Get port from environment and store in Express.
  */
+function startServer(serverPort, serverHttpy, serverHost, serverPublic, proxyTarget) {
+    const port = normalizePort(process.env.PORT || serverPort);
+    app.set("port", port);
 
-const port = normalizePort(process.env.PORT || serverPort);
-app.set("port", port);
+    /**
+     * Create HTTP server.
+     */
 
-/**
- * Create HTTP server.
- */
+    const server = http.createServer(app);
 
-const server = http.createServer(app);
+    /**
+     * Listen on provided port, on all network interfaces.
+     */
 
-/**
- * Listen on provided port, on all network interfaces.
- */
-
-server.listen(port);
-server.on("error", onError);
-server.on("listening", onListening);
+    server.listen(port);
+    server.on("error", onError);
+    server.on("listening", onListening);
 
 
-app.use("/fhir", function(req, res) {
-    var url = proxyTarget + "/fhir" + req.url;
-    console.log(url);
+    app.use("/fhir", function (req, res) {
+        var url = proxyTarget + "/fhir" + req.url;
+        console.log(url);
 
-    req.pipe(request({url:url,  agentOptions: {
-        rejectUnauthorized: false
-        }})).pipe(res);
+        req.pipe(request({
+            url: url, agentOptions: {
+                rejectUnauthorized: false
+            }
+        })).pipe(res);
     });
-    app.use("/files", function(req, res) {
-    var url = proxyTarget + "/files" + req.url;
-    console.log(url);
+    app.use("/files", function (req, res) {
+        var url = proxyTarget + "/files" + req.url;
+        console.log(url);
 
-    req.pipe(request({url:url,  agentOptions: {
-        rejectUnauthorized: false
-        }})).pipe(res);
+        req.pipe(request({
+            url: url, agentOptions: {
+                rejectUnauthorized: false
+            }
+        })).pipe(res);
     });
 
 
-app.use((req, res, next) => {
-    if (req.method === "POST") {
-        req.body.createdAt = Date.now();
+    app.use((req, res, next) => {
+        if (req.method === "POST") {
+            req.body.createdAt = Date.now();
+        }
+        // Continue to JSON Server router
+        next();
+    });
+
+    /**
+     * Normalize a port into a number, string, or false.
+     */
+
+    function normalizePort(val) {
+        const port = parseInt(val, 10);
+
+        if (isNaN(port)) {
+            // named pipe
+            return val;
+        }
+
+        if (port >= 0) {
+            // port number
+            return port;
+        }
+
+        return false;
     }
-    // Continue to JSON Server router
-    next();
-});
 
-/**
- * Normalize a port into a number, string, or false.
- */
+    /**
+     * Event listener for HTTP server "error" event.
+     */
 
-function normalizePort(val) {
-  const port = parseInt(val, 10);
+    function onError(error) {
+        if (error.syscall !== "listen") {
+            throw error;
+        }
 
-  if (isNaN(port)) {
-    // named pipe
-    return val;
-  }
+        const bind = typeof port === "string"
+            ? "Pipe " + port
+            : "Port " + port;
 
-  if (port >= 0) {
-    // port number
-    return port;
-  }
+        // handle specific listen errors with friendly messages
+        switch (error.code) {
+            case "EACCES":
+                console.error(bind + " requires elevated privileges");
+                process.exit(1);
+                break;
+            case "EADDRINUSE":
+                console.error(bind + " is already in use");
+                process.exit(1);
+                break;
+            default:
+                throw error;
+        }
+    }
 
-  return false;
+    /**
+     * Event listener for HTTP server "listening" event.
+     */
+
+    function onListening() {
+        const addr = server.address();
+        const bind = typeof addr === "string"
+            ? "pipe " + addr
+            : "port " + addr.port;
+        debug("Listening on " + bind);
+    }
+
 }
 
-/**
- * Event listener for HTTP server "error" event.
- */
-
-function onError(error) {
-  if (error.syscall !== "listen") {
-    throw error;
-  }
-
-  const bind = typeof port === "string"
-    ? "Pipe " + port
-    : "Port " + port;
-
-  // handle specific listen errors with friendly messages
-  switch (error.code) {
-    case "EACCES":
-      console.error(bind + " requires elevated privileges");
-      process.exit(1);
-      break;
-    case "EADDRINUSE":
-      console.error(bind + " is already in use");
-      process.exit(1);
-      break;
-    default:
-      throw error;
-  }
-}
-
-/**
- * Event listener for HTTP server "listening" event.
- */
-
-function onListening() {
-  const addr = server.address();
-  const bind = typeof addr === "string"
-    ? "pipe " + addr
-    : "port " + addr.port;
-  debug("Listening on " + bind);
-}
+module.exports = startServer;

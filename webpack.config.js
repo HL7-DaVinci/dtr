@@ -1,10 +1,4 @@
 const path = require("path");
-const version = process.env.VERSION;
-let watch = true;
-
-if( version === "Prod" || version === "Template"){ 
-    watch = false;
-}
 
 module.exports = {
 	mode: "production",
@@ -19,7 +13,7 @@ module.exports = {
         path: path.resolve(__dirname, "public/js"),
         publicPath: "/"
       },
-	watch: watch,
+	watch: true,
     resolve: { extensions: ["*", ".js", ".jsx"] },
 	module: {
 		rules: [

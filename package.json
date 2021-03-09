@@ -3,12 +3,13 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "start": "VERSION=Dev npm-run-all --parallel startBackendDev buildFrontend",
-    "buildFrontend": "webpack",
-    "startTemplate": "VERSION=Template npm-run-all --parallel buildFrontend startBackend",
-    "startProd": "VERSION=Prod npm-run-all -s buildFrontend startBackend",
-    "startBackendDev": "nodemon --watch public ./bin/www",
-    "startBackend": "node ./bin/www",
+    "start": "npm-run-all --parallel startBackendDev buildFrontendDev",
+    "buildFrontend": "webpack --config ./webpack.config.prod.js",
+    "buildFrontendDev": "webpack --config ./webpack.config.js",
+    "startTemplate": "npm-run-all -s buildFrontend startBackend",
+    "startProd": "npm-run-all -s buildFrontend startBackend",
+    "startBackendDev": "nodemon --watch public ./bin/dev",
+    "startBackend": "node ./bin/prod",
     "lint": "node ./node_modules/.bin/eslint --ext .js ./"
   },
   "devDependencies": {
