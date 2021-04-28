@@ -139,7 +139,7 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
     }
 
     function fetchElmFile(libraryResource, isMain){
-      if (libraryResource.content[0].url == null) {
+      if (libraryResource.content[0].url === null) {
         consoleLog("processing the elmFile: " + libraryResource.id);
 
         // do the direct base64 method instead
@@ -153,7 +153,7 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
 
         // set the elm where it needs to be
         if (isMain) {
-          retVal.mainLibraryElms.push(elm)
+          retVal.mainLibraryElms.push(elm);
           elmLibraryMaps[elm.library.identifier.id] = libraryResource;
           retVal.mainLibraryMaps = elmLibraryMaps;
         } else {
