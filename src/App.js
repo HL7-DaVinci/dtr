@@ -238,8 +238,29 @@ class App extends Component {
                 version: code.version
               };
             });
-          } else {
-            this.consoleLog(`Valueset ${valueSet.id} does not have an expansion.`, 'errorClass');
+          } else if (valueSet.compose != null) {
+           this.consoleLog(`Valueset ${valueSet.id} has a compose.`, 'infoClass');
+            
+            var codeList = valueSet.compose.include.map(code => {
+              if (code.filter != null) {
+                this.consoleLog(`code ${code} has a filter and is not supported.`, 'infoClass');
+              }
+              var conceptList = code.filter == null ? code.concept : [];
+              var system = code.system;
+              var codeList = [];
+              conceptList.forEach(concept => {
+                codeList.push( {
+                  code: concept.code,
+                  system: system,
+                  version: concept.version
+                });
+              });
+              return codeList;
+            });
+            executionInputs.valueSetDB[valueSetDef.id] = {};
+            executionInputs.valueSetDB[valueSetDef.id][
+              ""
+            ] = codeList.length > 0 ? codeList[0] : null;
           }
         } else {
           this.consoleLog(`Could not find valueset ${valueSetDef.id}. Try reloading with VSAC credentials in CRD.`, 'errorClass');
