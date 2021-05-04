@@ -45,7 +45,6 @@
     "express": "^4.17.1",
     "fhirclient": "2.1.0",
     "isomorphic-fetch": "^2.2.1",
-    "json-server": "^0.15.1",
     "lodash": "^4.17.19",
     "lowdb": "^1.0.0",
     "node-fetch": "^2.6.1",

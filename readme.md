@@ -22,7 +22,7 @@ Install [node.js](https://nodejs.org/en/).
 	* dev: `npm start`
 	* production: `npm run startProd`
 
-The service will run on port 3005. This can be changed in `package.json` and the configuration file for the desired version. The dev version is configured with `webpack.dev.config.js` and does not use `https` by default.  The production version is configured through `webpack.prod.config.js` and does use `https` by default.  This can also be changed in the desired config by changing the `https` boolean.  There is currently no redirection between `https` and `http`, so using the wrong scheme in the url will result in an empty response.
+The service will run on port 3005. This can be changed in `package.json` and the configuration file for the desired version. The dev version is configured with `webpack.config.js` and does not use `https` by default.  The production version is configured through `webpack.config.prod.js` and does use `https` by default.  This can also be changed in the desired config by changing the `https` boolean.  There is currently no redirection between `https` and `http`, so using the wrong scheme in the url will result in an empty response.
 
 ## Using the App
 
@@ -37,7 +37,6 @@ The FHIR server must properly comply with the SMART on FHIR specification and ha
 
 For example, 
 http://localhost:3005/launch?iss=http://launch.smarthealthit.org/v/r2/fhir/&launch=1234 is an example of a valid launch url that will successfully launch the app.  However, note that the actual app requires an `appContext` parameter that is only available through an EHR launch.  The app is not able to work with a standalone launch.  If you wish to test the actual DTR app, and not the SMART launch sequence, you will need to either use the EHR/CRD servers provided below or use an actual EHR that supports SMART launch with an `appContext`.
-
 ## Connecting with other subprojects:
 
 It is recommmended when first starting out you have all five applications running (**[CRD Request Generator](https://github.com/HL7-DaVinci/crd-request-generator), [Test EHR (FHIR) Server](https://github.com/HL7-DaVinci/test-ehr/tree/master), [CRD Server](https://github.com/HL7-DaVinci/CRD), [DTR Server](https://github.com/HL7-DaVinci/dtr),** and **[KeyCloak  Server](https://github.com/HL7-DaVinci/CRD#setting-up-a-keycloak-instance)**) to test the full SMART on FHIR App launch sequence. After getting these applications up and running you can swap in your appliaction if desired.  

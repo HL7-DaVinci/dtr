@@ -1,7 +1,7 @@
 .patient-box{
     position: absolute;
     left:15%;
-    top:5%;
+    top:65px;
     margin-bottom:50px;
     display:block;
     height:500px;
@@ -10,6 +10,19 @@
     font-size:14px;
     background-color: #f9f9f9;
     border: 1px solid black;
+}
+
+.patient-header{
+    position: absolute;
+    left:14%;
+    top:3px;
+    font-size: 20px;
+    padding: 15px;
+    margin: 10px;
+}
+
+.info-padding{
+    padding: 15px;
 }
 
 .patient-selection-box{
