@@ -5,7 +5,7 @@ import urlUtils from "./util/url";
 import {updateLog} from "./util/util";
 import React from "react";
 import ReactDOM from "react-dom";
-import App from "./App.js";
+import App from "./App.jsx";
 console.log("completed imports");
 // get the URL parameters received from the authorization server
 const state = urlUtils.getUrlParameter("state"); // session key

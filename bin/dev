@@ -1,0 +1,11 @@
+#!/usr/bin/env node
+
+const startServer = require("./www")
+
+const serverPort = 3005;
+const serverHttps = false;
+const serverHost = "0.0.0.0";
+const serverPublic = "0.0.0.0";
+const proxyTarget = "http://localhost:8090";
+
+startServer(serverPort, serverHttps, serverHost, serverPublic, proxyTarget);

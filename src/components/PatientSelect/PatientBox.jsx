@@ -35,20 +35,6 @@ export default class PatientBox extends Component {
         age--;
     }
     return age;
-  }   
-
-  makeOption(request, options) {
-    let code = this.getCoding(request);
-
-    let option = {
-      key: request.id,
-      text: "(" + code.code + ") " + code.display,
-      value: JSON.stringify(request),
-      content: (
-        <div>henlo</div>
-      )
-    }
-    options.push(option);
   }
 
   updateValues(patient, responseId) {

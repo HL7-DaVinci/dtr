@@ -108,7 +108,7 @@ function callback(log) {
         serviceUri: log.serviceUri,
         redirectUri: log.redirectUri,
         tokenUri: tokenUri,
-        log: log,
+        log: log
     });
 
     // finally, redirect the browser to the authorizatin server and pass the needed
