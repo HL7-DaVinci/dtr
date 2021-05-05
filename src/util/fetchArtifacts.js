@@ -140,8 +140,8 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
     }
 
     function fetchElmFile(libraryResource, isMain){
-      if (libraryResource.content[0].url === null) {
-        consoleLog("processing the elmFile: " + libraryResource.id);
+      if (libraryResource.content[0].url == null) {
+        consoleLog("processing the embedded elmFile: " + libraryResource.id);
 
         // do the direct base64 method instead
         const base64elmData = libraryResource.content.filter(c => c.contentType == "application/elm+json")[0].data;
