@@ -61,6 +61,7 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
       });
       pendingFetches -= 1;
       consoleLog("fetched elms", "infoClass");
+      resolveIfDone();
 
     })
     .catch(err => {
@@ -72,7 +73,7 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
       if (libraryUrl in fetchedUrls) return;
 
       pendingFetches += 1;
-      consoleLog("about to fetchElm:", libraryUrl);
+      consoleLog("about to fetchElm (Library): " + libraryUrl, libraryUrl);
       fetch(libraryUrl).then(handleFetchErrors).then(r => r.json())
       .then(libraryResource => {
         fetchedUrls.add(libraryUrl);
@@ -82,6 +83,7 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
         consoleLog("fetched Elm","infoClass");
         // consoleLog(JSON.stringify(libraryResource),"infoClass")
         pendingFetches -= 1;
+        resolveIfDone();
       })
       .catch(err => {
         console.log("error fetching ELM:", err);
@@ -91,7 +93,7 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
 
     function fetchRelatedElms(libraryResource){
       if (libraryResource.relatedArtifact == null) return;
-      const libReferences = libraryResource.relatedArtifact.filter(a => a.type == "depends-on").map(a => a.resource.reference);
+      const libReferences = libraryResource.relatedArtifact.filter(a => a.type == "depends-on").map(a => a.resource);
       libReferences.forEach(libReference => {
         const libUrl = buildFhirUrl(libReference, fhirPrefix, fhirVersion);
         fetchElm(libUrl);
@@ -138,24 +140,19 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
     }
 
     function fetchElmFile(libraryResource, isMain){
-      const elmUri = libraryResource.content.filter(c => c.contentType == "application/elm+json")[0].url;
-      let elmUrl = buildFileUrl(elmUri);
+      if (libraryResource.content[0].url == null) {
+        consoleLog("processing the embedded elmFile: " + libraryResource.id);
 
-      pendingFetches += 1;
-      consoleLog("about to fetchElmFile:", elmUrl);
-      fetch(elmUrl).then(handleFetchErrors).then(r => r.json())
-      .then(elm => {
-        if ( elm.library.annotation ) {
-          let errors = elm.library.annotation.filter(a => a.type == "CqlToElmError" && a.errorSeverity != "warning");
-          if (errors.length > 0) {
-            let msg = "CQL to ELM translation resulted in errors.";
-            let details = { "ELM annotation": elm.library.annotation };
-            consoleLog(msg, "errorClass", details);
-            reject(msg);
-          }
-        }
-        pendingFetches -= 1;
-        fetchedUrls.add(elmUri);
+        // do the direct base64 method instead
+        const base64elmData = libraryResource.content.filter(c => c.contentType == "application/elm+json")[0].data;
+
+        // base64 decode
+        let elmString = atob(base64elmData);
+
+        // parse the json string
+        let elm = JSON.parse(elmString);
+
+        // set the elm where it needs to be
         if (isMain) {
           retVal.mainLibraryElms.push(elm);
           elmLibraryMaps[elm.library.identifier.id] = libraryResource;
@@ -164,11 +161,41 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
           retVal.dependentElms.push(elm);
         }
         resolveIfDone();
-      })
-      .catch(err => {
-        console.log("error in fetchElmFile:  ", err);
-        reject(err);
-      });
+
+      } else {
+        // fetch the data
+        const elmUri = libraryResource.content.filter(c => c.contentType == "application/elm+json")[0].url;
+        let elmUrl = buildFileUrl(elmUri);
+
+        pendingFetches += 1;
+        consoleLog("about to fetchElmFile: " + elmUrl, elmUrl);
+        fetch(elmUrl).then(handleFetchErrors).then(r => r.json())
+        .then(elm => {
+          if ( elm.library.annotation ) {
+            let errors = elm.library.annotation.filter(a => a.type == "CqlToElmError" && a.errorSeverity != "warning");
+            if (errors.length > 0) {
+              let msg = "CQL to ELM translation resulted in errors.";
+              let details = { "ELM annotation": elm.library.annotation };
+              consoleLog(msg, "errorClass", details);
+              reject(msg);
+            }
+          }
+          pendingFetches -= 1;
+          fetchedUrls.add(elmUri);
+          if (isMain) {
+            retVal.mainLibraryElms.push(elm);
+            elmLibraryMaps[elm.library.identifier.id] = libraryResource;
+            retVal.mainLibraryMaps = elmLibraryMaps;
+          } else {
+            retVal.dependentElms.push(elm);
+          }
+          resolveIfDone();
+        })
+        .catch(err => {
+          console.log("error in fetchElmFile:  ", err);
+          reject(err);
+        });
+      }
     }
 
     function buildFileUrl(file) {
