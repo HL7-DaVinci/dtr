@@ -88,17 +88,114 @@ export default class PriorAuth extends Component {
   }
 
   /**
+   * Modifies the ClaimBundle into a Claim Inquiry Bundle
+   */
+  createInquiryBundle() {
+    const claimInquiryBundle = Object.assign(
+      {},
+      this.state.claimResponseBundle
+    );
+    const claimInquiry = claimInquiryBundle.entry[0].resource;
+    const claimResponse = getClaimResponse(this.state.claimResponseBundle);
+
+    // Update IDs
+    claimInquiry.id = `${claimInquiry.id}-inquiry`;
+    claimInquiryBundle.id = `${claimInquiryBundle.id}-inquiry`;
+
+    // Update the Claim resource to match the Claim Inquiry profile
+    claimInquiry.meta.profile = [
+      "http://hl7.org/fhir/us/davinci-pas/StructureDefinition/profile-claim-inquiry"
+    ];
+    claimInquiry.extension.push({
+      url:
+        "http://hl7.org/fhir/us/davinci-pas/StructureDefinition/extension-certificationType",
+      valueCodeableConcept: {
+        coding: [
+          {
+            code: "",
+            system:
+              "https://valueset.x12.org/x217/005010/request/2000F/UM/1/02/00/1322",
+            display: ""
+          }
+        ]
+      }
+    });
+
+    // TODO: remove AdditionalInformation, MessageText, InstitutionalEncounter slices from supportingInfo
+    // TODO: remove diagnosisRecordedDate extension from Diagnosis
+    delete claimInquiry.diagnosis.extension;
+
+    // Update each Claim.item to match the Claim Inquiry profile
+    // TODO: UMO is the payer right? How is authorizationNumber set?
+    //       Is ClaimInquiry itemCertificationIssueDate ext the same as ClaimResponse itemPreAuthIssueDate ext?
+    //       Why do the extensions not match? Types also do not match
+    // TODO: remove epsdtIndicator, nursingHomeResidentialStatus, nursingHomeLevelOfCare, revenueUnitRateLimit, requestedService extensions from Claim.item
+    claimInquiry.item.forEach((item) => {
+      const claimResponseItem = claimResponse.item.find(
+        (i) => i.sequence === item.sequence
+      );
+      if (!claimResponseItem) return;
+
+      // Set itemCertificationIssueDateExtension if found on ClaimResponse.item
+      const claimResponseItemPreAuthIssueDateExtension = claimResponseItem.extension.find(
+        (ext) =>
+          ext.url ===
+          "http://hl7.org/fhir/us/davinci-pas/StructureDefinition/extension-itemPreAuthIssueDate"
+      );
+      if (claimResponseItemPreAuthIssueDateExtension) {
+        claimResponseItemPreAuthIssueDateExtension.url =
+          "http://hl7.org/fhir/us/davinci-pas/StructureDefinition/extension-itemCertificationIssueDate";
+        item.extension.push(claimResponseItemPreAuthIssueDateExtension);
+      }
+
+      // Set itemCertificationExpirationDateExtension if found on ClaimResponse.item
+      const claimResponseItemAuthorizedDateExtension = claimResponseItem.extension.find(
+        (ext) =>
+          ext.url ===
+          "http://hl7.org/fhir/us/davinci-pas/StructureDefinition/extension-itemAuthorizedDate"
+      );
+      if (claimResponseItemAuthorizedDateExtension) {
+        claimResponseItemAuthorizedDateExtension.url =
+          "http://hl7.org/fhir/us/davinci-pas/StructureDefinition/extension-itemCertificationExpirationDate";
+        item.extension.push(claimResponseItemAuthorizedDateExtension);
+      }
+
+      // Set itemCertificationEffectiveDateExtension if found on ClaimResponse.item
+      const claimResponseItemPreAuthPeriodExtension = claimResponseItem.extension.find(
+        (ext) =>
+          ext.url ===
+          "http://hl7.org/fhir/us/davinci-pas/StructureDefinition/extension-itemPreAuthPeriod"
+      );
+      if (claimResponseItemPreAuthPeriodExtension) {
+        claimResponseItemPreAuthPeriodExtension.url =
+          "http://hl7.org/fhir/us/davinci-pas/StructureDefinition/extension-itemCertificationEffectiveDate";
+        item.extension.push(claimResponseItemPreAuthPeriodExtension);
+      }
+
+      // Set reviewActionCode extension if found on ClaimResponse.item
+      const claimResponseItemReviewActionExtension = claimResponseItem.extension.find(
+        (ext) =>
+          ext.url ===
+          "http://hl7.org/fhir/us/davinci-pas/StructureDefinition/extension-reviewAction"
+      );
+      if (claimResponseItemReviewActionExtension) {
+        const reviewActionCodeExtension = claimResponseItemReviewActionExtension.extension.find(
+          (ext) =>
+            ext.url ===
+            "http://hl7.org/fhir/us/davinci-pas/StructureDefinition/extension-reviewActionCode"
+        );
+        if (reviewActionCodeExtension)
+          item.extension.push(reviewActionCodeExtension);
+      }
+    });
+  }
+
+  /**
    * Query the PriorAuth server for the most updated ClaimRespnose
    * Sets this.state.claimResponseBundle
    */
   async getLatestResponse() {
-    const claimResponseUri =
-      this.state.priorAuthBase +
-      this.priorAuthService.CLAIM_RESPONSE +
-      "?identifier=" +
-      this.state.priorAuthId +
-      "&patient.identifier=" +
-      this.state.patientId;
+    const claimResponseUri = this.state.priorAuthBase + "/Claim/$inquiry";
     console.log("polling: " + claimResponseUri);
     this.setState({
       subscribeMsg: "Last updated " + new Date()
@@ -115,8 +212,9 @@ export default class PriorAuth extends Component {
         : await this.getNewAccessToken();
       options.headers["Authorization"] = `Bearer ${accessToken}`;
     }
+    const inquiryBundle = this.createInquiryBundle();
     return axios
-      .get(claimResponseUri, options)
+      .post(claimResponseUri, inquiryBundle, options)
       .then((data) => {
         if (data.status !== 200) {
           alert(
@@ -642,19 +740,15 @@ export default class PriorAuth extends Component {
               <div className="row">
                 <div className="col">
                   <label>Select PriorAuth Endpoint:</label>
-                  <br />
-                  <select
-                    value={this.state.priorAuthBase}
-                    onChange={this.selectBase.bind(this)}
-                  >
-                    {PASConfig.endpoints.map((e) => {
-                      return (
-                        <option key={e.name} value={e.url}>
-                          {e.name}: {e.url}
-                        </option>
-                      );
-                    })}
-                  </select>
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="priorauthEndpoint"
+                    defaultValue="https://davinci-prior-auth.logicahealth.org/fhir"
+                    onChange={(e) =>
+                      this.setState({ priorAuthBase: e.target.value })
+                    }
+                  />
                   <br />
                   <input
                     type="checkbox"

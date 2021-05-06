@@ -1,22 +1,4 @@
 {
-  "endpoints": [
-    {
-      "name": "Logica Health",
-      "url": "https://davinci-prior-auth.logicahealth.org/fhir"
-    },
-    {
-      "name": "Localhost",
-      "url": "https://localhost:9000/fhir"
-    },
-    {
-      "name": "Mettle Solutions",
-      "url": "http://cmsfhir.mettles.com:8080/drfp/fhir"
-    },
-    {
-      "name": "Localhost (Pended)",
-      "url": "http://localhost:9001/fhir"
-    }
-  ],
   "pollingTimeDevelop": 32,
   "clientId": "797da153-9a36-4493-9910-10648a4deb03",
   "privateKey": "-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEA52tcPrGJgzyGqjcUiHsbSk/PxQ7Uovz4saGxva3iyBoidsek\nonigJJ3LnFlHYb3vBa2NA+0GpX2E1KhNNcYWAWQFcu069zi0YZ/wWGn6PWZURuon\nUoKH4dGHggym3xxVUxuA8OPubGe5ji56eic4RPINg0z+TtPlS+H9dnDIVznRUTXf\n3fy2dqWMuTY4D2e4fXGII6OpFAsEyrOqIoR8pLWGu7AiQkothunopp9q/Gu2xqB6\nl8BNulsbiwsQMeRE+9SGfeFpyblHiizHDwSqeZ3iv49Ellk4yjmrf6wOaFA2IXRq\nL1cCLj86B6KIDrjdzOL4lOSiES+PclNpioG2rQIDAQABAoIBABukQzxp0FcQn7Ut\nJxK2Qag6qEKNZvCg7sOo4KYbYv8rv/oYFp4hcl9tSai/MTuHiElRVYqmgSi7OWZ9\nQ9uscWxxGgWEOIrXBxSyGe81mWJEGsTtqwy78qcSc/Egub3kkHyAyIH9d7kTGqLV\nAmQc0yfJEbwhMi8QOE88Cx5ekk94qlO9epkMi+8hV1JdPRkgkB2FNS5cuuLvv8aB\nP9q0cW6bT/n8Oz1oaWPRcpx5ubSuI4KUB4/HjG0jD1V4cOigUanc1Czv4xMfxmJw\nnIcy8tvE1sattWSwdxdEoGGI1OfrUaqbxiUQNZrOuTGycUvabu+99N2jSDnMVbfX\niNYcBDECgYEA+BgvlPxNC19nnLu8keisBzGlNFwhuFUe9D9gYxn5G3dKnimFNjS+\niWG+T4gUcnr/NOzr7pst7OKApsCoOpG+ErSgAPTK3wUllNW9lH5MVPPfzOLZgICa\n3UJ8aRU+yHgDsMiI75fAoQ76e25KQC+KmEDKWsZtR5n0KPnUqqKSQAMCgYEA7ssm\nAOPOo4OkzoMEMm+KmOWXIQnEWjEJBCyVZDS/1LdFBOoymZZi/3HdSvYcXOQPwUVh\nBLuWS8KMNwedGVn+WsI32yjwWC0Avw9ARQQdH4nwO/HBRm0yQ7soaATgcG2cIkJf\nfCJu6uZauJFgjgsDAyd43+FMYs1rSyAGYEZap48CgYEAl+sff+i7OOKT7NrdDq/e\nX41b72MXVuvwx3njiOvHqbTzoUQliVrk7fVHdyYJ90wv6HXHx1WI2sycIQBKQ4sp\nTAUFEXDUpZpeN/RmYX6xOTgY7DphG5okuqZSznou9sze3ar+h1ByqW0lnt2bZBB4\nmuDZyJpHIpg4dbr+Kfrg+YcCgYEAmqw3d4gXhs50Z9dxVoHtUlAUbi/3YTw1zOBb\n+8Y3Iz96k05nbBh/E1rbrfxwLrMCiXu49enT1kqzq8lgttUV7g+zQl/oHhU4UIk+\nZfXeL1mXpBxZxpZgYoLOD2JpRimZYo9/bdaX5ctDpB12X0s+rkJZBxrV8YGBJ+4c\ncyve+H0CgYBVfb3/dmcIfeWM7K3NM4gZPn3XzhCp5fURvAqdNzN7eoLfbzlnAJQ/\nyZBH2w6/ZzxxIvETd+iidk2Ty0mfUulsXRmMWhEiKGHa4kAAGozZ1Ju2OlNxUhoA\nioq+rwq0u6/QZHEzwI2f/g41Fmk4ulR/nqBqBUHza5+Dx5jvodivlQ==\n-----END RSA PRIVATE KEY-----"
