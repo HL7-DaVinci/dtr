@@ -8,6 +8,19 @@ function findValueByPrefix(object, prefix) {
     }
 }
 
+function buildFhirUrl(reference, fhirPrefix, fhirVersion) {
+    if (reference.startsWith("http")) {
+      var endIndex = reference.lastIndexOf("/");
+      var startIndex = reference.lastIndexOf("/", endIndex -1) + 1;
+      var resoruce = reference.substr(startIndex, endIndex - startIndex);
+      return fhirPrefix + fhirVersion + "/" + resoruce + "?url=" + reference;        
+    } else {        
+      return fhirPrefix + fhirVersion + "/" + reference;
+    }
+  }
+
+  
+
 function getListOfChoices(props, setChoice){
     // parse out the list of choices from 'option'
     let returnAnswer = null;
@@ -149,5 +162,6 @@ export {
     postToClients,
     deleteClient,
     getClients,
-    searchQuestionnaire
+    searchQuestionnaire,
+    buildFhirUrl
 };

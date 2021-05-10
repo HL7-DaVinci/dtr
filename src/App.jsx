@@ -6,12 +6,13 @@ import cqlfhir from "cql-exec-fhir";
 import executeElm from "./elmExecutor/executeElm";
 import fetchArtifacts from "./util/fetchArtifacts";
 import fetchFhirVersion from "./util/fetchFhirVersion";
+import { buildFhirUrl } from "./util/util";
 import PriorAuth from "./components/PriorAuth/PriorAuth";
 import QuestionnaireForm from "./components/QuestionnaireForm/QuestionnaireForm";
 import Testing from "./components/ConsoleBox/Testing";
 import UserMessage from "./components/UserMessage/UserMessage";
 import TaskPopup from "./components/Popup/TaskPopup";
-
+import PatientSelect from "./components/PatientSelect/PatientSelect";
 // uncomment for testing UserMessage
 // let sampleError = {
 //   annotation: [
@@ -33,6 +34,7 @@ class App extends Component {
     super(props);
     this.state = {
       questionnaire: null,
+      response: null,
       priorAuthClaim: null,
       cqlPrepopulationResults: null,
       deviceRequest: null,
@@ -53,12 +55,37 @@ class App extends Component {
       ]
     };
     this.smart = props.smart;
+    this.patientId = props.patientId;
+    this.appContext = props.appContext;
     this.consoleLog = this.consoleLog.bind(this);
     this.fhirVersion = "unknown";
     this.renderButtons = this.renderButtons.bind(this);
+    this.ehrLaunch = this.ehrLaunch.bind(this);
+    this.standaloneLaunch = this.standaloneLaunch.bind(this);
   }
 
   componentDidMount() {
+      if(!this.props.standalone) {
+          this.ehrLaunch();
+      }
+  }
+
+  standaloneLaunch(patient, response) {
+      const template = `Questionnaire/${response.questionnaire}`;
+      fetchFhirVersion(this.props.smart.state.serverUrl)
+      .then(fhirVersion => {
+        this.fhirVersion = fhirVersion;
+        const questionnaireUrl = buildFhirUrl(template, this.props.FHIR_PREFIX, this.fhirVersion);
+        fetch(questionnaireUrl).then(r => r.json())
+        .then(questionnaire => {
+            this.setState({ questionnaire: questionnaire });
+            this.setState({ response: response});
+        });
+      });
+  }
+
+  ehrLaunch() {
+    const deviceRequest = JSON.parse(this.appContext.request.replace(/\\/g,""));
     this.consoleLog("fetching artifacts", "infoClass");
     fetchFhirVersion(this.props.smart.state.serverUrl)
     .then(fhirVersion => {
@@ -67,7 +94,7 @@ class App extends Component {
       fetchArtifacts(
         this.props.FHIR_PREFIX,
         this.props.FILE_PREFIX,
-        this.props.questionnaireUri,
+        this.appContext.template,
         this.fhirVersion,
         this.smart,
         this.consoleLog
@@ -78,28 +105,28 @@ class App extends Component {
           let fhirWrapper = this.getFhirWrapper(this.fhirVersion);
 
           this.setState({ questionnaire: artifacts.questionnaire });
-          this.setState({ deviceRequest: this.props.deviceRequest });
+          this.setState({ deviceRequest: deviceRequest });
           // execute for each main library
           return Promise.all(
             artifacts.mainLibraryElms.map(mainLibraryElm => {
               let parameterObj;
-              if (this.props.deviceRequest.resourceType === "DeviceRequest") {
+              if (deviceRequest.resourceType === "DeviceRequest") {
                 parameterObj = {
-                  device_request: fhirWrapper.wrap(this.props.deviceRequest)
+                  device_request: fhirWrapper.wrap(deviceRequest)
                 };
               } else if (
-                this.props.deviceRequest.resourceType === "ServiceRequest"
+                deviceRequest.resourceType === "ServiceRequest"
               ) {
                 parameterObj = {
-                  service_request: fhirWrapper.wrap(this.props.deviceRequest)
+                  service_request: fhirWrapper.wrap(deviceRequest)
                 };
-              } else if (this.props.deviceRequest.resourceType === "MedicationRequest") {
+              } else if (deviceRequest.resourceType === "MedicationRequest") {
                 parameterObj = {
-                  medication_request: fhirWrapper.wrap(this.props.deviceRequest)
+                  medication_request: fhirWrapper.wrap(deviceRequest)
                 };
-              } else if (this.props.deviceRequest.resourceType === "MedicationDispense") {
+              } else if (deviceRequest.resourceType === "MedicationDispense") {
                 parameterObj = {
-                  medication_dispense: fhirWrapper.wrap(this.props.deviceRequest)
+                  medication_dispense: fhirWrapper.wrap(deviceRequest)
                 };
               }
 
@@ -135,7 +162,7 @@ class App extends Component {
               return executeElm(
                 this.smart,
                 this.fhirVersion,
-                this.props.deviceRequest,
+                deviceRequest,
                 executionInputs,
                 this.consoleLog
               );
@@ -419,7 +446,7 @@ class App extends Component {
     ReactDOM.render(element, ref);
   }
 
-  render() {
+  renderErrors() {
     // set up messages, if any are needed
     let messages;
     if (this.state.errors.length > 0) {
@@ -436,22 +463,23 @@ class App extends Component {
       );
     }
 
+    return messages;
+  }
+
+  render() {
+
     if (
-      this.state.questionnaire &&
-      this.state.cqlPrepopulationResults &&
-      this.state.bundle
+      (this.state.questionnaire &&
+        this.state.cqlPrepopulationResults &&
+        this.state.bundle) ||
+      (this.state.questionnaire && 
+        this.state.response && 
+        this.props.standalone)
     ) {
       return (
           <div>
         <div className="App">
-          {messages}
-          {/* <TextField
-            margin="normal"
-            fullWidth
-            value={name}
-            onChange={e => setName(e.target.value)}
-            label="Enter Name"
-          /> */}
+          {this.renderErrors()}
           <div 
             className={"overlay " + (this.state.showOverlay ? 'on' : 'off')}
             onClick={()=>{console.log(this.state.showOverlay); this.toggleOverlay()}}
@@ -466,6 +494,9 @@ class App extends Component {
               cqlPrepopulationResults={this.state.cqlPrepopulationResults}
               deviceRequest={this.state.deviceRequest}
               bundle={this.state.bundle}
+              patientId={this.patientId}
+              standalone={this.props.standalone}
+              response={this.state.response}
               attested={this.state.attested}
               priorAuthReq={this.props.priorAuthReq === "true" ? true : false}
               setPriorAuthClaim={this.setPriorAuthClaim.bind(this)}
@@ -478,6 +509,13 @@ class App extends Component {
         </div>
         </div>
       );
+    } else if (this.props.standalone) {
+        return (
+            <PatientSelect
+            smart={this.smart}
+            callback={this.standaloneLaunch}>
+            </PatientSelect>
+        )
     } else {
       return (
         <div className="App">

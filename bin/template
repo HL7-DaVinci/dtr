@@ -1,0 +1,11 @@
+#!/usr/bin/env node
+
+const startServer = require("./www")
+
+const serverPort = process.env.SERVER_PORT;
+const serverHttps = process.env.SERVER_HTTPS;
+const serverHost = process.env.SERVER_HOST;
+const serverPublic = process.env.SERVER_PUBLIC;
+const proxyTarget = process.env.PROXY_TARGET;
+
+startServer(serverPort, serverHttps, serverHost, serverPublic, proxyTarget);

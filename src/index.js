@@ -5,7 +5,7 @@ import urlUtils from "./util/url";
 import {updateLog} from "./util/util";
 import React from "react";
 import ReactDOM from "react-dom";
-import App from "./App.js";
+import App from "./App.jsx";
 console.log("completed imports");
 // get the URL parameters received from the authorization server
 const state = urlUtils.getUrlParameter("state"); // session key
@@ -20,6 +20,9 @@ const serviceUri = params.serviceUri;
 sessionStorage["serviceUri"] = serviceUri;
 const redirectUri = params.redirectUri;
 log.status = "redirected";
+const standalone = log.launchContextId ? false : true;
+console.log("STANDALONE");
+console.log(standalone);
 updateLog(log);
 // This endpoint available when deployed in CRD server, for development we have
 // the proxy set up in webpack.config.dev.js so the CRD server needs to be running
@@ -67,14 +70,9 @@ tokenPost.onload = function() {
             const temp = e.split("=");
             appContext[temp[0]] = temp[1];
         })
-        // appContext = {
-        //     template: appString.split("&")[0].split("=")[1],
-        //     request: JSON.parse(appString.split("&")[1].split("=")[1].replace(/\\/g,"")),
-        //     filepath: appString.split("&")[3].split("=")[1]
-        //   }
       } catch (e) {
           log.error = "error parsing app context, using default";
-          console.log("using default appContext");
+          console.log("failed to get appContext");
           appContext = {
             template: "Questionnaire/HomeOxygenTherapy",
             request: '{\\"resourceType\\":\\"DeviceRequest\\",\\"id\\":\\"ecea4560-e72c-4f69-8efd-b0f240ecef40\\",\\"meta\\":{\\"profile\\":[\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/STU3\\/StructureDefinition\\/profile-devicerequest-stu3\\"]},\\"status\\":\\"draft\\",\\"codeCodeableConcept\\":{\\"coding\\":[{\\"system\\":\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\",\\"code\\":\\"E0424\\"}]},\\"subject\\":{\\"reference\\":\\"Patient\\/e3uD6HlZwY69BYkprsNDh2Du7KroLDCIzX8uiCuKkahM3\\"},\\"authoredOn\\":\\"2019-12-30\\",\\"performer\\":{\\"reference\\":\\"Practitioner\\/1912007\\"}}',
@@ -108,15 +106,15 @@ tokenPost.onload = function() {
         <App
           FHIR_PREFIX={FHIR_PREFIX}
           FILE_PREFIX={FILE_PREFIX}
-          questionnaireUri={appContext.template}
+          appContext={appContext}
+          standalone={standalone}
           smart={smart}
           patientId = {patientId}
-          deviceRequest={JSON.parse(appContext.request.replace(/\\/g,""))}
         />,
         document.getElementById("root")
         );
         console.log(auth_response);
-        if (patientId == null) {
+        if (patientId == null && !standalone) {
         log.error = "Failed to get a patientId from the app params or the authorization response.";
         document.body.innerText = log.error;
         updateLog(log);

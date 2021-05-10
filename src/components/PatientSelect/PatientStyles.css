@@ -1,0 +1,54 @@
+.patient-box{
+    position: absolute;
+    left:15%;
+    top:65px;
+    margin-bottom:50px;
+    display:block;
+    height:500px;
+    width:70%;
+    z-index:1;
+    font-size:14px;
+    background-color: #f9f9f9;
+    border: 1px solid black;
+}
+
+.patient-header{
+    position: absolute;
+    left:14%;
+    top:3px;
+    font-size: 20px;
+    padding: 15px;
+    margin: 10px;
+}
+
+.info-padding{
+    padding: 15px;
+}
+
+.patient-selection-box{
+    width:100%;
+    height:100px;
+    padding:10px;
+    flex:.5;
+    border-bottom:3px solid black;
+    background-color:#e2e2e2;
+}
+
+.patient-selection-box:hover{
+    background-color:white;
+    cursor: pointer;
+}
+.request-info {
+    display: inline-block;
+    width:350px;
+    vertical-align: top; /* here */
+
+}
+.patient-info {
+    display:inline-block;
+    width: 300px;
+}
+
+#Questionnaire {
+    top: -5px;
+}
