@@ -26,7 +26,7 @@ console.log(standalone);
 updateLog(log);
 // This endpoint available when deployed in CRD server, for development we have
 // the proxy set up in webpack.config.dev.js so the CRD server needs to be running
-const FHIR_PREFIX = "../../fhir/";
+const FHIR_PREFIX = "/fhir/";
 const FILE_PREFIX = "../../"
 var data = `code=${code}&grant_type=authorization_code&redirect_uri=${redirectUri}`;
 // const data = new URLSearchParams();
