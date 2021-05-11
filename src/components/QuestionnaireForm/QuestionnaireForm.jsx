@@ -4,6 +4,7 @@ import { findValueByPrefix, searchQuestionnaire } from "../../util/util.js";
 import SelectPopup from './SelectPopup';
 import _ from "lodash";
 
+let DTRQuestionnaireResponseURL = "http://hl7.org/fhir/us/davinci-dtr/StructureDefinition/dtr-questionnaireresponse-r4";
 
 export default class QuestionnaireForm extends Component {
   constructor(props) {
@@ -718,6 +719,9 @@ export default class QuestionnaireForm extends Component {
   sendQuestionnaireResponseToPayer() {
     console.log(this.state.sectionLinks);
     var qr = this.getQuestionnaireResponse("completed");
+
+    // change QuestionnaireResponse meta to show DTR QuestionnaireResponse instead of SDC QuestionnaireResponse
+    qr['meta']['profile'][0] = DTRQuestionnaireResponseURL;
 
     // do a fetch back to the dtr server to post the QuestionnaireResponse to CRD
     const requestOptions = {
