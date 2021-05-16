@@ -3,6 +3,7 @@ import "./QuestionnaireForm.css";
 import { findValueByPrefix, searchQuestionnaire } from "../../util/util.js";
 import SelectPopup from "./SelectPopup";
 import _ from "lodash";
+import shortid from "shortid";
 
 export default class QuestionnaireForm extends Component {
   constructor(props) {
@@ -922,8 +923,8 @@ export default class QuestionnaireForm extends Component {
       },
       identifier: [
         {
-          system: "",
-          value: ""
+          system: "urn:uuid:mitre-drls",
+          value: shortid.generate()
         }
       ],
       use: "preauthorization",
