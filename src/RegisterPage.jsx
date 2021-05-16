@@ -24,7 +24,7 @@ class RegisterPage extends Component {
 
   update(e) {
     const clientRequest = new XMLHttpRequest();
-    clientRequest.open("GET", "../clients");
+    clientRequest.open("GET", "../db/clients");
     clientRequest.setRequestHeader("Content-Type", "application/json");
     clientRequest.onload = (e) => {
         this.setState({clients: JSON.parse(clientRequest.responseText)});

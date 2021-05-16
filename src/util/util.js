@@ -72,7 +72,7 @@ function getListOfChoices(props, setChoice){
 
 function postToLogs(log, callback) {
     const logRequest = new XMLHttpRequest();
-    logRequest.open("POST", "../logs");
+    logRequest.open("POST", "../db/logs");
     logRequest.setRequestHeader("Content-Type", "application/json");
     logRequest.onload = function() {
         callback(JSON.parse(logRequest.responseText));
@@ -82,7 +82,7 @@ function postToLogs(log, callback) {
 
 function updateLog(log) {
     const logRequest = new XMLHttpRequest();
-    logRequest.open("PUT", "../logs/"+log.id);
+    logRequest.open("PUT", "../db/logs/"+log.id);
     logRequest.setRequestHeader("Content-Type", "application/json");
     logRequest.send(JSON.stringify(log));
 }
@@ -92,7 +92,7 @@ function postToClients(log, callback) {
         const filteredClients = clients.filter((e)=>{return log.name === e.name;});
         if(filteredClients.length) {
             const clientRequest = new XMLHttpRequest();
-            clientRequest.open("PUT", "../clients/" + filteredClients[0].id);
+            clientRequest.open("PUT", "../db/clients/" + filteredClients[0].id);
             clientRequest.setRequestHeader("Content-Type", "application/json");
             clientRequest.onload = function() {
                 callback(JSON.parse(clientRequest.responseText));
@@ -100,7 +100,7 @@ function postToClients(log, callback) {
             clientRequest.send(JSON.stringify(log));
         } else {
             const clientRequest = new XMLHttpRequest();
-            clientRequest.open("POST", "../clients");
+            clientRequest.open("POST", "../db/clients");
             clientRequest.setRequestHeader("Content-Type", "application/json");
             clientRequest.onload = function() {
                 callback(JSON.parse(clientRequest.responseText));
@@ -115,7 +115,7 @@ function postToClients(log, callback) {
 
 function deleteClient(id, callback) {
     const clientRequest = new XMLHttpRequest();
-    clientRequest.open("DELETE", "../clients/" + id);
+    clientRequest.open("DELETE", "../db/clients/" + id);
     clientRequest.setRequestHeader("Content-Type", "application/json");
     clientRequest.onload = function() {
         callback();
@@ -125,7 +125,7 @@ function deleteClient(id, callback) {
 
 function getClients(callback) {
     const clientRequest = new XMLHttpRequest();
-    clientRequest.open("GET", "../clients/");
+    clientRequest.open("GET", "../db/clients/");
     clientRequest.setRequestHeader("Content-Type", "application/json");
     clientRequest.onload = function() {
         callback(JSON.parse(clientRequest.responseText));
