@@ -20,7 +20,7 @@ export default class PriorAuth extends Component {
       subscribeMsg: "",
       showRestHookForm: false,
       showLink: false,
-      priorAuthBase: PASConfig.endpoints[0].url,
+      priorAuthBase: "https://davinci-prior-auth.logicahealth.org/fhir",
       isSubmitted: false,
       priorAuthId: null,
       patientId: null,
@@ -122,19 +122,35 @@ export default class PriorAuth extends Component {
     });
 
     // TODO: remove AdditionalInformation, MessageText, InstitutionalEncounter slices from supportingInfo
-    // TODO: remove diagnosisRecordedDate extension from Diagnosis
     delete claimInquiry.diagnosis.extension;
 
     // Update each Claim.item to match the Claim Inquiry profile
-    // TODO: UMO is the payer right? How is authorizationNumber set?
-    //       Is ClaimInquiry itemCertificationIssueDate ext the same as ClaimResponse itemPreAuthIssueDate ext?
-    //       Why do the extensions not match? Types also do not match
     // TODO: remove epsdtIndicator, nursingHomeResidentialStatus, nursingHomeLevelOfCare, revenueUnitRateLimit, requestedService extensions from Claim.item
     claimInquiry.item.forEach((item) => {
       const claimResponseItem = claimResponse.item.find(
         (i) => i.sequence === item.sequence
       );
       if (!claimResponseItem) return;
+
+      // Set itemTraceNumber if found on ClaimResponse.item
+      const claimResponseItemTraceNumberExtension = claimResponseItem.extension.find(
+        (ext) =>
+          ext.url ===
+          "https://build.fhir.org/ig/HL7/davinci-pas/StructureDefinition-extension-itemTraceNumber.html"
+      );
+      if (claimResponseItemTraceNumberExtension) {
+        item.extension.push(claimResponseItemTraceNumberExtension);
+      }
+
+      // Set authorizationNumber if found on ClaimResponse.item
+      const claimResponseItemAuthorizationNumberExtension = claimResponseItem.extension.find(
+        (ext) =>
+          ext.url ===
+          "https://build.fhir.org/ig/HL7/davinci-pas/StructureDefinition-extension-authorizationNumber.html"
+      );
+      if (claimResponseItemAuthorizationNumberExtension) {
+        item.extension.push(claimResponseItemAuthorizationNumberExtension);
+      }
 
       // Set itemCertificationIssueDateExtension if found on ClaimResponse.item
       const claimResponseItemPreAuthIssueDateExtension = claimResponseItem.extension.find(
@@ -438,6 +454,23 @@ export default class PriorAuth extends Component {
   }
 
   /**
+   * Get the Claim resource from the request bundle
+   * @returns Claim resource
+   */
+  getClaim() {
+    return this.props.claimBundle.entry[0].resource;
+  }
+
+  /**
+   * Get the item from the Claim request with the matching itemSequence
+   * @param {number} itemSequence - the itemSequence to find
+   * @returns the Claim.item with the matching itemSequence, or null
+   */
+  getClaimItem(itemSequence) {
+    return this.getClaim().item.find((item) => item.sequence === itemSequence);
+  }
+
+  /**
    * Create the client_assertion JWT for server-server oauth
    */
   createJWT() {
@@ -616,6 +649,79 @@ export default class PriorAuth extends Component {
     this.setState({ useOauth: e.target.checked });
   }
 
+  /**
+   * Convert extension code into human readable string
+   * @param {String} code - the reviewActionCode string code to convert
+   * @returns human readable form of code
+   */
+  reviewActionCodeToString(code) {
+    switch (code) {
+      case "A1":
+        return "Approved";
+      case "A2":
+        return "Partial";
+      case "A3":
+        return "Denied";
+      case "A4":
+        return "Pending";
+      case "A6":
+        return "Modified";
+      case "C":
+        return "Cancelled";
+      default:
+        return "Unknown";
+    }
+  }
+
+  renderResponseItems(claimResponse) {
+    const children = [];
+    claimResponse.item.forEach((item) => {
+      const claimItem = this.getClaimItem(item.itemSequence);
+      const requestedItemCoding = claimItem.productOrService.coding[0];
+      const requestedItemText = requestedItemCoding.display
+        ? requestedItemCoding.display
+        : `${requestedItemCoding.system}:${requestedItemCoding.code}`;
+      const reviewActionExtension = item.extension.find(
+        (ext) =>
+          ext.url ===
+          "http://hl7.org/fhir/us/davinci-pas/StructureDefinition/extension-reviewAction"
+      );
+      const reviewActionCodeExtension = reviewActionExtension.extension.find(
+        (ext) =>
+          ext.url ===
+          "http://hl7.org/fhir/us/davinci-pas/StructureDefinition/extension-reviewActionCode"
+      );
+      const reviewActionNumberExtension = reviewActionExtension.extension.find(
+        (ext) => ext.url === "number"
+      );
+      children.push(
+        <div key={item.itemSequence}>
+          <hr />
+          <h5 className="inline">Requested Item: </h5>
+          <p className="inline">{requestedItemText}</p>
+          <br />
+          <h5 className="inline">Item Sequence: </h5>
+          <p className="inline">{item.itemSequence}</p>
+          <br />
+          <h5 className="inline">Status: </h5>
+          <p className="inline">
+            {this.reviewActionCodeToString(
+              reviewActionCodeExtension.valueCodeableConcept.coding[0].code
+            )}
+          </p>
+          <br />
+          <h5 className="inline">Item Number: </h5>
+          <p className="inline">
+            {reviewActionNumberExtension
+              ? reviewActionNumberExtension.valueString
+              : "Unknown"}
+          </p>
+        </div>
+      );
+    });
+    return [<div>{children}</div>];
+  }
+
   render() {
     // TODO: modify this to only run once when isSubmitted
     window.scrollTo(0, 0);
@@ -649,6 +755,7 @@ export default class PriorAuth extends Component {
               <h5 className="inline">Disposition: </h5>
               <p className="inline">{claimResponse.disposition}</p>
             </div>
+            <div>{this.renderResponseItems(claimResponse)}</div>
             <button
               type="button"
               className="btn btn-secondary"
