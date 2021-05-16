@@ -1,25 +1,29 @@
 const express = require("express");
 const dbRouter = require("./routes/database");
 const bodyParser = require("body-parser");
+const path = require("path");
 
 const app = express();
 
 app.use(express.json());
 app.use(bodyParser.json({ type: ["application/json", "application/fhir+json"] }));
-app.use(express.static(`${__dirname}/../../public/`));
-app.get("/register", function(req, res){
-    res.sendFile("register.html", {root: "./public"});
+
+app.use("/register", function(req, res){
+    res.sendFile("register.html", {root: `${__dirname}/../../public/`});
 });
-app.get("/index", function(req, res){
-    res.sendFile("index.html", {root: "./public"});
+app.use("/index", function(req, res){
+    res.sendFile("index.html", {root: `${__dirname}/../../public/`});
 });
-app.get("/launch", function(req, res){
-    res.sendFile("launch.html", {root: "./public"});
+app.use("/launch", function(req, res){
+    res.sendFile("launch.html", {root: `${__dirname}/../../public/`});
 });
-app.get("/logs", function(req, res){
-    res.sendFile("logs.html", {root: "./public"});
+app.use("/logs", function(req, res){
+    res.sendFile("logs.html", {root: `${__dirname}/../../public/`});
 });
 
 app.use("/", dbRouter);
+app.use(express.static(path.join(__dirname, "../../public/")));
+app.use(express.static(path.join(__dirname, "../../public/js")));
+
 console.log("starting backend");
 module.exports = app;
