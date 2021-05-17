@@ -26,8 +26,5 @@ app.use("/js/register.bundle.js", function(req, res){
 })
 
 app.use("/db", dbRouter);
-console.log(__dirname);
-app.use("/", express.static(path.join(__dirname, "../../")));
-
 console.log("starting backend");
 module.exports = app;
