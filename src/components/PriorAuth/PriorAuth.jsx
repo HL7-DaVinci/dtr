@@ -91,24 +91,24 @@ export default class PriorAuth extends Component {
    * Modifies the ClaimBundle into a Claim Inquiry Bundle
    */
   createInquiryBundle() {
-    const claimInquiryBundle = Object.assign(
-      {},
-      this.state.claimResponseBundle
-    );
+    const claimInquiryBundle = Object.assign({}, this.props.claimBundle);
+    console.log(claimInquiryBundle);
     const claimInquiry = claimInquiryBundle.entry[0].resource;
-    const claimResponse = getClaimResponse(this.state.claimResponseBundle);
+    const claimResponse = this.getClaimResponse(this.state.claimResponseBundle);
 
     // Update IDs
     claimInquiry.id = `${claimInquiry.id}-inquiry`;
     claimInquiryBundle.id = `${claimInquiryBundle.id}-inquiry`;
 
     // Update the Claim resource to match the Claim Inquiry profile
-    claimInquiry.meta.profile = [
-      "http://hl7.org/fhir/us/davinci-pas/StructureDefinition/profile-claim-inquiry"
-    ];
+    claimInquiry.meta = {
+      profile: [
+        "http://hl7.org/fhir/us/davinci-pas/StructureDefinition/profile-claim-inquiry"
+      ]
+    };
+    if (!claimInquiry.extension) claimInquiry.extension = [];
     claimInquiry.extension.push({
-      url:
-        "http://hl7.org/fhir/us/davinci-pas/StructureDefinition/extension-certificationType",
+      url: "http://hl7.org/fhir/us/davinci-pas/StructureDefinition/extension-certificationType",
       valueCodeableConcept: {
         coding: [
           {
@@ -133,31 +133,34 @@ export default class PriorAuth extends Component {
       if (!claimResponseItem) return;
 
       // Set itemTraceNumber if found on ClaimResponse.item
-      const claimResponseItemTraceNumberExtension = claimResponseItem.extension.find(
-        (ext) =>
-          ext.url ===
-          "https://build.fhir.org/ig/HL7/davinci-pas/StructureDefinition-extension-itemTraceNumber.html"
-      );
+      const claimResponseItemTraceNumberExtension =
+        claimResponseItem.extension.find(
+          (ext) =>
+            ext.url ===
+            "https://build.fhir.org/ig/HL7/davinci-pas/StructureDefinition-extension-itemTraceNumber.html"
+        );
       if (claimResponseItemTraceNumberExtension) {
         item.extension.push(claimResponseItemTraceNumberExtension);
       }
 
       // Set authorizationNumber if found on ClaimResponse.item
-      const claimResponseItemAuthorizationNumberExtension = claimResponseItem.extension.find(
-        (ext) =>
-          ext.url ===
-          "https://build.fhir.org/ig/HL7/davinci-pas/StructureDefinition-extension-authorizationNumber.html"
-      );
+      const claimResponseItemAuthorizationNumberExtension =
+        claimResponseItem.extension.find(
+          (ext) =>
+            ext.url ===
+            "https://build.fhir.org/ig/HL7/davinci-pas/StructureDefinition-extension-authorizationNumber.html"
+        );
       if (claimResponseItemAuthorizationNumberExtension) {
         item.extension.push(claimResponseItemAuthorizationNumberExtension);
       }
 
       // Set itemCertificationIssueDateExtension if found on ClaimResponse.item
-      const claimResponseItemPreAuthIssueDateExtension = claimResponseItem.extension.find(
-        (ext) =>
-          ext.url ===
-          "http://hl7.org/fhir/us/davinci-pas/StructureDefinition/extension-itemPreAuthIssueDate"
-      );
+      const claimResponseItemPreAuthIssueDateExtension =
+        claimResponseItem.extension.find(
+          (ext) =>
+            ext.url ===
+            "http://hl7.org/fhir/us/davinci-pas/StructureDefinition/extension-itemPreAuthIssueDate"
+        );
       if (claimResponseItemPreAuthIssueDateExtension) {
         claimResponseItemPreAuthIssueDateExtension.url =
           "http://hl7.org/fhir/us/davinci-pas/StructureDefinition/extension-itemCertificationIssueDate";
@@ -165,11 +168,12 @@ export default class PriorAuth extends Component {
       }
 
       // Set itemCertificationExpirationDateExtension if found on ClaimResponse.item
-      const claimResponseItemAuthorizedDateExtension = claimResponseItem.extension.find(
-        (ext) =>
-          ext.url ===
-          "http://hl7.org/fhir/us/davinci-pas/StructureDefinition/extension-itemAuthorizedDate"
-      );
+      const claimResponseItemAuthorizedDateExtension =
+        claimResponseItem.extension.find(
+          (ext) =>
+            ext.url ===
+            "http://hl7.org/fhir/us/davinci-pas/StructureDefinition/extension-itemAuthorizedDate"
+        );
       if (claimResponseItemAuthorizedDateExtension) {
         claimResponseItemAuthorizedDateExtension.url =
           "http://hl7.org/fhir/us/davinci-pas/StructureDefinition/extension-itemCertificationExpirationDate";
@@ -177,11 +181,12 @@ export default class PriorAuth extends Component {
       }
 
       // Set itemCertificationEffectiveDateExtension if found on ClaimResponse.item
-      const claimResponseItemPreAuthPeriodExtension = claimResponseItem.extension.find(
-        (ext) =>
-          ext.url ===
-          "http://hl7.org/fhir/us/davinci-pas/StructureDefinition/extension-itemPreAuthPeriod"
-      );
+      const claimResponseItemPreAuthPeriodExtension =
+        claimResponseItem.extension.find(
+          (ext) =>
+            ext.url ===
+            "http://hl7.org/fhir/us/davinci-pas/StructureDefinition/extension-itemPreAuthPeriod"
+        );
       if (claimResponseItemPreAuthPeriodExtension) {
         claimResponseItemPreAuthPeriodExtension.url =
           "http://hl7.org/fhir/us/davinci-pas/StructureDefinition/extension-itemCertificationEffectiveDate";
@@ -189,21 +194,25 @@ export default class PriorAuth extends Component {
       }
 
       // Set reviewActionCode extension if found on ClaimResponse.item
-      const claimResponseItemReviewActionExtension = claimResponseItem.extension.find(
-        (ext) =>
-          ext.url ===
-          "http://hl7.org/fhir/us/davinci-pas/StructureDefinition/extension-reviewAction"
-      );
-      if (claimResponseItemReviewActionExtension) {
-        const reviewActionCodeExtension = claimResponseItemReviewActionExtension.extension.find(
+      const claimResponseItemReviewActionExtension =
+        claimResponseItem.extension.find(
           (ext) =>
             ext.url ===
-            "http://hl7.org/fhir/us/davinci-pas/StructureDefinition/extension-reviewActionCode"
+            "http://hl7.org/fhir/us/davinci-pas/StructureDefinition/extension-reviewAction"
         );
+      if (claimResponseItemReviewActionExtension) {
+        const reviewActionCodeExtension =
+          claimResponseItemReviewActionExtension.extension.find(
+            (ext) =>
+              ext.url ===
+              "http://hl7.org/fhir/us/davinci-pas/StructureDefinition/extension-reviewActionCode"
+          );
         if (reviewActionCodeExtension)
           item.extension.push(reviewActionCodeExtension);
       }
     });
+
+    return claimInquiryBundle;
   }
 
   /**
@@ -228,7 +237,10 @@ export default class PriorAuth extends Component {
         : await this.getNewAccessToken();
       options.headers["Authorization"] = `Bearer ${accessToken}`;
     }
+    console.log(options);
     const inquiryBundle = this.createInquiryBundle();
+    console.log("Inquiry Bundle: ");
+    console.log(inquiryBundle);
     return axios
       .post(claimResponseUri, inquiryBundle, options)
       .then((data) => {
