@@ -1,9 +1,9 @@
 import React, { Component } from "react";
 import "./QuestionnaireForm.css";
 import { findValueByPrefix, searchQuestionnaire } from "../../util/util.js";
-import SelectPopup from "./SelectPopup";
+import SelectPopup from './SelectPopup';
 import _ from "lodash";
-import shortid from "shortid";
+
 
 export default class QuestionnaireForm extends Component {
   constructor(props) {
@@ -13,7 +13,7 @@ export default class QuestionnaireForm extends Component {
       items: null,
       itemTypes: {},
       values: {
-        1.1: "henlo"
+        "1.1": "henlo"
       },
       orderedLinks: [],
       sectionLinks: {},
@@ -33,14 +33,12 @@ export default class QuestionnaireForm extends Component {
     this.FHIR_PREFIX = props.FHIR_PREFIX;
     this.partialForms = {};
     this.handleGtable = this.handleGtable.bind(this);
-    this.getLibraryPrepopulationResult = this.getLibraryPrepopulationResult.bind(
-      this
-    );
+    this.getLibraryPrepopulationResult = this.getLibraryPrepopulationResult.bind(this);
     this.buildGTableItems = this.buildGTableItems.bind(this);
-    this.mergeResponseForSameLinkId = this.mergeResponseForSameLinkId.bind(
-      this
-    );
+    this.mergeResponseForSameLinkId = this.mergeResponseForSameLinkId.bind(this);
   }
+
+
 
   componentWillMount() {
     // search for any partially completed QuestionnaireResponses
@@ -53,8 +51,8 @@ export default class QuestionnaireForm extends Component {
         const mergedResponse = this.mergeResponseForSameLinkId(response);
         this.state.savedResponse = mergedResponse;
     } else {
-        this.smart.request("QuestionnaireResponse?" + 
-        "status=in-progress" + 
+        this.smart.request("QuestionnaireResponse?" +
+        "status=in-progress" +
         "&subject=" + this.getPatient()).then((result)=>{
             this.popupClear("Would you like to continue an in-process questionnaire?", "Cancel", false);
             this.processSavedQuestionnaireResponses(result, false);
@@ -68,7 +66,7 @@ export default class QuestionnaireForm extends Component {
             resourceType: 'QuestionnaireResponse',
             status: 'draft',
             item: []
-        }     
+        }
         const items = this.props.qform.item;
         const parentItems = [];
         this.handleGtable(items, parentItems, newResponse.item);
@@ -84,54 +82,40 @@ export default class QuestionnaireForm extends Component {
 
   loadPreviousForm() {
     // search for any QuestionnaireResponses
-    this.smart
-      .request("QuestionnaireResponse?" + "&subject=" + this.getPatient())
-      .then(
-        (result) => {
-          this.popupClear(
-            "Would you like to load a previous form?",
-            "Cancel",
-            false
-          );
-          this.processSavedQuestionnaireResponses(result, true);
-        },
-        (result) => {
-          this.popupClear("Error: failed to load previous forms", "OK", true);
-          this.popupLaunch();
-        }
-      )
-      .catch(console.error);
+    this.smart.request("QuestionnaireResponse?" +
+          "&subject=" + this.getPatient()).then((result)=>{
+
+      this.popupClear("Would you like to load a previous form?", "Cancel", false);
+      this.processSavedQuestionnaireResponses(result, true);
+    }, ((result)=>{
+      this.popupClear("Error: failed to load previous forms", "OK", true);
+      this.popupLaunch();
+    })).catch(console.error);
+
   }
 
-  processSavedQuestionnaireResponses(
-    partialResponses,
-    displayErrorOnNoneFound
-  ) {
+  processSavedQuestionnaireResponses(partialResponses, displayErrorOnNoneFound) {
     let noneFound = true;
 
-    if (partialResponses && partialResponses.total > 0) {
+    if (partialResponses && (partialResponses.total > 0)) {
       const options = {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "numeric",
-        minute: "numeric",
-        second: "numeric"
-      };
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: 'numeric',
+          second: 'numeric'
+        };
 
       let count = 0;
 
-      partialResponses.entry.forEach((r) => {
+      partialResponses.entry.forEach(r => {
         if (this.props.qform.id == r.resource.questionnaire) {
           count = count + 1;
           // add the option to the popupOptions
           let date = new Date(r.resource.authored);
-          let option =
-            date.toLocaleDateString(undefined, options) +
-            " (" +
-            r.resource.status +
-            ")";
+          let option = date.toLocaleDateString(undefined, options) + " (" + r.resource.status + ")";
           this.setState({
             popupOptions: [...this.state.popupOptions, option]
           });
@@ -150,8 +134,8 @@ export default class QuestionnaireForm extends Component {
 
     // display a message that none were found if necessary
     if (noneFound && displayErrorOnNoneFound) {
-      this.popupClear("No saved forms available to load.", "OK", true);
-      this.popupLaunch();
+        this.popupClear("No saved forms available to load.", "OK", true);
+        this.popupLaunch();
     }
   }
 
@@ -159,10 +143,7 @@ export default class QuestionnaireForm extends Component {
     console.log(JSON.stringify(this.props.qform));
     console.log(JSON.stringify(newResponse));
 
-    let lform = LForms.Util.convertFHIRQuestionnaireToLForms(
-      this.props.qform,
-      this.props.fhirVersion
-    );
+    let lform = LForms.Util.convertFHIRQuestionnaireToLForms(this.props.qform, this.props.fhirVersion);
 
     lform.templateOptions = {
       showFormHeader: false,
@@ -173,19 +154,14 @@ export default class QuestionnaireForm extends Component {
     };
 
     if (newResponse) {
-      lform = LForms.Util.mergeFHIRDataIntoLForms(
-        "QuestionnaireResponse",
-        newResponse,
-        lform,
-        this.props.fhirVersion
-      );
+      lform = LForms.Util.mergeFHIRDataIntoLForms("QuestionnaireResponse", newResponse, lform, this.props.fhirVersion)
     }
 
     console.log(lform);
     LForms.Util.addFormToPage(lform, "formContainer");
     const header = document.getElementsByClassName("lf-form-title")[0];
-    const el = document.createElement("div");
-    el.setAttribute("id", "button-container");
+    const el = document.createElement('div');
+    el.setAttribute("id", "button-container")
     header.appendChild(el);
     this.props.renderButtons(el);
   }
@@ -199,28 +175,27 @@ export default class QuestionnaireForm extends Component {
     };
     const responseItems = response.item;
     let itemKeyList = new Set();
-    for (let i = 0; i < responseItems.length; i++) {
-      itemKeyList.add(responseItems[i].linkId);
+    for(let i = 0; i < responseItems.length; i++) {
+        itemKeyList.add(responseItems[i].linkId);
     }
-    itemKeyList.forEach((linkId) => {
-      let linkIdItem = {
-        linkId,
-        item: []
-      };
-      let filteredItems = responseItems.filter(
-        (responseItem) => responseItem.linkId == linkId
-      );
-      if (filteredItems) {
-        filteredItems.forEach((foundItem) => {
-          if (foundItem.item) {
-            linkIdItem.item.push(...foundItem.item);
-          } else {
-            linkIdItem = foundItem;
-            linkIdItem.item = null;
-          }
-        });
-        mergedResponse.item.push(linkIdItem);
-      }
+    itemKeyList.forEach(linkId => {
+        let linkIdItem = {
+            linkId,
+            item: []
+        };
+        let filteredItems = responseItems.filter(responseItem => responseItem.linkId == linkId
+        );
+        if(filteredItems) {
+          filteredItems.forEach(foundItem => {
+            if(foundItem.item) {
+              linkIdItem.item.push(...foundItem.item);
+            } else {
+              linkIdItem = foundItem;
+              linkIdItem.item = null;
+            }
+          });
+          mergedResponse.item.push(linkIdItem);
+        }
     });
     return mergedResponse;
   }
@@ -234,27 +209,22 @@ export default class QuestionnaireForm extends Component {
   // e.g. expression object list is [{"RxNorm":"content", "Description": "description"}]
   // the corresponding item would be "item": [{"text": "RxNorm", "type": "string", "linkId": "MED.1.1"}, {"text": "Description", "type": "string", "linkId": "MED.1.2"} ]
   handleGtable(items, parentItems, responseItems) {
-    for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
+    for(let itemIndex = 0; itemIndex < items.length; itemIndex++) {
       let item = items[itemIndex];
       let response_item = {
-        linkId: item.linkId
+        "linkId": item.linkId
       };
-      if (item.item) {
+      if(item.item) {
         parentItems.push(response_item);
       }
 
       if (item.type == "group" && item.extension) {
-        let isGtable = item.extension.some(
-          (e) =>
-            e.url ==
-              "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl" &&
-            e.valueCodeableConcept.coding[0].code == "gtable"
+
+        let isGtable = item.extension.some( e =>
+          e.url == "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl" && e.valueCodeableConcept.coding[0].code == "gtable"
         );
-        let containsValueExpression = item.extension.some(
-          (e) =>
-            e.url == "http://hl7.org/fhir/StructureDefinition/cqf-expression" ||
-            e.url ==
-              "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression"
+        let containsValueExpression = item.extension.some ( e =>
+          e.url == "http://hl7.org/fhir/StructureDefinition/cqf-expression" || e.url == "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression"
         );
 
         if (isGtable && containsValueExpression) {
@@ -263,39 +233,30 @@ export default class QuestionnaireForm extends Component {
           // need to figure out which value is provided from the prepopulationResult though
 
           // grab the population result
-          let prepopulationResult = this.getLibraryPrepopulationResult(
-            item,
-            this.props.cqlPrepopulationResults
-          );
+          let prepopulationResult = this.getLibraryPrepopulationResult(item, this.props.cqlPrepopulationResults);
 
           // console.log("prepopulationResult: ", prepopulationResult);
-          if (prepopulationResult && prepopulationResult.length > 0) {
-            let newItemList = this.buildGTableItems(item, prepopulationResult);
-            parentItems.pop();
-            let parentItem = parentItems.pop();
-            if (newItemList.length > 0) {
-              parentItem.item = [];
-              for (let i = 0; i < newItemList.length; i++) {
-                parentItem.item.push(newItemList[i]);
+          if(prepopulationResult && prepopulationResult.length > 0) {
+              let newItemList = this.buildGTableItems(item, prepopulationResult);
+              parentItems.pop();
+              let parentItem = parentItems.pop();
+              if (newItemList.length > 0) {
+                parentItem.item = [];
+                for(let i = 0; i < newItemList.length; i++) {
+                  parentItem.item.push(newItemList[i])
+                }
+                responseItems.push(parentItem);
               }
-              responseItems.push(parentItem);
-            }
           } else {
             // remove valueExpression from item to prevent prepopulate function to fill empty response
-            let valueExpressionIndex = item.extension.findIndex(
-              (e) =>
-                e.url ==
-                  "http://hl7.org/fhir/StructureDefinition/cqf-expression" ||
-                e.url ==
-                  "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression"
-            );
+            let valueExpressionIndex = item.extension.findIndex( e => e.url == "http://hl7.org/fhir/StructureDefinition/cqf-expression" || e.url == "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression");
             item.extension.splice(valueExpressionIndex, 1);
           }
         }
         continue;
       }
 
-      if (item.item) {
+      if(item.item) {
         this.handleGtable(item.item, parentItems, responseItems);
       }
     }
@@ -304,40 +265,35 @@ export default class QuestionnaireForm extends Component {
   // build multiple items if there are multiple items for the gtable
   buildGTableItems(item, prepopulationResult) {
     //remove expression extension
-    let expressionExtensionIndex = item.extension.findIndex(
-      (e) =>
-        e.url == "http://hl7.org/fhir/StructureDefinition/cqf-expression" ||
-        e.url ==
-          "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression"
+    let expressionExtensionIndex = item.extension.findIndex ( e =>
+      e.url == "http://hl7.org/fhir/StructureDefinition/cqf-expression" || e.url == "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression"
     );
     item.extension.splice(expressionExtensionIndex, 1);
     //add item answer to the subitem
     let itemSubItems = item.item;
     let newItemResponseList = [];
 
-    for (let index = 0; index < prepopulationResult.length; index++) {
+    for(let index = 0; index < prepopulationResult.length; index++) {
       let result = prepopulationResult[index];
 
       let newItemResponse = {
-        linkId: item.linkId,
-        text: item.text
-      };
+        "linkId": item.linkId,
+        "text": item.text
+      }
 
       let newItemResponseSubItems = [];
-      itemSubItems.forEach((subItem) => {
+      itemSubItems.forEach(subItem => {
         let targetItem = {};
         newItemResponseSubItems.push(Object.assign(targetItem, subItem));
       });
       newItemResponse.item = newItemResponseSubItems;
 
-      newItemResponse.item.forEach((subItem) => {
+      newItemResponse.item.forEach(subItem => {
         let resultTextValue = result[subItem.text];
         if (resultTextValue) {
-          subItem.answer = [
-            {
-              valueString: resultTextValue
-            }
-          ];
+            subItem.answer = [{
+                "valueString": resultTextValue
+            }];
         }
       });
       newItemResponseList.push(newItemResponse);
@@ -348,17 +304,17 @@ export default class QuestionnaireForm extends Component {
 
   getLibraryPrepopulationResult(item, cqlResults) {
     let prepopulationResult;
-    item.extension.forEach((e) => {
+    item.extension.forEach(e => {
       let value;
       if (
-        e.url === "http://hl7.org/fhir/StructureDefinition/cqif-calculatedValue"
+        e.url ===
+        "http://hl7.org/fhir/StructureDefinition/cqif-calculatedValue"
       ) {
         // stu3
         value = findValueByPrefix(e, "value");
       } else if (
         e.url === "http://hl7.org/fhir/StructureDefinition/cqf-expression" ||
-        e.url ===
-          "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression"
+        e.url === "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression"
       ) {
         // r4
         value = findValueByPrefix(e, "value");
@@ -385,34 +341,37 @@ export default class QuestionnaireForm extends Component {
       }
 
       if (cqlResults[libraryName] != null) {
-        prepopulationResult = cqlResults[libraryName][statementName];
+        prepopulationResult = cqlResults[
+          libraryName
+        ][statementName];
       } else {
         prepopulationResult = null;
         console.log(`Couldn't find library "${libraryName}"`);
       }
     });
     return prepopulationResult;
+
   }
 
   prepopulate(items, response_items, saved_response) {
-    items.map((item) => {
+    items.map(item => {
       let response_item = {
-        linkId: item.linkId
+        linkId: item.linkId,
       };
 
       if (item.item) {
         // add sub-items
-        response_item.item = [];
+        response_item.item = []
         this.prepopulate(item.item, response_item.item, saved_response);
       }
 
       // Remove empty child item array
-      if (response_item.item != undefined && response_item.item.length == 0) {
-        response_item.item = undefined;
+      if ((response_item.item != undefined) && (response_item.item.length == 0)) {
+        response_item.item = undefined
       }
 
-      if (item.type === "choice" || item.type === "open-choice") {
-        this.populateChoices(item);
+      if (item.type === 'choice' || item.type === 'open-choice') {
+        this.populateChoices(item)
       }
 
       // autofill fields
@@ -423,70 +382,55 @@ export default class QuestionnaireForm extends Component {
 
           if (prepopulationResult != null && !saved_response) {
             switch (item.type) {
-              case "boolean":
-                response_item.answer.push({
-                  valueBoolean: prepopulationResult
-                });
+              case 'boolean':
+                response_item.answer.push({ valueBoolean: prepopulationResult });
                 break;
 
-              case "integer":
-                response_item.answer.push({
-                  valueInteger: prepopulationResult
-                });
+              case 'integer':
+                response_item.answer.push({ valueInteger: prepopulationResult });
                 break;
 
-              case "decimal":
-                response_item.answer.push({
-                  valueDecimal: prepopulationResult
-                });
+              case 'decimal':
+                response_item.answer.push({ valueDecimal: prepopulationResult });
                 break;
 
-              case "date":
+              case 'date':
                 // LHC form could not correctly parse Date object.
                 // Have to convert Date object to string.
-                response_item.answer.push({
-                  valueDate: prepopulationResult.toString()
-                });
+                response_item.answer.push({ valueDate: prepopulationResult.toString() });
                 break;
 
-              case "choice":
-                response_item.answer.push({
-                  valueCoding: this.getDisplayCoding(prepopulationResult, item)
-                });
+              case 'choice':
+                response_item.answer.push({ valueCoding: this.getDisplayCoding(prepopulationResult, item) });
                 break;
 
-              case "open-choice":
+              case 'open-choice':
                 //This is to populated dynamic options (option items generated from CQL expression)
                 //R4 uses item.answerOption, STU3 uses item.option
                 let populateAnswerOptions = false;
                 let populateOptions = false;
 
-                if (
-                  item.answerOption != null &&
-                  item.answerOption.length == 0
-                ) {
-                  populateAnswerOptions = true;
+                if (item.answerOption != null && item.answerOption.length == 0) {
+                  populateAnswerOptions = true
                 } else if (item.option != null && item.option.length == 0) {
-                  populateOptions = true;
+                  populateOptions = true
                 }
 
-                prepopulationResult.forEach((v) => {
-                  let displayCoding = this.getDisplayCoding(v, item);
+                prepopulationResult.forEach(v => {
+                  let displayCoding = this.getDisplayCoding(v, item)
 
                   if (populateAnswerOptions) {
-                    item.answerOption.push({ valueCoding: displayCoding });
+                    item.answerOption.push({ valueCoding: displayCoding })
                   } else if (populateOptions) {
-                    item.option.push({ valueCoding: displayCoding });
+                    item.option.push({ valueCoding: displayCoding })
                   }
 
                   response_item.answer.push({ valueCoding: displayCoding });
                 });
                 break;
 
-              case "quantity":
-                response_item.answer.push({
-                  valueQuantity: prepopulationResult
-                });
+              case 'quantity':
+                response_item.answer.push({ valueQuantity: prepopulationResult });
                 break;
 
               default:
@@ -497,7 +441,7 @@ export default class QuestionnaireForm extends Component {
 
         // Remove empty answer array
         if (response_item.answer.length == 0) {
-          response_item.answer = undefined;
+          response_item.answer = undefined
         }
       }
 
@@ -505,7 +449,7 @@ export default class QuestionnaireForm extends Component {
         // If there is no CQL value, check if item/prescription has initial value
         // This does NOT work for STU3 questionnaire which use item.initial[x]
         if (!response_item.answer && item.initial) {
-          response_item.answer = item.initial;
+          response_item.answer = item.initial
         }
 
         // Don't need to add item for reloaded QuestionnaireResponse
@@ -518,52 +462,49 @@ export default class QuestionnaireForm extends Component {
   }
 
   getDisplayCoding(v, item) {
-    if (typeof v == "string") {
-      const answerValueSetReference =
-        item.answerValueSet || (item.options || {}).reference;
-      const answerOption = item.answerOption || item.option;
+    if (typeof v == 'string') {
+      const answerValueSetReference = item.answerValueSet || (item.options || {}).reference
+      const answerOption = item.answerOption || item.option
       let selectedCode;
 
       if (answerValueSetReference && this.props.qform.contained) {
         const vs_id = answerValueSetReference.substr(1);
-        const vs = this.props.qform.contained.find((r) => r.id == vs_id);
+        const vs = this.props.qform.contained.find(r => r.id == vs_id);
         if (vs && vs.expansion && vs.expansion.contains) {
-          selectedCode = vs.expansion.contains.find((o) => o.code == v);
+          selectedCode = vs.expansion.contains.find(o => o.code == v)
         }
       } else if (answerOption) {
-        const ao = answerOption.find(
-          (o) => o.valueCoding.code == v || o.valueCoding.display == v
-        );
+        const ao = answerOption.find(o => o.valueCoding.code == v || o.valueCoding.display == v)
         if (ao) {
-          selectedCode = ao.valueCoding;
+          selectedCode = ao.valueCoding
         }
       }
 
       if (selectedCode) {
-        return selectedCode;
+        return selectedCode
       } else {
         return {
           display: v
-        };
+        }
       }
     }
 
-    let system = "";
-    let displayText = v.display;
+    let system = '';
+    let displayText = v.display
 
-    if (v.type && v.type === "encounter" && v.periodStart) {
-      displayText = "Encounter - " + v.display + " on " + v.periodStart;
+    if(v.type && v.type === 'encounter' && v.periodStart) {
+      displayText = 'Encounter - ' + v.display + ' on ' + v.periodStart
     } else if (v.system) {
-      if (v.system == "http://snomed.info/sct") {
-        system = "SNOMED";
-      } else if (v.system.startsWith("http://hl7.org/fhir/sid/icd-10")) {
-        system = "ICD-10";
+      if (v.system == 'http://snomed.info/sct') {
+        system = 'SNOMED'
+      } else if (v.system.startsWith('http://hl7.org/fhir/sid/icd-10')) {
+        system = "ICD-10"
       } else if (v.system == "http://www.nlm.nih.gov/research/umls/rxnorm") {
-        system = "RxNorm";
+        system = "RxNorm"
       }
 
       if (system.length > 0) {
-        displayText = displayText + " - " + system + " - " + v.code;
+        displayText = displayText + ' - ' + system + ' - ' + v.code
       }
     }
 
@@ -571,55 +512,40 @@ export default class QuestionnaireForm extends Component {
       code: v.code,
       system: v.system,
       display: displayText
-    };
+    }
   }
 
   populateMissingDisplay(codingList) {
     if (codingList) {
-      codingList.forEach((v) => {
+      codingList.forEach(v => {
         if (v.valueCoding && !v.valueCoding.display) {
-          v.valueCoding.display = v.valueCoding.code;
+          v.valueCoding.display = v.valueCoding.code
         }
-      });
+      })
     }
   }
 
   populateChoices(item) {
-    if (this.props.fhirVersion === "STU3") {
-      this.populateMissingDisplay(item.option);
+    if (this.props.fhirVersion === 'STU3') {
+      this.populateMissingDisplay(item.option)
     } else {
-      this.populateMissingDisplay(item.answerOption);
+      this.populateMissingDisplay(item.answerOption)
     }
   }
 
   storeQuestionnaireResponseToEhr(questionnaireReponse, showPopup) {
     // send the QuestionnaireResponse to the EHR FHIR server
-    var questionnaireUrl =
-      sessionStorage["serviceUri"] + "/QuestionnaireResponse";
+    var questionnaireUrl = sessionStorage["serviceUri"] + "/QuestionnaireResponse";
     console.log("Storing QuestionnaireResponse to: " + questionnaireUrl);
-    this.smart
-      .create(questionnaireReponse)
-      .then(
-        (result) => {
-          if (showPopup) {
-            this.popupClear(
-              "Partially completed form (QuestionnaireResponse) saved to EHR",
-              "OK",
-              true
-            );
-            this.popupLaunch();
-          }
-        },
-        (result) => {
-          this.popupClear(
-            "Error: Partially completed form (QuestionnaireResponse) Failed to save to EHR",
-            "OK",
-            true
-          );
-          this.popupLaunch();
-        }
-      )
-      .catch(console.error);
+    this.smart.create(questionnaireReponse).then((result)=>{
+      if (showPopup) {
+        this.popupClear("Partially completed form (QuestionnaireResponse) saved to EHR", "OK", true);
+        this.popupLaunch();
+      }
+    }, ((result)=>{
+      this.popupClear("Error: Partially completed form (QuestionnaireResponse) Failed to save to EHR", "OK", true);
+      this.popupLaunch();
+    })).catch(console.error);
   }
 
   generateAndStoreDocumentReference(questionnaireResponse, dataBundle) {
@@ -659,7 +585,7 @@ export default class QuestionnaireForm extends Component {
     // create the DocumentReference and generate a PDF
     const pdfDocGenerator = pdfMake.createPdf(docDefinition);
     //pdfDocGenerator.open();
-    pdfDocGenerator.getBase64((b64pdf) => {
+    pdfDocGenerator.getBase64(b64pdf => {
       const documentReference = {
         resourceType: "DocumentReference",
         status: "current",
@@ -700,7 +626,7 @@ export default class QuestionnaireForm extends Component {
           if (this.status == 201) {
             console.log(
               "Successfully stored DocumentReference ID: " +
-                JSON.parse(this.response).id
+              JSON.parse(this.response).id
             );
           } else {
             console.log(
@@ -762,25 +688,23 @@ export default class QuestionnaireForm extends Component {
         c = this.props.deviceRequest.medicationCodeableConcept;
       }
     }
-    console.log("getCode(): " + requestType + ": ");
+    console.log("getCode(): " + requestType + ": ")
     console.log(c);
     return c;
   }
 
   getQuestionnaireResponse(status) {
-    var qr = window.LForms.Util.getFormFHIRData(
-      "QuestionnaireResponse",
-      "R4",
-      "#formContainer"
-    );
+    var qr = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', 'R4', "#formContainer");
     console.log(qr);
     qr.status = status;
     qr.author = {
-      reference: this.getPractitioner()
+      reference:
+        this.getPractitioner()
     };
     this.getPatient();
     qr.subject = {
-      reference: this.getPatient()
+      reference:
+        this.getPatient()
     };
 
     qr.questionnaire = this.props.qform.id;
@@ -797,9 +721,9 @@ export default class QuestionnaireForm extends Component {
 
     // do a fetch back to the dtr server to post the QuestionnaireResponse to CRD
     const requestOptions = {
-      method: "POST",
-      headers: { "Content-Type": "application/fhir+json" },
-      body: JSON.stringify(qr)
+        method: 'POST',
+        headers: { 'Content-Type': 'application/fhir+json' },
+        body: JSON.stringify(qr)
     };
 
     function handleFetchErrors(response) {
@@ -814,18 +738,13 @@ export default class QuestionnaireForm extends Component {
     console.log(requestOptions);
     let url = this.FHIR_PREFIX + this.fhirVersion + "/QuestionnaireResponse";
     console.log(url);
-    fetch(url, requestOptions)
-      .then(handleFetchErrors)
-      .then((r) => {
+    fetch(url, requestOptions).then(handleFetchErrors).then(r => {
         let msg = "QuestionnaireResponse sent to Payer";
         console.log(msg);
         alert(msg);
       })
-      .catch((err) => {
-        console.log(
-          "error sending new QuestionnaireResponse to the Payer: ",
-          err
-        );
+      .catch(err => {
+        console.log("error sending new QuestionnaireResponse to the Payer: ", err);
       });
 
     return;
@@ -837,11 +756,7 @@ export default class QuestionnaireForm extends Component {
 
     if (status == "in-progress") {
       this.storeQuestionnaireResponseToEhr(qr, true);
-      this.popupClear(
-        "Partially completed form (QuestionnaireResponse) saved to EHR",
-        "OK",
-        true
-      );
+      this.popupClear("Partially completed form (QuestionnaireResponse) saved to EHR", "OK", true);
       this.popupLaunch();
       return;
     }
@@ -923,15 +838,15 @@ export default class QuestionnaireForm extends Component {
       },
       identifier: [
         {
-          system: "urn:uuid:mitre-drls",
-          value: shortid.generate()
+            system: "urn:uuid:mitre-drls",
+            value: shortid.generate()
         }
       ],
       use: "preauthorization",
       patient: { reference: this.makeReference(priorAuthBundle, "Patient") },
       created: qr.authored,
       provider: {
-        // TODO: make this an organization
+        // TODO: make this organization
         reference: this.makeReference(priorAuthBundle, "Practitioner")
       },
       insurer: {
@@ -1000,7 +915,7 @@ export default class QuestionnaireForm extends Component {
           quantity: {
             value: 1
           }
-          // TODO: add extension
+          // TODO: add extensions
         }
       ],
       diagnosis: [],
@@ -1009,6 +924,7 @@ export default class QuestionnaireForm extends Component {
           sequence: 1,
           focal: true,
           coverage: {
+            // TODO: diagnosis is not a reference it must be CodeableConcept
             reference: this.makeReference(priorAuthBundle, "Coverage")
           }
         }
@@ -1017,7 +933,6 @@ export default class QuestionnaireForm extends Component {
     var sequence = 1;
     priorAuthBundle.entry.forEach(function (entry, index) {
       if (entry.resource.resourceType == "Condition") {
-        // TOOD: diagnosis is not a reference it must be a codeableconcept
         priorAuthClaim.diagnosis.push({
           sequence: sequence++,
           diagnosisReference: { reference: "Condition/" + entry.resource.id }
@@ -1057,7 +972,7 @@ export default class QuestionnaireForm extends Component {
   makeReference(bundle, resourceType) {
     try {
       if (resourceType == undefined || resourceType == null) {
-        console.log("resourceType undefined or null");
+      console.log("resourceType undefined or null");
       }
     } catch (error) {
       console.log(error.message);
@@ -1076,6 +991,7 @@ export default class QuestionnaireForm extends Component {
     });
     return resourceType + "/" + entry.resource.id;
   }
+
 
   popupClear(title, finalOption, logTitle) {
     this.setState({
@@ -1109,16 +1025,17 @@ export default class QuestionnaireForm extends Component {
 
       // If not using saved QuestionnaireResponse, create a new one
       let newResponse = {
-        resourceType: "QuestionnaireResponse",
-        status: "draft",
+        resourceType: 'QuestionnaireResponse',
+        status: 'draft',
         item: []
-      };
+      }
 
       const items = this.props.qform.item;
-      this.prepopulate(items, newResponse.item, saved_response);
+      this.prepopulate(items, newResponse.item, saved_response)
 
       // force it to reload the form
       this.loadAndMergeForms(partialResponse);
+
     } else {
       console.log("No form loaded.");
     }
@@ -1143,38 +1060,29 @@ export default class QuestionnaireForm extends Component {
     console.log(this.state.savedResponse);
     return (
       <div>
-        <div id="formContainer"></div>
+        <div id="formContainer">
+        </div>
         <SelectPopup
           title={this.state.popupTitle}
           options={this.state.popupOptions}
           finalOption={this.state.popupFinalOption}
           selectedCallback={this.popupCallback.bind(this)}
-          setClick={(click) => (this.clickChild = click)}
+          setClick={click => this.clickChild = click}
         />
-        <div className="status-panel">Form Loaded: {this.state.formLoaded}</div>
+        <div className="status-panel">
+          Form Loaded: {this.state.formLoaded}
+        </div>
         <div className="submit-button-panel">
-          <button
-            className="btn submit-button"
-            onClick={this.loadPreviousForm.bind(this)}
-          >
+          <button className="btn submit-button" onClick={this.loadPreviousForm.bind(this)}>
             Load Previous Form
           </button>
-          <button
-            className="btn submit-button"
-            onClick={this.sendQuestionnaireResponseToPayer.bind(this)}
-          >
+          <button className="btn submit-button" onClick={this.sendQuestionnaireResponseToPayer.bind(this)}>
             Send to Payer
           </button>
-          <button
-            className="btn submit-button"
-            onClick={this.outputResponse.bind(this, "in-progress")}
-          >
+          <button className="btn submit-button" onClick={this.outputResponse.bind(this, "in-progress")}>
             Save
           </button>
-          <button
-            className="btn submit-button"
-            onClick={this.outputResponse.bind(this, "completed")}
-          >
+          <button className="btn submit-button" onClick={this.outputResponse.bind(this, "completed")}>
             Next
           </button>
         </div>
@@ -1182,3 +1090,4 @@ export default class QuestionnaireForm extends Component {
     );
   }
 }
+
