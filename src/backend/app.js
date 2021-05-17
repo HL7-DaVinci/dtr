@@ -23,7 +23,7 @@ app.use("/logs", function(req, res){
 
 app.use("/db", dbRouter);
 console.log(__dirname);
-app.use("/", express.static(path.join(__dirname, "../../public/")));
+app.use("/js", express.static(path.join(__dirname, "../../public/js")));
 
 console.log("starting backend");
 module.exports = app;
