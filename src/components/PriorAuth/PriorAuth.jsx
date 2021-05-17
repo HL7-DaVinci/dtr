@@ -92,7 +92,6 @@ export default class PriorAuth extends Component {
    */
   createInquiryBundle() {
     const claimInquiryBundle = Object.assign({}, this.props.claimBundle);
-    console.log(claimInquiryBundle);
     const claimInquiry = claimInquiryBundle.entry[0].resource;
     const claimResponse = this.getClaimResponse(this.state.claimResponseBundle);
 
@@ -237,10 +236,7 @@ export default class PriorAuth extends Component {
         : await this.getNewAccessToken();
       options.headers["Authorization"] = `Bearer ${accessToken}`;
     }
-    console.log(options);
     const inquiryBundle = this.createInquiryBundle();
-    console.log("Inquiry Bundle: ");
-    console.log(inquiryBundle);
     return axios
       .post(claimResponseUri, inquiryBundle, options)
       .then((data) => {
