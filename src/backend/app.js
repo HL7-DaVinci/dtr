@@ -21,9 +21,7 @@ app.use("/logs", function(req, res){
     res.sendFile("logs.html", {root: `${__dirname}/../../public/`});
 });
 
-app.use("/js/register.bundle.js", function(req, res){
-    res.sendFile("register.bundle.js", {root: `${__dirname}/../../public/js`});
-})
+app.use(express.static(`${__dirname}/../../public/`));
 
 app.use("/db", dbRouter);
 console.log("starting backend");
