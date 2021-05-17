@@ -21,9 +21,13 @@ app.use("/logs", function(req, res){
     res.sendFile("logs.html", {root: `${__dirname}/../../public/`});
 });
 
+app.use("/js/register.bundle.js", function(req, res){
+    res.sendFile("register.bundle.js", {root: `${__dirname}/../../public/js`});
+})
+
 app.use("/db", dbRouter);
 console.log(__dirname);
-app.use("/js", express.static(path.join(__dirname, "../../public/js")));
+app.use("/", express.static(path.join(__dirname, "../../")));
 
 console.log("starting backend");
 module.exports = app;
