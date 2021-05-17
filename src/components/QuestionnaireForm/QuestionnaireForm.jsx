@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import "./QuestionnaireForm.css";
 import { findValueByPrefix, searchQuestionnaire } from "../../util/util.js";
 import SelectPopup from './SelectPopup';
+import shortid from "shortid";
 import _ from "lodash";
 
 
@@ -51,8 +52,8 @@ export default class QuestionnaireForm extends Component {
         const mergedResponse = this.mergeResponseForSameLinkId(response);
         this.state.savedResponse = mergedResponse;
     } else {
-        this.smart.request("QuestionnaireResponse?" + 
-        "status=in-progress" + 
+        this.smart.request("QuestionnaireResponse?" +
+        "status=in-progress" +
         "&subject=" + this.getPatient()).then((result)=>{
             this.popupClear("Would you like to continue an in-process questionnaire?", "Cancel", false);
             this.processSavedQuestionnaireResponses(result, false);
@@ -66,7 +67,7 @@ export default class QuestionnaireForm extends Component {
             resourceType: 'QuestionnaireResponse',
             status: 'draft',
             item: []
-        }     
+        }
         const items = this.props.qform.item;
         const parentItems = [];
         this.handleGtable(items, parentItems, newResponse.item);
@@ -81,8 +82,8 @@ export default class QuestionnaireForm extends Component {
   }
 
   loadPreviousForm() {
-    // search for any QuestionnaireResponses 
-    this.smart.request("QuestionnaireResponse?" + 
+    // search for any QuestionnaireResponses
+    this.smart.request("QuestionnaireResponse?" +
           "&subject=" + this.getPatient()).then((result)=>{
 
       this.popupClear("Would you like to load a previous form?", "Cancel", false);
@@ -99,12 +100,12 @@ export default class QuestionnaireForm extends Component {
 
     if (partialResponses && (partialResponses.total > 0)) {
       const options = {
-          weekday: 'long', 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric', 
-          hour: 'numeric', 
-          minute: 'numeric', 
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: 'numeric',
           second: 'numeric'
         };
 
@@ -195,13 +196,13 @@ export default class QuestionnaireForm extends Component {
             }
           });
           mergedResponse.item.push(linkIdItem);
-        } 
+        }
     });
     return mergedResponse;
   }
 
   // handlGtable expands the items with contains a table level expression
-  // the expression should be a list of objects 
+  // the expression should be a list of objects
   // this function creates the controls based on the size of the expression
   // then set the value of for each item
   // the expression should be a list of objects with keys, the keys will have to match
@@ -217,21 +218,21 @@ export default class QuestionnaireForm extends Component {
       if(item.item) {
         parentItems.push(response_item);
       }
-      
+
       if (item.type == "group" && item.extension) {
 
-        let isGtable = item.extension.some( e => 
-          e.url == "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl" && e.valueCodeableConcept.coding[0].code == "gtable"  
+        let isGtable = item.extension.some( e =>
+          e.url == "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl" && e.valueCodeableConcept.coding[0].code == "gtable"
         );
         let containsValueExpression = item.extension.some ( e =>
           e.url == "http://hl7.org/fhir/StructureDefinition/cqf-expression" || e.url == "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression"
         );
 
         if (isGtable && containsValueExpression) {
-          // check if the prepopulationResult contains any value 
+          // check if the prepopulationResult contains any value
           // if yes, then need to add corresponding sub-items then provide the answer
           // need to figure out which value is provided from the prepopulationResult though
-          
+
           // grab the population result
           let prepopulationResult = this.getLibraryPrepopulationResult(item, this.props.cqlPrepopulationResults);
 
@@ -246,16 +247,16 @@ export default class QuestionnaireForm extends Component {
                   parentItem.item.push(newItemList[i])
                 }
                 responseItems.push(parentItem);
-              } 
+              }
           } else {
             // remove valueExpression from item to prevent prepopulate function to fill empty response
             let valueExpressionIndex = item.extension.findIndex( e => e.url == "http://hl7.org/fhir/StructureDefinition/cqf-expression" || e.url == "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression");
             item.extension.splice(valueExpressionIndex, 1);
-          } 
+          }
         }
         continue;
-      }  
-        
+      }
+
       if(item.item) {
         this.handleGtable(item.item, parentItems, responseItems);
       }
@@ -275,19 +276,19 @@ export default class QuestionnaireForm extends Component {
 
     for(let index = 0; index < prepopulationResult.length; index++) {
       let result = prepopulationResult[index];
-      
+
       let newItemResponse = {
         "linkId": item.linkId,
         "text": item.text
       }
-      
+
       let newItemResponseSubItems = [];
       itemSubItems.forEach(subItem => {
         let targetItem = {};
         newItemResponseSubItems.push(Object.assign(targetItem, subItem));
       });
       newItemResponse.item = newItemResponseSubItems;
-      
+
       newItemResponse.item.forEach(subItem => {
         let resultTextValue = result[subItem.text];
         if (resultTextValue) {
@@ -339,7 +340,7 @@ export default class QuestionnaireForm extends Component {
         statementName = value;
         libraryName = Object.keys(cqlResults)[0];
       }
-      
+
       if (cqlResults[libraryName] != null) {
         prepopulationResult = cqlResults[
           libraryName
@@ -348,7 +349,7 @@ export default class QuestionnaireForm extends Component {
         prepopulationResult = null;
         console.log(`Couldn't find library "${libraryName}"`);
       }
-    });  
+    });
     return prepopulationResult;
 
   }
@@ -396,7 +397,7 @@ export default class QuestionnaireForm extends Component {
 
               case 'date':
                 // LHC form could not correctly parse Date object.
-                // Have to convert Date object to string. 
+                // Have to convert Date object to string.
                 response_item.answer.push({ valueDate: prepopulationResult.toString() });
                 break;
 
@@ -444,7 +445,7 @@ export default class QuestionnaireForm extends Component {
           response_item.answer = undefined
         }
       }
-      
+
       if (!saved_response) {
         // If there is no CQL value, check if item/prescription has initial value
         // This does NOT work for STU3 questionnaire which use item.initial[x]
@@ -452,7 +453,7 @@ export default class QuestionnaireForm extends Component {
           response_item.answer = item.initial
         }
 
-        // Don't need to add item for reloaded QuestionnaireResponse 
+        // Don't need to add item for reloaded QuestionnaireResponse
         // Add QuestionnaireResponse item if the item has either answer(s) or child item(s)
         if (response_item.answer || response_item.item) {
           response_items.push(response_item);
@@ -504,7 +505,7 @@ export default class QuestionnaireForm extends Component {
       }
 
       if (system.length > 0) {
-        displayText = displayText + ' - ' + system + ' - ' + v.code      
+        displayText = displayText + ' - ' + system + ' - ' + v.code
       }
     }
 
@@ -746,7 +747,7 @@ export default class QuestionnaireForm extends Component {
       .catch(err => {
         console.log("error sending new QuestionnaireResponse to the Payer: ", err);
       });
-    
+
     return;
   }
 
@@ -836,19 +837,17 @@ export default class QuestionnaireForm extends Component {
           }
         ]
       },
-      subType: {
-        coding: [
-          {
-            system: "http://terminology.hl7.org/CodeSystem/ex-claimsubtype",
-            code: "HIMSS",
-            display: "Example subType code for HIMSS demo"
-          }
-        ]
-      },
+      identifier: [
+        {
+            system: "urn:uuid:mitre-drls",
+            value: shortid.generate()
+        }
+      ],
       use: "preauthorization",
       patient: { reference: this.makeReference(priorAuthBundle, "Patient") },
       created: qr.authored,
       provider: {
+        // TODO: make this organization
         reference: this.makeReference(priorAuthBundle, "Practitioner")
       },
       insurer: {
@@ -858,7 +857,6 @@ export default class QuestionnaireForm extends Component {
         reference: this.makeReference(priorAuthBundle, "Location")
       },
       priority: { coding: [{ code: "normal" }] },
-      prescription: {},
       careTeam: [
         {
           sequence: 1,
@@ -912,11 +910,13 @@ export default class QuestionnaireForm extends Component {
       ],
       item: [
         {
-          sequence: "1",
+          sequence: 1,
+          careTeamSequence: [1],
           productOrService: this.getCode(),
           quantity: {
             value: 1
           }
+          // TODO: add extensions
         }
       ],
       diagnosis: [],
@@ -925,6 +925,7 @@ export default class QuestionnaireForm extends Component {
           sequence: 1,
           focal: true,
           coverage: {
+            // TODO: diagnosis is not a reference it must be CodeableConcept
             reference: this.makeReference(priorAuthBundle, "Coverage")
           }
         }
@@ -991,7 +992,7 @@ export default class QuestionnaireForm extends Component {
     });
     return resourceType + "/" + entry.resource.id;
   }
-  
+
 
   popupClear(title, finalOption, logTitle) {
     this.setState({
@@ -1013,7 +1014,7 @@ export default class QuestionnaireForm extends Component {
     this.setState({
       formLoaded: returnValue
     });
-    
+
     if (this.partialForms[returnValue]) {
       // load the selected form
       let partialResponse = this.partialForms[returnValue];
@@ -1090,3 +1091,4 @@ export default class QuestionnaireForm extends Component {
     );
   }
 }
+
