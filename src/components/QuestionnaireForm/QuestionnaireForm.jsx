@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import "./QuestionnaireForm.css";
 import { findValueByPrefix, searchQuestionnaire } from "../../util/util.js";
 import SelectPopup from './SelectPopup';
+import shortid from "shortid";
 import _ from "lodash";
 
 
