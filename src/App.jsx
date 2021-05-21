@@ -71,6 +71,7 @@ class App extends Component {
   }
 
   standaloneLaunch(patient, response) {
+      this.patientId = patient;
       const template = `Questionnaire/${response.questionnaire}`;
       fetchFhirVersion(this.props.smart.state.serverUrl)
       .then(fhirVersion => {

@@ -698,10 +698,13 @@ export default class QuestionnaireForm extends Component {
     var qr = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', 'R4', "#formContainer");
     console.log(qr);
     qr.status = status;
-    qr.author = {
-      reference:
-        this.getPractitioner()
-    };
+    if (this.getPractitioner() !== "Unknown") {
+        // logica ehr doesn't like "unknown"
+        qr.author = {
+            reference:
+              this.getPractitioner()
+          };
+    }
     this.getPatient();
     qr.subject = {
       reference:
@@ -712,7 +715,6 @@ export default class QuestionnaireForm extends Component {
 
     console.log(this.props.attested);
     const aa = searchQuestionnaire(qr, this.props.attested);
-    console.log(aa);
     return qr;
   }
 
