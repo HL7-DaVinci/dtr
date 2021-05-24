@@ -3,8 +3,8 @@ const FileSync = require("lowdb/adapters/FileSync");
 
 const adapter = new FileSync("db.json");
 const db = low(adapter);
-
-// Set some defaults (required if your JSON file is empty)
+db.defaults({ clients: [], logs: [], count: 0 })
+  .write();
 
 
 function getClient(id) {
