@@ -33,17 +33,16 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
     }
 
     //fetch questionnaire and all elms
-    const questionnaireUrl = buildFhirUrl(questionnaireReference, fhirPrefix, fhirVersion);
 
     pendingFetches += 1;
     consoleLog("fetching questionnaire and elms", "infoClass");
-    consoleLog(questionnaireUrl, "infoClass");
-    fetch(questionnaireUrl).then(handleFetchErrors).then(r => r.json())
+    consoleLog(questionnaireReference, "infoClass");
+    fetch(questionnaireReference).then(handleFetchErrors).then(r => r.json())
     .then(questionnaire => {
       consoleLog("fetched questionnaire successfully","infoClass");
       // consoleLog(JSON.stringify(questionnaire),"infoClass");
       retVal.questionnaire = questionnaire;
-      fetchedUrls.add(questionnaireUrl);
+      fetchedUrls.add(questionnaireReference);
       // grab all main elm urls
       // R4 resources use cqf library. 
       var mainElmReferences = questionnaire.extension.filter(ext => ext.url == "http://hl7.org/fhir/StructureDefinition/cqf-library")
