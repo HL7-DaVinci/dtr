@@ -3,8 +3,7 @@
 /**
  * Module dependencies.
  */
-const request = require("request");
-const app = require("../src/backend/app");
+const startApp = require("../src/backend/app");
 const http = require("http");
 const debug = require("debug")("dtr:backend");
 
@@ -12,6 +11,7 @@ const debug = require("debug")("dtr:backend");
  * Get port from environment and store in Express.
  */
 function startServer(serverPort, serverHttpy, serverHost, serverPublic, proxyTarget) {
+    const app = startApp(proxyTarget);
     const port = normalizePort(process.env.PORT || serverPort);
     app.set("port", port);
 
@@ -30,29 +30,11 @@ function startServer(serverPort, serverHttpy, serverHost, serverPublic, proxyTar
     server.on("listening", onListening);
 
 
-    app.use("/fhir", function (req, res) {
-        var url = proxyTarget + "/fhir" + req.url;
-        console.log(url);
 
-        req.pipe(request({
-            url: url, agentOptions: {
-                rejectUnauthorized: false
-            }
-        })).pipe(res);
-    });
-    app.use("/files", function (req, res) {
-        var url = proxyTarget + "/files" + req.url;
-        console.log(url);
-
-        req.pipe(request({
-            url: url, agentOptions: {
-                rejectUnauthorized: false
-            }
-        })).pipe(res);
-    });
 
 
     app.use((req, res, next) => {
+        console.log(req.method);
         if (req.method === "POST") {
             req.body.createdAt = Date.now();
         }
