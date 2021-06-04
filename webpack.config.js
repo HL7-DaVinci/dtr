@@ -14,6 +14,7 @@ module.exports = {
         publicPath: "/"
       },
 	watch: true,
+    devtool: "#eval-source-map",
     resolve: { extensions: ["*", ".js", ".jsx"] },
 	module: {
 		rules: [
