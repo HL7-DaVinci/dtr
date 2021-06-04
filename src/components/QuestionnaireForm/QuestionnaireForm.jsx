@@ -5,6 +5,8 @@ import SelectPopup from './SelectPopup';
 import shortid from "shortid";
 import _ from "lodash";
 
+// NOTE: need to append the right FHIR version to have valid profile URL
+var DTRQuestionnaireResponseURL = "http://hl7.org/fhir/us/davinci-dtr/StructureDefinition/dtr-questionnaireresponse-";
 
 export default class QuestionnaireForm extends Component {
   constructor(props) {
@@ -37,6 +39,8 @@ export default class QuestionnaireForm extends Component {
     this.getLibraryPrepopulationResult = this.getLibraryPrepopulationResult.bind(this);
     this.buildGTableItems = this.buildGTableItems.bind(this);
     this.mergeResponseForSameLinkId = this.mergeResponseForSameLinkId.bind(this);
+
+    DTRQuestionnaireResponseURL += this.fhirVersion.toLowerCase();
   }
 
 
@@ -695,7 +699,7 @@ export default class QuestionnaireForm extends Component {
   }
 
   getQuestionnaireResponse(status) {
-    var qr = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', 'R4', "#formContainer");
+    var qr = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', this.fhirVersion, "#formContainer");
     console.log(qr);
     qr.status = status;
     qr.author = {
@@ -719,6 +723,11 @@ export default class QuestionnaireForm extends Component {
   sendQuestionnaireResponseToPayer() {
     console.log(this.state.sectionLinks);
     var qr = this.getQuestionnaireResponse("completed");
+
+    // change QuestionnaireResponse meta to show DTR QuestionnaireResponse instead of SDC QuestionnaireResponse
+    if (qr.meta?.profile.length){
+      qr['meta']['profile'][0] = DTRQuestionnaireResponseURL;
+    }
 
     // do a fetch back to the dtr server to post the QuestionnaireResponse to CRD
     const requestOptions = {
