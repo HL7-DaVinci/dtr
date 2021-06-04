@@ -119,7 +119,7 @@ export default class PatientBox extends Component {
                 value={this.state.responseId}
                 onChange={this.handleChange}
                 >
-                {this.props.responses.map((response) =>{
+                {this.props.responses.reverse().map((response) =>{
                     return <MenuItem key={response.id} value={response.id}>{`${response.questionnaire} - ${new Date(response.authored).toDateString()}`}</MenuItem>
                 })}
                 </Select>
