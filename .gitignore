@@ -60,8 +60,10 @@ typings/
 # next.js build output
 .next
 
-
+# 
+.DS_Store
 
 ## webpacked bundle files
 *.bundle.js
 db.json
+.DS_Store
