@@ -65,3 +65,4 @@ typings/
 ## webpacked bundle files
 *.bundle.js
 db.json
+.DS_Store
