@@ -725,7 +725,7 @@ export default class QuestionnaireForm extends Component {
     var qr = this.getQuestionnaireResponse("completed");
 
     // change QuestionnaireResponse meta to show DTR QuestionnaireResponse instead of SDC QuestionnaireResponse
-    if (qr.meta?.profile.length){
+    if (qr.meta && qr.meta.profile && qr.meta.profile.length){
       qr['meta']['profile'][0] = DTRQuestionnaireResponseURL;
     }
 
