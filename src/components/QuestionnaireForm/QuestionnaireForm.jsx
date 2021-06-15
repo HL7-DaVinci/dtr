@@ -83,6 +83,7 @@ export default class QuestionnaireForm extends Component {
 
   componentDidMount() {
     this.loadAndMergeForms(this.state.savedResponse);
+    this.props.fitlerFieldsFunc();
   }
 
   loadPreviousForm() {

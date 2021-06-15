@@ -13,6 +13,7 @@ import Testing from "./components/ConsoleBox/Testing";
 import UserMessage from "./components/UserMessage/UserMessage";
 import TaskPopup from "./components/Popup/TaskPopup";
 import PatientSelect from "./components/PatientSelect/PatientSelect";
+import { stubTrue } from "lodash";
 // uncomment for testing UserMessage
 // let sampleError = {
 //   annotation: [
@@ -40,6 +41,7 @@ class App extends Component {
       deviceRequest: null,
       bundle: null,
       filter: true,
+      filterChecked: true,
       tasks: false,
       showPopup: true,
       showOverlay: false,
@@ -62,6 +64,7 @@ class App extends Component {
     this.renderButtons = this.renderButtons.bind(this);
     this.ehrLaunch = this.ehrLaunch.bind(this);
     this.standaloneLaunch = this.standaloneLaunch.bind(this);
+    this.filter = this.filter.bind(this);
   }
 
   componentDidMount() {
@@ -432,7 +435,11 @@ class App extends Component {
 
       });
 
-      this.setState({filter: !this.state.filter})
+      this.setState({filterChecked: this.state.filter});
+      let filterCheckbox = document.getElementById("filterCheckbox");
+      if(filterCheckbox != null)
+        filterCheckbox.checked = this.state.filter;
+      this.setState({filter: !this.state.filter});
   }
 
   renderButtons(ref) {
@@ -441,7 +448,7 @@ class App extends Component {
         <label>Attestation</label>  <input type="checkbox" onChange={()=>{this.setTasks()}}></input>
     </div>
     <div className="task-button">
-        <label>Filter</label>  <input type="checkbox" onChange={()=>{this.filter()}}></input>
+        <label>Filter</label>  <input type="checkbox" onChange={()=>{this.filter()}} id="filterCheckbox" checked></input>
     </div></div></div>)
     ReactDOM.render(element, ref);
   }
@@ -504,6 +511,7 @@ class App extends Component {
               smart={this.smart}
               FHIR_PREFIX={this.props.FHIR_PREFIX}
               renderButtons={this.renderButtons}
+              fitlerFieldsFunc={this.filter}
             />
           )}
         </div>
