@@ -391,29 +391,37 @@ class App extends Component {
       }
   }
 
-  filter() {
+  filter(defaultFilter) {
       var items = Array.from(document.getElementsByClassName("ng-not-empty"));
       var sections = Array.from(document.getElementsByClassName("section"));
       var empty = Array.from(document.getElementsByClassName("ng-empty"));
 
+      let checked, filterCheckbox;
+      if(!defaultFilter) {
+        filterCheckbox = document.getElementById("filterCheckbox");
+        checked = filterCheckbox ? filterCheckbox.checked : false;
+      } else {
+        checked = true;
+      }
+
       items.map((element) => {
           // filter all not-empty items
           if(element.tagName === "INPUT") { 
-            element.closest('.lf-table-item').hidden=this.state.filter;
+            element.closest('.lf-table-item').hidden=checked;
           }
       });
 
       sections.map((element) => {
         if(!element.querySelector(".ng-empty")) {
             // filter out sections without any empty items
-            element.parentElement.hidden=this.state.filter;
+            element.parentElement.hidden=checked;
         } else {
             // deals with case where the only empty question
             // is a disabled question.
             // though the disabled question is hidden, the empty
             // section remains because of it.
             if(element.querySelector(".ng-empty:not([disabled])")===null) { 
-                element.parentElement.hidden=this.state.filter;
+                element.parentElement.hidden=checked;
             };
         }
       });
@@ -425,21 +433,17 @@ class App extends Component {
             // having the "empty" class.
             const d = Array.from(element.classList);
             if( d.includes("ng-touched")) {
-                element.closest('.lf-table-item').hidden=this.state.filter;
+                element.closest('.lf-table-item').hidden=checked;
             }
         }
         // we don't want to show disabled items in the filtered view
         if(element.disabled) {
-            element.closest('.lf-table-item').hidden=this.state.filter;
+            element.closest('.lf-table-item').hidden=checked;
         }
 
       });
 
-      this.setState({filterChecked: this.state.filter});
-      let filterCheckbox = document.getElementById("filterCheckbox");
-      if(filterCheckbox != null)
-        filterCheckbox.checked = this.state.filter;
-      this.setState({filter: !this.state.filter});
+      this.setState({filter: checked});
   }
 
   renderButtons(ref) {
@@ -448,7 +452,7 @@ class App extends Component {
         <label>Attestation</label>  <input type="checkbox" onChange={()=>{this.setTasks()}}></input>
     </div>
     <div className="task-button">
-        <label>Filter</label>  <input type="checkbox" onChange={()=>{this.filter()}} id="filterCheckbox" checked></input>
+        <label>Filter</label>  <input type="checkbox" onChange={()=>{this.filter(false)}} id="filterCheckbox"></input>
     </div></div></div>)
     ReactDOM.render(element, ref);
   }
@@ -509,9 +513,10 @@ class App extends Component {
               setPriorAuthClaim={this.setPriorAuthClaim.bind(this)}
               fhirVersion={this.fhirVersion.toUpperCase()}
               smart={this.smart}
-              FHIR_PREFIX={this.props.FHIR_PREFIX}
+              FHIR_PREFIXnew={this.props.FHIR_PREFIX}
               renderButtons={this.renderButtons}
               fitlerFieldsFunc={this.filter}
+              filterChecked={this.state.filter}
             />
           )}
         </div>

@@ -83,9 +83,14 @@ export default class QuestionnaireForm extends Component {
 
   componentDidMount() {
     this.loadAndMergeForms(this.state.savedResponse);
-    this.props.fitlerFieldsFunc();
   }
 
+  componentDidUpdate(prevProps) {
+    // force update the checkbox checked status after initial rendering
+    let filterCheckbox = document.getElementById("filterCheckbox");
+    if(filterCheckbox != null)
+      filterCheckbox.checked = this.props.filterChecked;
+  }
   loadPreviousForm() {
     // search for any QuestionnaireResponses
     this.smart.request("QuestionnaireResponse?" +
@@ -170,6 +175,7 @@ export default class QuestionnaireForm extends Component {
     el.setAttribute("id", "button-container")
     header.appendChild(el);
     this.props.renderButtons(el);
+    this.props.fitlerFieldsFunc(true);
   }
 
   // Merge the items for the same linkId to comply with the LHCForm
