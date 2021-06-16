@@ -513,7 +513,7 @@ class App extends Component {
               setPriorAuthClaim={this.setPriorAuthClaim.bind(this)}
               fhirVersion={this.fhirVersion.toUpperCase()}
               smart={this.smart}
-              FHIR_PREFIXnew={this.props.FHIR_PREFIX}
+              FHIR_PREFIX={this.props.FHIR_PREFIX}
               renderButtons={this.renderButtons}
               fitlerFieldsFunc={this.filter}
               filterChecked={this.state.filter}
