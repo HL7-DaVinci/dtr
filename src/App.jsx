@@ -445,7 +445,9 @@ class App extends Component {
       });
 
       this.setState({filter: checked});
-  }
+      this.setState({allFieldsFilled: document.querySelector("input.ng-empty:not([disabled])") == null});
+      console.log("All fields are filled is:", this.state.allFieldsFilled);
+    }
 
   renderButtons(ref) {
     const element = (<div><div><TaskPopup smart = {this.smart} />

@@ -92,11 +92,13 @@ export default class QuestionnaireForm extends Component {
         //this.props.formFilledSetFn(!this.props.formFilled);
         this.props.filterFieldsFn(this.props.formFilled);
 
-        var items = Array.from(document.getElementsByClassName("ng-not-empty"));
-        console.log("ng-not-empty items", items);
-        var sections = Array.from(document.getElementsByClassName("section"));
-        var empty = Array.from(document.getElementsByClassName("ng-empty"));
-        console.log("ng-empty items ", empty);
+        //var items = Array.from(document.getElementsByClassName("ng-not-empty"));
+        //console.log("ng-not-empty items", items);
+        //var sections = Array.from(document.getElementsByClassName("section"));
+        //var empty = Array.from(document.getElementsByClassName("ng-empty"));
+        //console.log("ng-empty items ", empty);
+       // let allFieldsFilled = document.querySelector("input.ng-empty:not([disabled])") == null;
+       // console.log("All fields are filled is:", allFieldsFilled);
       }
     });
   }
