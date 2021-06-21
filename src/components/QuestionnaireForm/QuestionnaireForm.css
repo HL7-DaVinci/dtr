@@ -64,6 +64,12 @@ html {
   border-color:#000;
 }
 
+.form-message-panel {
+  float:left;
+  margin-left: 10px;
+  margin-bottom: 20px;
+}
+
 .status-panel {
   float:left;
   margin-left: 10px;

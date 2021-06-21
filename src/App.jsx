@@ -54,7 +54,8 @@ class App extends Component {
         //   details: sampleError,
         //   infoClass: "error"
         // }
-      ]
+      ],
+      allFieldsFilled: false
     };
     this.smart = props.smart;
     this.patientId = props.patientId;
@@ -417,10 +418,10 @@ class App extends Component {
             element.parentElement.hidden=checked;
         } else {
             // deals with case where the only empty question
-            // is a disabled question.
+            // is a disabled question and a tooltip.
             // though the disabled question is hidden, the empty
             // section remains because of it.
-            if(element.querySelector(".ng-empty:not([disabled])")===null) { 
+            if(element.querySelector(".ng-empty:not([disabled]):not(.tooltipContent)")===null) { 
                 element.parentElement.hidden=checked;
             };
         }
@@ -449,7 +450,7 @@ class App extends Component {
   renderButtons(ref) {
     const element = (<div><div><TaskPopup smart = {this.smart} />
     <div className="task-button">
-        <label>Attestation</label>  <input type="checkbox" onChange={()=>{this.setTasks()}}></input>
+        <label>Attestation</label>  <input type="checkbox" onChange={()=>{this.setTasks()}} id="attestationCheckbox"></input>
     </div>
     <div className="task-button">
         <label>Filter</label>  <input type="checkbox" onChange={()=>{this.filter(false)}} id="filterCheckbox"></input>
@@ -515,8 +516,10 @@ class App extends Component {
               smart={this.smart}
               FHIR_PREFIX={this.props.FHIR_PREFIX}
               renderButtons={this.renderButtons}
-              fitlerFieldsFunc={this.filter}
+              filterFieldsFn={this.filter}
               filterChecked={this.state.filter}
+              formFilled={this.state.allFieldsFilled}
+              formFilledSetFn={(status)=> this.setState({allFieldsFilled: status})}
             />
           )}
         </div>

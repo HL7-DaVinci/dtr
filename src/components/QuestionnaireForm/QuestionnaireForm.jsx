@@ -26,7 +26,8 @@ export default class QuestionnaireForm extends Component {
       formLoaded: "New",
       popupTitle: "Would you like to continue an in-process questionnaire?",
       popupOptions: [],
-      popupFinalOption: "Cancel"
+      popupFinalOption: "Cancel",
+      formFilled: true
     };
 
     this.outputResponse = this.outputResponse.bind(this);
@@ -83,6 +84,21 @@ export default class QuestionnaireForm extends Component {
 
   componentDidMount() {
     this.loadAndMergeForms(this.state.savedResponse);
+
+    document.addEventListener('change', event => {
+      console.log("---- Browser input fields change event ", event);
+      if(event.target.id != "filterCheckbox" && event.target.id != "attestationCheckbox") {
+        // TODO check wether all fields are filled
+        //this.props.formFilledSetFn(!this.props.formFilled);
+        this.props.filterFieldsFn(this.props.formFilled);
+
+        var items = Array.from(document.getElementsByClassName("ng-not-empty"));
+        console.log("ng-not-empty items", items);
+        var sections = Array.from(document.getElementsByClassName("section"));
+        var empty = Array.from(document.getElementsByClassName("ng-empty"));
+        console.log("ng-empty items ", empty);
+      }
+    });
   }
 
   componentDidUpdate(prevProps) {
@@ -91,6 +107,7 @@ export default class QuestionnaireForm extends Component {
     if(filterCheckbox != null)
       filterCheckbox.checked = this.props.filterChecked;
   }
+
   loadPreviousForm() {
     // search for any QuestionnaireResponses
     this.smart.request("QuestionnaireResponse?" +
@@ -175,9 +192,10 @@ export default class QuestionnaireForm extends Component {
     el.setAttribute("id", "button-container")
     header.appendChild(el);
     this.props.renderButtons(el);
-    this.props.fitlerFieldsFunc(true);
+    this.props.filterFieldsFn(true);
   }
 
+  
   // Merge the items for the same linkId to comply with the LHCForm
   mergeResponseForSameLinkId(response) {
     let mergedResponse = {
@@ -1079,6 +1097,7 @@ export default class QuestionnaireForm extends Component {
       <div>
         <div id="formContainer">
         </div>
+        {this.props.formFilled ? <div className="form-message-panel"><p>All fields filled. Continue or uncheck filter to review the form</p></div> : null}
         <SelectPopup
           title={this.state.popupTitle}
           options={this.state.popupOptions}
