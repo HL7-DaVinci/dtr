@@ -4,6 +4,8 @@ import { findValueByPrefix, searchQuestionnaire } from "../../util/util.js";
 import SelectPopup from './SelectPopup';
 import shortid from "shortid";
 import _ from "lodash";
+import ReactDOM from 'react-dom'
+import InfoIcon from '@material-ui/icons/Info';
 
 // NOTE: need to append the right FHIR version to have valid profile URL
 var DTRQuestionnaireResponseURL = "http://hl7.org/fhir/us/davinci-dtr/StructureDefinition/dtr-questionnaireresponse-";
@@ -27,7 +29,8 @@ export default class QuestionnaireForm extends Component {
       popupTitle: "Would you like to continue an in-process questionnaire?",
       popupOptions: [],
       popupFinalOption: "Cancel",
-      formFilled: true
+      formFilled: true,
+      patientName: null
     };
 
     this.outputResponse = this.outputResponse.bind(this);
@@ -86,19 +89,8 @@ export default class QuestionnaireForm extends Component {
     this.loadAndMergeForms(this.state.savedResponse);
 
     document.addEventListener('change', event => {
-      console.log("---- Browser input fields change event ", event);
       if(event.target.id != "filterCheckbox" && event.target.id != "attestationCheckbox") {
-        // TODO check wether all fields are filled
-        //this.props.formFilledSetFn(!this.props.formFilled);
         this.props.filterFieldsFn(this.props.formFilled);
-
-        //var items = Array.from(document.getElementsByClassName("ng-not-empty"));
-        //console.log("ng-not-empty items", items);
-        //var sections = Array.from(document.getElementsByClassName("section"));
-        //var empty = Array.from(document.getElementsByClassName("ng-empty"));
-        //console.log("ng-empty items ", empty);
-       // let allFieldsFilled = document.querySelector("input.ng-empty:not([disabled])") == null;
-       // console.log("All fields are filled is:", allFieldsFilled);
       }
     });
   }
@@ -188,12 +180,25 @@ export default class QuestionnaireForm extends Component {
     }
 
     console.log(lform);
+  
     LForms.Util.addFormToPage(lform, "formContainer");
     const header = document.getElementsByClassName("lf-form-title")[0];
     const el = document.createElement('div');
-    el.setAttribute("id", "button-container")
+    el.setAttribute("id", "button-container");
     header.appendChild(el);
     this.props.renderButtons(el);
+
+    const patientInfoEl = document.createElement('div');
+    patientInfoEl.setAttribute("id", "patientInfo-container");
+    header.appendChild(patientInfoEl);
+    let patientId = this.getPatient().replace("Patient/", "");
+    let element = (display) => (<div className="patient-info-panel"><label>Patient: {display}</label></div>);
+    this.smart.request("Patient/"+patientId).then((result) => {
+        ReactDOM.render(element(`${result.name[0].given[0]} ${result.name[0].family}`), patientInfoEl);
+    }, (error) => {
+        ReactDOM.render(element("Unknown"), patientInfoEl);
+    });
+
     this.props.filterFieldsFn(true);
   }
 
@@ -1099,7 +1104,7 @@ export default class QuestionnaireForm extends Component {
       <div>
         <div id="formContainer">
         </div>
-        {this.props.formFilled ? <div className="form-message-panel"><p>All fields filled. Continue or uncheck filter to review the form</p></div> : null}
+        {this.props.formFilled ? <div className="form-message-panel"><p>All fields filled. Continue or uncheck filter to review and modify the form.</p></div> : null}
         <SelectPopup
           title={this.state.popupTitle}
           options={this.state.popupOptions}

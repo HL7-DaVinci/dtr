@@ -446,7 +446,6 @@ class App extends Component {
 
       this.setState({filter: checked});
       this.setState({allFieldsFilled: document.querySelector("input.ng-empty:not([disabled])") == null});
-      console.log("All fields are filled is:", this.state.allFieldsFilled);
     }
 
   renderButtons(ref) {
@@ -455,7 +454,7 @@ class App extends Component {
         <label>Attestation</label>  <input type="checkbox" onChange={()=>{this.setTasks()}} id="attestationCheckbox"></input>
     </div>
     <div className="task-button">
-        <label>Filter</label>  <input type="checkbox" onChange={()=>{this.filter(false)}} id="filterCheckbox"></input>
+        <label>Only Show Unfilled Fields</label>  <input type="checkbox" onChange={()=>{this.filter(false)}} id="filterCheckbox"></input>
     </div></div></div>)
     ReactDOM.render(element, ref);
   }

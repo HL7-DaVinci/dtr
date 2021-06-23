@@ -65,9 +65,12 @@ html {
 }
 
 .form-message-panel {
-  float:left;
   margin-left: 10px;
   margin-bottom: 20px;
+}
+
+.patient-info-panel {
+  color: white;
 }
 
 .status-panel {
