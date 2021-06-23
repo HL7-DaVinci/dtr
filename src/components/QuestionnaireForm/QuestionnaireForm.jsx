@@ -29,8 +29,7 @@ export default class QuestionnaireForm extends Component {
       popupTitle: "Would you like to continue an in-process questionnaire?",
       popupOptions: [],
       popupFinalOption: "Cancel",
-      formFilled: true,
-      patientName: null
+      formFilled: true
     };
 
     this.outputResponse = this.outputResponse.bind(this);
@@ -192,11 +191,12 @@ export default class QuestionnaireForm extends Component {
     patientInfoEl.setAttribute("id", "patientInfo-container");
     header.appendChild(patientInfoEl);
     let patientId = this.getPatient().replace("Patient/", "");
-    let element = (display) => (<div className="patient-info-panel"><label>Patient: {display}</label></div>);
+    let patientInfoElement = (display) => (<div className="patient-info-panel"><label>Patient: {display}</label></div>);
     this.smart.request("Patient/"+patientId).then((result) => {
-        ReactDOM.render(element(`${result.name[0].given[0]} ${result.name[0].family}`), patientInfoEl);
+        ReactDOM.render(patientInfoElement(`${result.name[0].given[0]} ${result.name[0].family}`), patientInfoEl);
     }, (error) => {
-        ReactDOM.render(element("Unknown"), patientInfoEl);
+        console.log("Failed to retrieve the patient information. Error is ", error);
+        ReactDOM.render(patientInfoElement("Unknown"), patientInfoEl);
     });
 
     this.props.filterFieldsFn(true);
