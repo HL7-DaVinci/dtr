@@ -410,20 +410,22 @@ class App extends Component {
           if(element.tagName === "INPUT") { 
             // check if the item is one of the gtable, if yes, need to make sure all the
             let inputRowElement = element.closest('.lf-table-item');
-            if(inputRowElement && !inputRowElement.classList.contains('lf-layout-horizontal')) {
-              inputRowElement.hidden=checked;
-            } else {
-              //check if all the children input have been filled
-              let childrenInputs = inputRowElement.getElementsByTagName('INPUT');
-              let allFilled = true;
-              for(let input of childrenInputs) {
-                if(input && !input.value) {
-                  allFilled = false;
-                  break;
+            if (inputRowElement) {
+              if(inputRowElement.classList.contains('lf-layout-horizontal')) {
+                inputRowElement.hidden=checked;
+              } else {
+                //check if all the children input have been filled
+                let childrenInputs = inputRowElement.getElementsByTagName('INPUT');
+                let allFilled = true;
+                for(let input of childrenInputs) {
+                  if(input && !input.value) {
+                    allFilled = false;
+                    break;
+                  }
                 }
-              }
-              if(allFilled) {
-                inputRowElement.hidden = checked;
+                if(allFilled) {
+                  inputRowElement.hidden = checked;
+                }
               }
             }
           }
