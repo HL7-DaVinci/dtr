@@ -1104,7 +1104,7 @@ export default class QuestionnaireForm extends Component {
       <div>
         <div id="formContainer">
         </div>
-        {this.props.formFilled ? <div className="form-message-panel"><p>All fields filled. Continue or uncheck filter to review and modify the form.</p></div> : null}
+        {this.props.formFilled ? <div className="form-message-panel"><p>All fields have been filled. Continue or uncheck "Only Show Unfilled Fields" to review and modify the form.</p></div> : null}
         <SelectPopup
           title={this.state.popupTitle}
           options={this.state.popupOptions}
