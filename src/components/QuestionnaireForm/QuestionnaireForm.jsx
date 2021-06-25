@@ -5,7 +5,6 @@ import SelectPopup from './SelectPopup';
 import shortid from "shortid";
 import _ from "lodash";
 import ReactDOM from 'react-dom'
-import InfoIcon from '@material-ui/icons/Info';
 
 // NOTE: need to append the right FHIR version to have valid profile URL
 var DTRQuestionnaireResponseURL = "http://hl7.org/fhir/us/davinci-dtr/StructureDefinition/dtr-questionnaireresponse-";

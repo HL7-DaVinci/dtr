@@ -13,7 +13,7 @@ import Testing from "./components/ConsoleBox/Testing";
 import UserMessage from "./components/UserMessage/UserMessage";
 import TaskPopup from "./components/Popup/TaskPopup";
 import PatientSelect from "./components/PatientSelect/PatientSelect";
-import { stubTrue } from "lodash";
+
 // uncomment for testing UserMessage
 // let sampleError = {
 //   annotation: [
