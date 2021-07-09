@@ -39,6 +39,7 @@ export default class QuestionnaireForm extends Component {
     this.getLibraryPrepopulationResult = this.getLibraryPrepopulationResult.bind(this);
     this.buildGTableItems = this.buildGTableItems.bind(this);
     this.mergeResponseForSameLinkId = this.mergeResponseForSameLinkId.bind(this);
+    this.updateSavedResponseWithPrepopulation = this.updateSavedResponseWithPrepopulation.bind(this);
 
     DTRQuestionnaireResponseURL += this.fhirVersion.toLowerCase();
   }
@@ -1027,7 +1028,7 @@ export default class QuestionnaireForm extends Component {
     if (this.partialForms[returnValue]) {
       // load the selected form
       let partialResponse = this.partialForms[returnValue];
-      let saved_response = true;
+      let saved_response = false;
 
       console.log(partialResponse);
 
@@ -1036,12 +1037,13 @@ export default class QuestionnaireForm extends Component {
       // If not using saved QuestionnaireResponse, create a new one
       let newResponse = {
         resourceType: 'QuestionnaireResponse',
-        status: 'draft',
         item: []
       }
 
       const items = this.props.qform.item;
       this.prepopulate(items, newResponse.item, saved_response)
+
+      this.updateSavedResponseWithPrepopulation(newResponse, partialResponse);
 
       // force it to reload the form
       this.loadAndMergeForms(partialResponse);
@@ -1049,6 +1051,64 @@ export default class QuestionnaireForm extends Component {
     } else {
       console.log("No form loaded.");
     }
+  }
+
+  updateSavedResponseWithPrepopulation = (newOne, saved) => {
+    newOne.item.map(newItem => {
+        let savedIndex = saved.item.findIndex(savedItem => newItem.linkId == savedItem.linkId);
+        if(savedIndex != -1) {
+            updateItem(newItem, saved.item[savedIndex]);
+        }
+    })
+
+    function updateItem(newItem, savedItem) {
+        if(newItem.item == undefined) {
+            //find the corresponding linkId in savedItem and replace it
+            function replaceItem (savedItem) {
+                if(savedItem.item == undefined) {
+                    console.log("Couldn't found linkId in the savedItem");
+                    return;
+                }
+                let foundSavedItemIndex = savedItem.item.findIndex(saved => saved.linkId == newItem.linkId);
+                if(foundSavedItemIndex != -1) {
+                    savedItem.item[foundSavedItemIndex] = newItem;
+                    return;
+                } else {
+                    replaceItem(savedItem.item);
+                }
+            };
+            replaceItem(savedItem);
+        } else {
+            newItem.item.forEach(newSubItem => {
+                updateItem(newSubItem, savedItem);
+            });
+        }
+    }
+  };
+
+  mergeSavedResponseFromPrepopulation(newResponse, partialResponse) {
+    newResponse.item.forEach(newRootItem => {
+      let index = partialResponse.item.findIndex(savedItem => newRootItem.linkId == savedItem.linkId);
+      if (index != -1) {
+        let foundSavedItem = partialResponse.item[index];
+        //replace the items with new response item
+        if (foundSavedItem.item != undefined) {
+          if (newRootItem.item != undefined) {
+            newRootItem.item.forEach(newSubItem => {
+              let subItemIndex = foundSavedItem.item.findIndex(savedSubItem => newSubItem.linkId == savedSubItem.linkId);
+              if (subItemIndex != -1) {
+                foundSavedItem.item[subItemIndex] = newSubItem;
+              }
+            })
+          }
+        }
+        else {
+          partialResponse.item[index] = foundSavedItem;
+        }
+      }
+    });
+
+    console.log("Merged response ", partialResponse);
   }
 
   popupClear(title, finalOption, logTitle) {
