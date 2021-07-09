@@ -42,6 +42,8 @@ function startServer(serverPort, serverHttpy, serverHost, serverPublic, proxyTar
         next();
     });
 
+   console.log("backend started")
+
     /**
      * Normalize a port into a number, string, or false.
      */
