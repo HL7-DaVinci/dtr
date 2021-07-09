@@ -87,8 +87,12 @@ export default class QuestionnaireForm extends Component {
     this.loadAndMergeForms(this.state.savedResponse);
 
     document.addEventListener('change', event => {
-      if(event.target.id != "filterCheckbox" && event.target.id != "attestationCheckbox") {
-        this.props.filterFieldsFn(this.props.formFilled);
+      if(this.props.filterChecked && event.target.id != "filterCheckbox" && event.target.id != "attestationCheckbox") {
+        if(LForms.Util.checkValidity() == null) {
+          this.props.filterFieldsFn(this.props.formFilled);
+        } else {
+          console.log("Form is invalid. Skip filtering.");
+        }
       }
     });
   }
