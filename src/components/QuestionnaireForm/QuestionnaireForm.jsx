@@ -28,7 +28,8 @@ export default class QuestionnaireForm extends Component {
       popupTitle: "Would you like to continue an in-process questionnaire?",
       popupOptions: [],
       popupFinalOption: "Cancel",
-      formFilled: true
+      formFilled: true,
+      formErrorsLength: 0
     };
 
     this.outputResponse = this.outputResponse.bind(this);
@@ -86,12 +87,19 @@ export default class QuestionnaireForm extends Component {
   componentDidMount() {
     this.loadAndMergeForms(this.state.savedResponse);
 
+    const initialFormErrorsNumber = LForms.Util.checkValidity() == null ? 0 : LForms.Util.checkValidity().length;
+    this.setState({
+      formErrorsLength: initialFormErrorsNumber
+    });
+
     document.addEventListener('change', event => {
       if(this.props.filterChecked && event.target.id != "filterCheckbox" && event.target.id != "attestationCheckbox") {
-        if(LForms.Util.checkValidity() == null) {
+        let newFormErrorNumber = LForms.Util.checkValidity() == null ? 0 : LForms.Util.checkValidity().length;
+        if(newFormErrorNumber <= this.state.formErrorsLength) {
           this.props.filterFieldsFn(this.props.formFilled);
         } else {
-          console.log("Form is invalid. Skip filtering.");
+          console.log("Modified field is invalid. Skip filtering.");
+          this.setState({formErrorsLength: newFormErrorNumber});
         }
       }
     });
