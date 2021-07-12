@@ -97,6 +97,7 @@ export default class QuestionnaireForm extends Component {
         let newFormErrorNumber = LForms.Util.checkValidity() == null ? 0 : LForms.Util.checkValidity().length;
         if(newFormErrorNumber <= this.state.formErrorsLength) {
           this.props.filterFieldsFn(this.props.formFilled);
+          this.setState({formErrorsLength: newFormErrorNumber});
         } else {
           console.log("Modified field is invalid. Skip filtering.");
           this.setState({formErrorsLength: newFormErrorNumber});
