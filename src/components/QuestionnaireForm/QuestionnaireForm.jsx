@@ -106,13 +106,6 @@ export default class QuestionnaireForm extends Component {
     });
   }
 
-  componentDidUpdate(prevProps) {
-    // force update the checkbox checked status after initial rendering
-    let filterCheckbox = document.getElementById("filterCheckbox");
-    if(filterCheckbox != null)
-      filterCheckbox.checked = this.props.filterChecked;
-  }
-
   loadPreviousForm() {
     // search for any QuestionnaireResponses
     this.smart.request("QuestionnaireResponse?" +

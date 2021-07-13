@@ -66,6 +66,7 @@ class App extends Component {
     this.ehrLaunch = this.ehrLaunch.bind(this);
     this.standaloneLaunch = this.standaloneLaunch.bind(this);
     this.filter = this.filter.bind(this);
+    this.onFilterCheckboxRefChange = this.onFilterCheckboxRefChange.bind(this);
   }
 
   componentDidMount() {
@@ -467,13 +468,20 @@ class App extends Component {
       this.setState({allFieldsFilled: document.querySelector("input.ng-empty:not([disabled])") == null});
     }
 
+  onFilterCheckboxRefChange = node => {
+    let filterCheckbox = document.getElementById("filterCheckbox");
+    if (filterCheckbox != null) {
+      filterCheckbox.checked = this.state.filter;
+    }
+  };
+  
   renderButtons(ref) {
     const element = (<div><div><TaskPopup smart = {this.smart} />
     <div className="task-button">
         <label>Attestation</label>  <input type="checkbox" onChange={()=>{this.setTasks()}} id="attestationCheckbox"></input>
     </div>
     <div className="task-button">
-        <label>Only Show Unfilled Fields</label>  <input type="checkbox" onChange={()=>{this.filter(false)}} id="filterCheckbox"></input>
+        <label>Only Show Unfilled Fields</label>  <input type="checkbox" onChange={()=>{this.filter(false)}} id="filterCheckbox" ref={this.onFilterCheckboxRefChange}></input>
     </div></div></div>)
     ReactDOM.render(element, ref);
   }
