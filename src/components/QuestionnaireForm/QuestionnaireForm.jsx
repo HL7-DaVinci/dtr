@@ -1005,12 +1005,6 @@ export default class QuestionnaireForm extends Component {
     // }
   }
 
-  
-  
-  
-
-  
-
   isEmptyAnswer(answer) {
     return (
       answer.length < 1 ||
