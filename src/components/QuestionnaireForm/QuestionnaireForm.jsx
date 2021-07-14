@@ -29,7 +29,7 @@ export default class QuestionnaireForm extends Component {
       popupOptions: [],
       popupFinalOption: "Cancel",
       formFilled: true,
-      formErrorsLength: 0
+      formValidationErrors: []
     };
 
     this.outputResponse = this.outputResponse.bind(this);
@@ -87,21 +87,35 @@ export default class QuestionnaireForm extends Component {
   componentDidMount() {
     this.loadAndMergeForms(this.state.savedResponse);
 
-    const initialFormErrorsNumber = LForms.Util.checkValidity() == null ? 0 : LForms.Util.checkValidity().length;
+    const formErrors = LForms.Util.checkValidity();
     this.setState({
-      formErrorsLength: initialFormErrorsNumber
+      formValidationErrors: formErrors == null ? [] : formErrors
     });
 
     document.addEventListener('change', event => {
       if(this.props.filterChecked && event.target.id != "filterCheckbox" && event.target.id != "attestationCheckbox") {
-        let newFormErrorNumber = LForms.Util.checkValidity() == null ? 0 : LForms.Util.checkValidity().length;
-        if(newFormErrorNumber <= this.state.formErrorsLength) {
+        const checkIfFilter = (currentErrors, newErrors, targetElementName) => {
+          if (currentErrors.length < newErrors.length)
+            return false;
+
+          const addedErrors = newErrors.filter(error => !currentErrors.includes(error));
+          if (addedErrors.some(error => error.includes(targetElementName))) {
+            return false;
+          }
+
+          return true;
+        };
+        const newErrors = LForms.Util.checkValidity();
+        const ifFilter = checkIfFilter(this.state.formValidationErrors,  newErrors == null? [] : newErrors, event.target.getAttribute("name"));
+        
+        if(ifFilter) {
           this.props.filterFieldsFn(this.props.formFilled);
-          this.setState({formErrorsLength: newFormErrorNumber});
         } else {
           console.log("Modified field is invalid. Skip filtering.");
-          this.setState({formErrorsLength: newFormErrorNumber});
         }
+        this.setState({
+          formValidationErrors: newErrors
+        });
       }
     });
   }
