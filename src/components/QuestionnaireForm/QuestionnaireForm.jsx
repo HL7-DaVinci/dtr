@@ -7,6 +7,7 @@ import _ from "lodash";
 
 // NOTE: need to append the right FHIR version to have valid profile URL
 var DTRQuestionnaireResponseURL = "http://hl7.org/fhir/us/davinci-dtr/StructureDefinition/dtr-questionnaireresponse-";
+// var DTRQuestionnaireResponse
 
 export default class QuestionnaireForm extends Component {
   constructor(props) {
@@ -650,7 +651,7 @@ export default class QuestionnaireForm extends Component {
     if (this.props.deviceRequest) {
       requestType = this.props.deviceRequest.resourceType;
       if (requestType == "DeviceRequest") {
-        p = this.props.deviceRequest.performer.referencee;
+        p = this.props.deviceRequest.performer.reference;
       } else if (requestType == "ServiceRequest") {
         p = this.props.deviceRequest.performer.reference;
       } else if (requestType == "MedicationRequest") {
@@ -698,9 +699,65 @@ export default class QuestionnaireForm extends Component {
     return c;
   }
 
+  // use this method
+
+  addAuthorToResponse(qr, practionerRef)
+  {
+    // url is a string
+    function addAuthor(item, practionerRef)
+    {
+      item["extension"] =
+    [
+        {
+            "url": "http://hl7.org/fhir/StructureDefinition/questionnaireresponse-author",
+            "valueReference": 
+            {
+                "reference": practionerRef
+            }
+        }
+    ]
+      // item["questionnaireresponse-author"] = 
+      // {
+      //   "reference": practionerRef
+      // };
+      console.log(item);
+      console.log(practionerRef);
+      //return item;
+      }
+
+      qr.item.map(item=> 
+        {
+            item.item.map(item =>
+                {
+                    if (item.item) 
+                    {
+                        item.item.map(item =>
+                        {
+                            addAuthor(item, practionerRef);
+                        }) 
+                    }
+                    else
+                    {
+                        addAuthor(item, practionerRef);
+                    }
+                })
+            })
+
+    // qr.item.map(item => 
+    //   {
+    //     item.item.map(item =>
+    //       {
+    //         addAuthor(item, practionerRef);
+    //       })
+    //       console.log(qr);
+    //     //unitFunc(item, practionerRef);
+    //   }
+      
+  }
+
   getQuestionnaireResponse(status) {
     var qr = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', this.fhirVersion, "#formContainer");
-    console.log(qr);
+    //console.log(qr);
     qr.status = status;
     qr.author = {
       reference:
@@ -711,6 +768,14 @@ export default class QuestionnaireForm extends Component {
       reference:
         this.getPatient()
     };
+    console.log("-------------------------------------------DEBUUUUUUUUGG1");
+    console.log(this.getPractitioner());
+    console.log("-------------------------------------------DEBUUUUUUUUGG2");
+    this.addAuthorToResponse(qr, this.getPractitioner());
+    console.log("-------------------------------------------DEBUUUUUUUUGG3");
+    console.log(qr);
+    console.log("-------------------------------------------DEBUUUUUUUUGG");
+    console.log("-------------------------------------------DEBUUUUUUUUGG");
 
     qr.questionnaire = this.props.qform.id;
 
@@ -959,6 +1024,12 @@ export default class QuestionnaireForm extends Component {
     //   alert("NOT submitting for prior auth");
     // }
   }
+
+  
+  
+  
+
+  
 
   isEmptyAnswer(answer) {
     return (
