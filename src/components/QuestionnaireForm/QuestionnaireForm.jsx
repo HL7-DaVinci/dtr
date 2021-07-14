@@ -716,13 +716,9 @@ export default class QuestionnaireForm extends Component {
             }
         }
     ]
-      // item["questionnaireresponse-author"] = 
-      // {
-      //   "reference": practionerRef
-      // };
+
       console.log(item);
       console.log(practionerRef);
-      //return item;
       }
 
       qr.item.map(item=> 
@@ -741,18 +737,7 @@ export default class QuestionnaireForm extends Component {
                         addAuthor(item, practionerRef);
                     }
                 })
-            })
-
-    // qr.item.map(item => 
-    //   {
-    //     item.item.map(item =>
-    //       {
-    //         addAuthor(item, practionerRef);
-    //       })
-    //       console.log(qr);
-    //     //unitFunc(item, practionerRef);
-    //   }
-      
+            }) 
   }
 
   getQuestionnaireResponse(status) {
@@ -768,14 +753,9 @@ export default class QuestionnaireForm extends Component {
       reference:
         this.getPatient()
     };
-    console.log("-------------------------------------------DEBUUUUUUUUGG1");
     console.log(this.getPractitioner());
-    console.log("-------------------------------------------DEBUUUUUUUUGG2");
     this.addAuthorToResponse(qr, this.getPractitioner());
-    console.log("-------------------------------------------DEBUUUUUUUUGG3");
     console.log(qr);
-    console.log("-------------------------------------------DEBUUUUUUUUGG");
-    console.log("-------------------------------------------DEBUUUUUUUUGG");
 
     qr.questionnaire = this.props.qform.id;
 
