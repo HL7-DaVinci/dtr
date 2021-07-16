@@ -47,37 +47,37 @@ export default class QuestionnaireForm extends Component {
 
   componentWillMount() {
     // search for any partially completed QuestionnaireResponses
-    if(this.props.standalone) {
-        const response = this.props.response;
-        const items = this.props.qform.item;
-        const parentItems = [];
-        this.handleGtable(items, parentItems, response.item);
-        this.prepopulate(items, response.item, true);
-        const mergedResponse = this.mergeResponseForSameLinkId(response);
-        this.state.savedResponse = mergedResponse;
+    if (this.props.standalone) {
+      const response = this.props.response;
+      const items = this.props.qform.item;
+      const parentItems = [];
+      this.handleGtable(items, parentItems, response.item);
+      this.prepopulate(items, response.item, true);
+      const mergedResponse = this.mergeResponseForSameLinkId(response);
+      this.state.savedResponse = mergedResponse;
     } else {
-        this.smart.request("QuestionnaireResponse?" +
+      this.smart.request("QuestionnaireResponse?" +
         "status=in-progress" +
-        "&subject=" + this.getPatient()).then((result)=>{
-            this.popupClear("Would you like to continue an in-process questionnaire?", "Cancel", false);
-            this.processSavedQuestionnaireResponses(result, false);
-        }, ((result)=>{
-            this.popupClear("Error: failed to load in-process questionnaires", "OK", true);
-            this.popupLaunch();
+        "&subject=" + this.getPatient()).then((result) => {
+          this.popupClear("Would you like to continue an in-process questionnaire?", "Cancel", false);
+          this.processSavedQuestionnaireResponses(result, false);
+        }, ((result) => {
+          this.popupClear("Error: failed to load in-process questionnaires", "OK", true);
+          this.popupLaunch();
         })).catch(console.error);
 
-        // If not using saved QuestionnaireResponse, create a new one
-        let newResponse = {
-            resourceType: 'QuestionnaireResponse',
-            status: 'draft',
-            item: []
-        }
-        const items = this.props.qform.item;
-        const parentItems = [];
-        this.handleGtable(items, parentItems, newResponse.item);
-        this.prepopulate(items, newResponse.item, false);
-        let mergedResponse = this.mergeResponseForSameLinkId(newResponse);
-        this.state.savedResponse = mergedResponse;
+      // If not using saved QuestionnaireResponse, create a new one
+      let newResponse = {
+        resourceType: 'QuestionnaireResponse',
+        status: 'draft',
+        item: []
+      }
+      const items = this.props.qform.item;
+      const parentItems = [];
+      this.handleGtable(items, parentItems, newResponse.item);
+      this.prepopulate(items, newResponse.item, false);
+      let mergedResponse = this.mergeResponseForSameLinkId(newResponse);
+      this.state.savedResponse = mergedResponse;
     }
   }
 
@@ -88,14 +88,14 @@ export default class QuestionnaireForm extends Component {
   loadPreviousForm() {
     // search for any QuestionnaireResponses
     this.smart.request("QuestionnaireResponse?" +
-          "&subject=" + this.getPatient()).then((result)=>{
+      "&subject=" + this.getPatient()).then((result) => {
 
-      this.popupClear("Would you like to load a previous form?", "Cancel", false);
-      this.processSavedQuestionnaireResponses(result, true);
-    }, ((result)=>{
-      this.popupClear("Error: failed to load previous forms", "OK", true);
-      this.popupLaunch();
-    })).catch(console.error);
+        this.popupClear("Would you like to load a previous form?", "Cancel", false);
+        this.processSavedQuestionnaireResponses(result, true);
+      }, ((result) => {
+        this.popupClear("Error: failed to load previous forms", "OK", true);
+        this.popupLaunch();
+      })).catch(console.error);
 
   }
 
@@ -104,14 +104,14 @@ export default class QuestionnaireForm extends Component {
 
     if (partialResponses && (partialResponses.total > 0)) {
       const options = {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: 'numeric',
-          minute: 'numeric',
-          second: 'numeric'
-        };
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric'
+      };
 
       let count = 0;
 
@@ -139,8 +139,8 @@ export default class QuestionnaireForm extends Component {
 
     // display a message that none were found if necessary
     if (noneFound && displayErrorOnNoneFound) {
-        this.popupClear("No saved forms available to load.", "OK", true);
-        this.popupLaunch();
+      this.popupClear("No saved forms available to load.", "OK", true);
+      this.popupLaunch();
     }
   }
 
@@ -180,27 +180,27 @@ export default class QuestionnaireForm extends Component {
     };
     const responseItems = response.item;
     let itemKeyList = new Set();
-    for(let i = 0; i < responseItems.length; i++) {
-        itemKeyList.add(responseItems[i].linkId);
+    for (let i = 0; i < responseItems.length; i++) {
+      itemKeyList.add(responseItems[i].linkId);
     }
     itemKeyList.forEach(linkId => {
-        let linkIdItem = {
-            linkId,
-            item: []
-        };
-        let filteredItems = responseItems.filter(responseItem => responseItem.linkId == linkId
-        );
-        if(filteredItems) {
-          filteredItems.forEach(foundItem => {
-            if(foundItem.item) {
-              linkIdItem.item.push(...foundItem.item);
-            } else {
-              linkIdItem = foundItem;
-              linkIdItem.item = null;
-            }
-          });
-          mergedResponse.item.push(linkIdItem);
-        }
+      let linkIdItem = {
+        linkId,
+        item: []
+      };
+      let filteredItems = responseItems.filter(responseItem => responseItem.linkId == linkId
+      );
+      if (filteredItems) {
+        filteredItems.forEach(foundItem => {
+          if (foundItem.item) {
+            linkIdItem.item.push(...foundItem.item);
+          } else {
+            linkIdItem = foundItem;
+            linkIdItem.item = null;
+          }
+        });
+        mergedResponse.item.push(linkIdItem);
+      }
     });
     return mergedResponse;
   }
@@ -214,21 +214,21 @@ export default class QuestionnaireForm extends Component {
   // e.g. expression object list is [{"RxNorm":"content", "Description": "description"}]
   // the corresponding item would be "item": [{"text": "RxNorm", "type": "string", "linkId": "MED.1.1"}, {"text": "Description", "type": "string", "linkId": "MED.1.2"} ]
   handleGtable(items, parentItems, responseItems) {
-    for(let itemIndex = 0; itemIndex < items.length; itemIndex++) {
+    for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
       let item = items[itemIndex];
       let response_item = {
         "linkId": item.linkId
       };
-      if(item.item) {
+      if (item.item) {
         parentItems.push(response_item);
       }
 
       if (item.type == "group" && item.extension) {
 
-        let isGtable = item.extension.some( e =>
+        let isGtable = item.extension.some(e =>
           e.url == "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl" && e.valueCodeableConcept.coding[0].code == "gtable"
         );
-        let containsValueExpression = item.extension.some ( e =>
+        let containsValueExpression = item.extension.some(e =>
           e.url == "http://hl7.org/fhir/StructureDefinition/cqf-expression" || e.url == "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression"
         );
 
@@ -241,27 +241,27 @@ export default class QuestionnaireForm extends Component {
           let prepopulationResult = this.getLibraryPrepopulationResult(item, this.props.cqlPrepopulationResults);
 
           // console.log("prepopulationResult: ", prepopulationResult);
-          if(prepopulationResult && prepopulationResult.length > 0) {
-              let newItemList = this.buildGTableItems(item, prepopulationResult);
-              parentItems.pop();
-              let parentItem = parentItems.pop();
-              if (newItemList.length > 0) {
-                parentItem.item = [];
-                for(let i = 0; i < newItemList.length; i++) {
-                  parentItem.item.push(newItemList[i])
-                }
-                responseItems.push(parentItem);
+          if (prepopulationResult && prepopulationResult.length > 0) {
+            let newItemList = this.buildGTableItems(item, prepopulationResult);
+            parentItems.pop();
+            let parentItem = parentItems.pop();
+            if (newItemList.length > 0) {
+              parentItem.item = [];
+              for (let i = 0; i < newItemList.length; i++) {
+                parentItem.item.push(newItemList[i])
               }
+              responseItems.push(parentItem);
+            }
           } else {
             // remove valueExpression from item to prevent prepopulate function to fill empty response
-            let valueExpressionIndex = item.extension.findIndex( e => e.url == "http://hl7.org/fhir/StructureDefinition/cqf-expression" || e.url == "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression");
+            let valueExpressionIndex = item.extension.findIndex(e => e.url == "http://hl7.org/fhir/StructureDefinition/cqf-expression" || e.url == "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression");
             item.extension.splice(valueExpressionIndex, 1);
           }
         }
         continue;
       }
 
-      if(item.item) {
+      if (item.item) {
         this.handleGtable(item.item, parentItems, responseItems);
       }
     }
@@ -270,7 +270,7 @@ export default class QuestionnaireForm extends Component {
   // build multiple items if there are multiple items for the gtable
   buildGTableItems(item, prepopulationResult) {
     //remove expression extension
-    let expressionExtensionIndex = item.extension.findIndex ( e =>
+    let expressionExtensionIndex = item.extension.findIndex(e =>
       e.url == "http://hl7.org/fhir/StructureDefinition/cqf-expression" || e.url == "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression"
     );
     item.extension.splice(expressionExtensionIndex, 1);
@@ -278,7 +278,7 @@ export default class QuestionnaireForm extends Component {
     let itemSubItems = item.item;
     let newItemResponseList = [];
 
-    for(let index = 0; index < prepopulationResult.length; index++) {
+    for (let index = 0; index < prepopulationResult.length; index++) {
       let result = prepopulationResult[index];
 
       let newItemResponse = {
@@ -296,9 +296,9 @@ export default class QuestionnaireForm extends Component {
       newItemResponse.item.forEach(subItem => {
         let resultTextValue = result[subItem.text];
         if (resultTextValue) {
-            subItem.answer = [{
-                "valueString": resultTextValue
-            }];
+          subItem.answer = [{
+            "valueString": resultTextValue
+          }];
         }
       });
       newItemResponseList.push(newItemResponse);
@@ -497,7 +497,7 @@ export default class QuestionnaireForm extends Component {
     let system = '';
     let displayText = v.display
 
-    if(v.type && v.type === 'encounter' && v.periodStart) {
+    if (v.type && v.type === 'encounter' && v.periodStart) {
       displayText = 'Encounter - ' + v.display + ' on ' + v.periodStart
     } else if (v.system) {
       if (v.system == 'http://snomed.info/sct') {
@@ -542,12 +542,12 @@ export default class QuestionnaireForm extends Component {
     // send the QuestionnaireResponse to the EHR FHIR server
     var questionnaireUrl = sessionStorage["serviceUri"] + "/QuestionnaireResponse";
     console.log("Storing QuestionnaireResponse to: " + questionnaireUrl);
-    this.smart.create(questionnaireReponse).then((result)=>{
+    this.smart.create(questionnaireReponse).then((result) => {
       if (showPopup) {
         this.popupClear("Partially completed form (QuestionnaireResponse) saved to EHR", "OK", true);
         this.popupLaunch();
       }
-    }, ((result)=>{
+    }, ((result) => {
       this.popupClear("Error: Partially completed form (QuestionnaireResponse) Failed to save to EHR", "OK", true);
       this.popupLaunch();
     })).catch(console.error);
@@ -665,7 +665,7 @@ export default class QuestionnaireForm extends Component {
     var p = "Unknown";
     var requestType = "Unknown";
     if (this.patientId) {
-        p = `Patient/${this.patientId}`;
+      p = `Patient/${this.patientId}`;
     } else if (this.props.deviceRequest) {
       requestType = this.props.deviceRequest.resourceType;
       if (requestType == "DeviceRequest") {
@@ -698,63 +698,40 @@ export default class QuestionnaireForm extends Component {
     return c;
   }
 
-  addAuthorToResponse(qr, practionerRef)
-  {
-    function traverseToItemsLeafNode(item, url)
-    {
+  addAuthorToResponse(qr, practionerRef) {
+    function traverseToItemsLeafNode(item, practionerRef) {
       if (!item.item) {
-          return addAuthor(item,url);
+        return addAuthor(item, practionerRef);
       }
       else {
-          item.item.map(item =>
-              {
-                traverseToItemsLeafNode(item, url);
-              })
-              
-          }
-        
+        item.item.map(item => {
+          traverseToItemsLeafNode(item, practionerRef);
+        })
+      }
     }
     // url is a string
-    function addAuthor(item, practionerRef)
-    {
-      if (item.extension)
+    function addAuthor(item, practionerRef) {
+      var url = "http://hl7.org/fhir/StructureDefinition/questionnaireresponse-author"
+      const urlValRef =
       {
-          item.extension.push(
-              {
-                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaireresponse-author",
-                  "valueReference": 
-                  {
-                      "reference": practionerRef
-                  }
-              }
-          )
-
+        "url": url,
+        "valueReference":
+        {
+          "reference": practionerRef
+        }
       }
-      else
-      {
-          item["extension"] =
-          [
-              {
-                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaireresponse-author",
-                  "valueReference": 
-                  {
-                      "reference": practionerRef
-                  }
-              }
-              
-          ]
+      if (item.extension) {
+        item.extension.push(urlValRef)
+      }
+      else {
+        item["extension"] = [urlValRef]
         console.log(item);
         console.log(practionerRef);
-        }
+      }
     }
-      qr.item.map(item=> 
-        {
-          response.item.map(item=> 
-            {
-              traverseToItemsLeafNode(item, practionerRef)
-                
-                })
-            }) 
+    qr.item.map(item => {
+      traverseToItemsLeafNode(item, practionerRef)
+    })
   }
 
   getQuestionnaireResponse(status) {
@@ -787,15 +764,15 @@ export default class QuestionnaireForm extends Component {
     var qr = this.getQuestionnaireResponse("completed");
 
     // change QuestionnaireResponse meta to show DTR QuestionnaireResponse instead of SDC QuestionnaireResponse
-    if (qr.meta && qr.meta.profile && qr.meta.profile.length){
+    if (qr.meta && qr.meta.profile && qr.meta.profile.length) {
       qr['meta']['profile'][0] = DTRQuestionnaireResponseURL;
     }
 
     // do a fetch back to the dtr server to post the QuestionnaireResponse to CRD
     const requestOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/fhir+json' },
-        body: JSON.stringify(qr)
+      method: 'POST',
+      headers: { 'Content-Type': 'application/fhir+json' },
+      body: JSON.stringify(qr)
     };
 
     function handleFetchErrors(response) {
@@ -811,10 +788,10 @@ export default class QuestionnaireForm extends Component {
     let url = this.FHIR_PREFIX + this.fhirVersion + "/QuestionnaireResponse";
     console.log(url);
     fetch(url, requestOptions).then(handleFetchErrors).then(r => {
-        let msg = "QuestionnaireResponse sent to Payer";
-        console.log(msg);
-        alert(msg);
-      })
+      let msg = "QuestionnaireResponse sent to Payer";
+      console.log(msg);
+      alert(msg);
+    })
       .catch(err => {
         console.log("error sending new QuestionnaireResponse to the Payer: ", err);
       });
@@ -910,8 +887,8 @@ export default class QuestionnaireForm extends Component {
       },
       identifier: [
         {
-            system: "urn:uuid:mitre-drls",
-            value: shortid.generate()
+          system: "urn:uuid:mitre-drls",
+          value: shortid.generate()
         }
       ],
       use: "preauthorization",
@@ -1044,7 +1021,7 @@ export default class QuestionnaireForm extends Component {
   makeReference(bundle, resourceType) {
     try {
       if (resourceType == undefined || resourceType == null) {
-      console.log("resourceType undefined or null");
+        console.log("resourceType undefined or null");
       }
     } catch (error) {
       console.log(error.message);
