@@ -698,26 +698,26 @@ export default class QuestionnaireForm extends Component {
     return c;
   }
 
-  addAuthorToResponse(qr, practionerRef) {
-    function traverseToItemsLeafNode(item, practionerRef) {
+  addAuthorToResponse(qr, practitionerRef) {
+    function traverseToItemsLeafNode(item, practitionerRef) {
       if (!item.item) {
-        return addAuthor(item, practionerRef);
+        return addAuthor(item, practitionerRef);
       }
       else {
         item.item.map(item => {
-          traverseToItemsLeafNode(item, practionerRef);
+          traverseToItemsLeafNode(item, practitionerRef);
         })
       }
     }
     // url is a string
-    function addAuthor(item, practionerRef) {
+    function addAuthor(item, practitionerRef) {
       var url = "http://hl7.org/fhir/StructureDefinition/questionnaireresponse-author"
       const urlValRef =
       {
         "url": url,
         "valueReference":
         {
-          "reference": practionerRef
+          "reference": practitionerRef
         }
       }
       if (item.extension) {
@@ -726,11 +726,11 @@ export default class QuestionnaireForm extends Component {
       else {
         item["extension"] = [urlValRef]
         console.log(item);
-        console.log(practionerRef);
+        console.log(practitionerRef);
       }
     }
     qr.item.map(item => {
-      traverseToItemsLeafNode(item, practionerRef)
+      traverseToItemsLeafNode(item, practitionerRef)
     })
   }
 
