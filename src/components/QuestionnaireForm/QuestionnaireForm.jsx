@@ -743,13 +743,10 @@ export default class QuestionnaireForm extends Component {
               }
               
           ]
-      
-
         console.log(item);
         console.log(practionerRef);
         }
     }
-
       qr.item.map(item=> 
         {
           response.item.map(item=> 
