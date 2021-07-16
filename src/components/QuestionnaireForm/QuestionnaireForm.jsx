@@ -4,6 +4,7 @@ import { findValueByPrefix, searchQuestionnaire } from "../../util/util.js";
 import SelectPopup from './SelectPopup';
 import shortid from "shortid";
 import _ from "lodash";
+import ConfigData from "../../config.json";
 
 // NOTE: need to append the right FHIR version to have valid profile URL
 var DTRQuestionnaireResponseURL = "http://hl7.org/fhir/us/davinci-dtr/StructureDefinition/dtr-questionnaireresponse-";
@@ -39,6 +40,7 @@ export default class QuestionnaireForm extends Component {
     this.getLibraryPrepopulationResult = this.getLibraryPrepopulationResult.bind(this);
     this.buildGTableItems = this.buildGTableItems.bind(this);
     this.mergeResponseForSameLinkId = this.mergeResponseForSameLinkId.bind(this);
+    this.getRetrieveSaveQuestionnaireUrl = this.getRetrieveSaveQuestionnaireUrl.bind(this);
 
     DTRQuestionnaireResponseURL += this.fhirVersion.toLowerCase();
   }
@@ -56,7 +58,7 @@ export default class QuestionnaireForm extends Component {
         const mergedResponse = this.mergeResponseForSameLinkId(response);
         this.state.savedResponse = mergedResponse;
     } else {
-        this.smart.request("QuestionnaireResponse?" +
+        this.smart.request(this.getRetrieveSaveQuestionnaireUrl() +
         "status=in-progress" +
         "&subject=" + this.getPatient()).then((result)=>{
             this.popupClear("Would you like to continue an in-process questionnaire?", "Cancel", false);
@@ -85,9 +87,17 @@ export default class QuestionnaireForm extends Component {
     this.loadAndMergeForms(this.state.savedResponse);
   }
 
+  getRetrieveSaveQuestionnaireUrl = () => {
+    // read configuration 
+    let updateDate = new Date();
+    const days = ConfigData.QUESTIONNAIRE_EXPIRATION_DAYS;
+    updateDate.setDate(updateDate.getDate() - ConfigData.QUESTIONNAIRE_EXPIRATION_DAYS);
+    return "QuestionnaireResponse?" + "_updateDate=" + updateDate.toISOString().split('T')[0];
+  }
+
   loadPreviousForm() {
     // search for any QuestionnaireResponses
-    this.smart.request("QuestionnaireResponse?" +
+    this.smart.request(this.getRetrieveSaveQuestionnaireUrl() + 
           "&subject=" + this.getPatient()).then((result)=>{
 
       this.popupClear("Would you like to load a previous form?", "Cancel", false);
