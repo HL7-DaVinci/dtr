@@ -716,37 +716,39 @@ export default class QuestionnaireForm extends Component {
     }
     // url is a string
     function addAuthor(item, practionerRef)
-    if (item.extension)
     {
-        item.extension.push(
-            {
-                "url": "http://hl7.org/fhir/StructureDefinition/questionnaireresponse-author",
-                "valueReference": 
-                {
-                    "reference": practionerRef
-                }
-            }
-        )
+      if (item.extension)
+      {
+          item.extension.push(
+              {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaireresponse-author",
+                  "valueReference": 
+                  {
+                      "reference": practionerRef
+                  }
+              }
+          )
 
-    }
-    else
-    {
-        item["extension"] =
-        [
-            {
-                "url": "http://hl7.org/fhir/StructureDefinition/questionnaireresponse-author",
-                "valueReference": 
-                {
-                    "reference": practionerRef
-                }
-            }
-            
-        ]
-    
-
-      console.log(item);
-      console.log(practionerRef);
       }
+      else
+      {
+          item["extension"] =
+          [
+              {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaireresponse-author",
+                  "valueReference": 
+                  {
+                      "reference": practionerRef
+                  }
+              }
+              
+          ]
+      
+
+        console.log(item);
+        console.log(practionerRef);
+        }
+    }
 
       qr.item.map(item=> 
         {
