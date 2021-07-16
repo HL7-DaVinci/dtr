@@ -7,7 +7,6 @@ import _ from "lodash";
 
 // NOTE: need to append the right FHIR version to have valid profile URL
 var DTRQuestionnaireResponseURL = "http://hl7.org/fhir/us/davinci-dtr/StructureDefinition/dtr-questionnaireresponse-";
-// var DTRQuestionnaireResponse
 
 export default class QuestionnaireForm extends Component {
   constructor(props) {
@@ -699,23 +698,51 @@ export default class QuestionnaireForm extends Component {
     return c;
   }
 
-  // use this method
-
   addAuthorToResponse(qr, practionerRef)
   {
+    function traverseToItemsLeafNode(item, url)
+    {
+      if (!item.item) {
+          return addAuthor(item,url);
+      }
+      else {
+          item.item.map(item =>
+              {
+                traverseToItemsLeafNode(item, url);
+              })
+              
+          }
+        
+    }
     // url is a string
     function addAuthor(item, practionerRef)
+    if (item.extension)
     {
-      item["extension"] =
-    [
-        {
-            "url": "http://hl7.org/fhir/StructureDefinition/questionnaireresponse-author",
-            "valueReference": 
+        item.extension.push(
             {
-                "reference": practionerRef
+                "url": "http://hl7.org/fhir/StructureDefinition/questionnaireresponse-author",
+                "valueReference": 
+                {
+                    "reference": practionerRef
+                }
             }
-        }
-    ]
+        )
+
+    }
+    else
+    {
+        item["extension"] =
+        [
+            {
+                "url": "http://hl7.org/fhir/StructureDefinition/questionnaireresponse-author",
+                "valueReference": 
+                {
+                    "reference": practionerRef
+                }
+            }
+            
+        ]
+    
 
       console.log(item);
       console.log(practionerRef);
@@ -723,19 +750,10 @@ export default class QuestionnaireForm extends Component {
 
       qr.item.map(item=> 
         {
-            item.item.map(item =>
-                {
-                    if (item.item) 
-                    {
-                        item.item.map(item =>
-                        {
-                            addAuthor(item, practionerRef);
-                        }) 
-                    }
-                    else
-                    {
-                        addAuthor(item, practionerRef);
-                    }
+          response.item.map(item=> 
+            {
+              traverseToItemsLeafNode(item, practionerRef)
+                
                 })
             }) 
   }
