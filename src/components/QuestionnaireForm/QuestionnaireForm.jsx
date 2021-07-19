@@ -39,6 +39,7 @@ export default class QuestionnaireForm extends Component {
     this.getLibraryPrepopulationResult = this.getLibraryPrepopulationResult.bind(this);
     this.buildGTableItems = this.buildGTableItems.bind(this);
     this.mergeResponseForSameLinkId = this.mergeResponseForSameLinkId.bind(this);
+    this.addAuthorToResponse = this.addAuthorToResponse.bind(this);
 
     DTRQuestionnaireResponseURL += this.fhirVersion.toLowerCase();
   }
@@ -725,8 +726,6 @@ export default class QuestionnaireForm extends Component {
       }
       else {
         item["extension"] = [urlValRef]
-        console.log(item);
-        console.log(practitionerRef);
       }
     }
     qr.item.map(item => {
@@ -747,7 +746,6 @@ export default class QuestionnaireForm extends Component {
       reference:
         this.getPatient()
     };
-    console.log(this.getPractitioner());
     this.addAuthorToResponse(qr, this.getPractitioner());
     console.log(qr);
 
