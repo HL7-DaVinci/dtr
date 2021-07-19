@@ -4,6 +4,7 @@ import { findValueByPrefix, searchQuestionnaire } from "../../util/util.js";
 import SelectPopup from './SelectPopup';
 import shortid from "shortid";
 import _ from "lodash";
+import ReactDOM from 'react-dom'
 
 // NOTE: need to append the right FHIR version to have valid profile URL
 var DTRQuestionnaireResponseURL = "http://hl7.org/fhir/us/davinci-dtr/StructureDefinition/dtr-questionnaireresponse-";
@@ -26,7 +27,9 @@ export default class QuestionnaireForm extends Component {
       formLoaded: "New",
       popupTitle: "Would you like to continue an in-process questionnaire?",
       popupOptions: [],
-      popupFinalOption: "Cancel"
+      popupFinalOption: "Cancel",
+      formFilled: true,
+      formValidationErrors: []
     };
 
     this.outputResponse = this.outputResponse.bind(this);
@@ -83,6 +86,38 @@ export default class QuestionnaireForm extends Component {
 
   componentDidMount() {
     this.loadAndMergeForms(this.state.savedResponse);
+
+    const formErrors = LForms.Util.checkValidity();
+    this.setState({
+      formValidationErrors: formErrors == null ? [] : formErrors
+    });
+
+    document.addEventListener('change', event => {
+      if(this.props.filterChecked && event.target.id != "filterCheckbox" && event.target.id != "attestationCheckbox") {
+        const checkIfFilter = (currentErrors, newErrors, targetElementName) => {
+          if (currentErrors.length < newErrors.length)
+            return false;
+
+          const addedErrors = newErrors.filter(error => !currentErrors.includes(error));
+          if (addedErrors.some(error => error.includes(targetElementName))) {
+            return false;
+          }
+
+          return true;
+        };
+        const newErrors = LForms.Util.checkValidity();
+        const ifFilter = checkIfFilter(this.state.formValidationErrors,  newErrors == null? [] : newErrors, event.target.getAttribute("name"));
+        
+        if(ifFilter) {
+          this.props.filterFieldsFn(this.props.formFilled);
+        } else {
+          console.log("Modified field is invalid. Skip filtering.");
+        }
+        this.setState({
+          formValidationErrors: newErrors
+        });
+      }
+    });
   }
 
   loadPreviousForm() {
@@ -163,14 +198,30 @@ export default class QuestionnaireForm extends Component {
     }
 
     console.log(lform);
+  
     LForms.Util.addFormToPage(lform, "formContainer");
     const header = document.getElementsByClassName("lf-form-title")[0];
     const el = document.createElement('div');
-    el.setAttribute("id", "button-container")
+    el.setAttribute("id", "button-container");
     header.appendChild(el);
     this.props.renderButtons(el);
+
+    const patientInfoEl = document.createElement('div');
+    patientInfoEl.setAttribute("id", "patientInfo-container");
+    header.appendChild(patientInfoEl);
+    let patientId = this.getPatient().replace("Patient/", "");
+    let patientInfoElement = (display) => (<div className="patient-info-panel"><label>Patient: {display}</label></div>);
+    this.smart.request("Patient/"+patientId).then((result) => {
+        ReactDOM.render(patientInfoElement(`${result.name[0].given[0]} ${result.name[0].family}`), patientInfoEl);
+    }, (error) => {
+        console.log("Failed to retrieve the patient information. Error is ", error);
+        ReactDOM.render(patientInfoElement("Unknown"), patientInfoEl);
+    });
+
+    this.props.filterFieldsFn(true);
   }
 
+  
   // Merge the items for the same linkId to comply with the LHCForm
   mergeResponseForSameLinkId(response) {
     let mergedResponse = {
@@ -1072,6 +1123,7 @@ export default class QuestionnaireForm extends Component {
       <div>
         <div id="formContainer">
         </div>
+        {this.props.formFilled ? <div className="form-message-panel"><p>All fields have been filled. Continue or uncheck "Only Show Unfilled Fields" to review and modify the form.</p></div> : null}
         <SelectPopup
           title={this.state.popupTitle}
           options={this.state.popupOptions}
