@@ -722,7 +722,11 @@ export default class QuestionnaireForm extends Component {
         }
       }
       if (item.extension) {
-        item.extension.push(urlValRef)
+        const found = item.extension.find(element => element.url === url)
+        // if there is already an extension with author-extension url
+        if (!found) {
+          item.extension.push(urlValRef)
+        }
       }
       else {
         item["extension"] = [urlValRef]
