@@ -1082,8 +1082,6 @@ export default class QuestionnaireForm extends Component {
             savedParentItem.item.push(newResponseItem);
             savedParentItem.item.sort((firstItem, secondItem) => {
               const getItemNumber = item => Number.parseInt(item.linkId.slice(item.linkId.lastIndexOf(".") + 1));
-              console.log(getItemNumber(firstItem));
-              console.log(getItemNumber(secondItem));
               if (getItemNumber(firstItem) < getItemNumber(secondItem)) {
                 return -1;
               } else {
