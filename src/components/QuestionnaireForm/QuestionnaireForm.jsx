@@ -722,10 +722,25 @@ export default class QuestionnaireForm extends Component {
         }
       }
       if (item.extension) {
-        const found = item.extension.find(element => element.url === url)
         // if there is already an extension with author-extension url
-        if (!found) {
-          item.extension.push(urlValRef)
+        const completelyFound = item.extension.find(element => element.url === url && element.valueReference.reference === practitionerRef)
+        const urlFound = item.extension.find(element => element.url === url && element.valueReference.reference !== practitionerRef)
+        
+        var urlFoundIndex = item.extension.findIndex(element => element.url === url)
+        
+        if (!completelyFound) {
+          if (urlFound)
+            {
+                console.log("first loop")
+                item.extension[urlFoundIndex].valueReference =
+                {
+                    "reference": practitionerRef
+                }   
+            }
+            else
+            {
+              item.extension.push(urlValRef)
+            }
         }
       }
       else {
