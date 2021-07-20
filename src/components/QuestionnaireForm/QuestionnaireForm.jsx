@@ -39,6 +39,7 @@ export default class QuestionnaireForm extends Component {
     this.getLibraryPrepopulationResult = this.getLibraryPrepopulationResult.bind(this);
     this.buildGTableItems = this.buildGTableItems.bind(this);
     this.mergeResponseForSameLinkId = this.mergeResponseForSameLinkId.bind(this);
+    this.updateMergeItem = this.updateMergeItem.bind(this);
     this.updateSavedResponseWithPrepopulation = this.updateSavedResponseWithPrepopulation.bind(this);
 
     DTRQuestionnaireResponseURL += this.fhirVersion.toLowerCase();
@@ -1053,37 +1054,64 @@ export default class QuestionnaireForm extends Component {
     }
   }
 
+  updateMergeItem (newItem, savedItem) {
+    if (newItem.item == undefined) {
+      //find the corresponding linkId in savedItem and replace it
+      function replaceItem(savedItem) {
+        const findSavedParentItem = (parentLinkId, savedItem) => {
+          if (savedItem.linkId == parentLinkId) {
+            return savedItem;
+          } else {
+            const parentIndex = savedItem.item.findIndex(item => item.linkId == parentLinkId);
+            if (parentIndex != -1) {
+              return savedItem.item[parentIndex];
+            } else {
+              findSavedParentItem(parentLinkId, savedItem.item);
+            }
+          }
+        };
+        //find the parent linkId
+        const parentLinkId = newItem.linkId.slice(0, newItem.linkId.lastIndexOf("."));
+        const savedParentItem = findSavedParentItem(parentLinkId, savedItem);
+
+        const replaceOrInsertItem = (newResponseItem, savedParentItem) => {
+          const replaceIndex = savedParentItem.item.findIndex(item => item.linkId == newResponseItem.linkId);
+          if (replaceIndex != -1) {
+            savedParentItem.item[replaceIndex] = newResponseItem;
+          } else {
+            savedParentItem.item.push(newResponseItem);
+            savedParentItem.item.sort((firstItem, secondItem) => {
+              const getItemNumber = item => Number.parseInt(item.linkId.slice(item.linkId.lastIndexOf(".") + 1));
+              console.log(getItemNumber(firstItem));
+              console.log(getItemNumber(secondItem));
+              if (getItemNumber(firstItem) < getItemNumber(secondItem)) {
+                return -1;
+              } else {
+                return 1;
+              }
+            });
+          }
+        };
+        if (savedParentItem != undefined) {
+          replaceOrInsertItem(newItem, savedParentItem);
+        }
+      };
+
+      replaceItem(savedItem);
+    } else {
+      newItem.item.forEach(newSubItem => {
+        this.updateMergeItem(newSubItem, savedItem);
+      });
+    }
+  };
+
   updateSavedResponseWithPrepopulation = (newOne, saved) => {
     newOne.item.map(newItem => {
       let savedIndex = saved.item.findIndex(savedItem => newItem.linkId == savedItem.linkId);
       if (savedIndex != -1) {
-        updateItem(newItem, saved.item[savedIndex]);
+        this.updateMergeItem(newItem, saved.item[savedIndex]);
       }
     })
-
-    function updateItem(newItem, savedItem) {
-      if (newItem.item == undefined) {
-        //find the corresponding linkId in savedItem and replace it
-        function replaceItem(savedItem) {
-          if (savedItem.item == undefined) {
-            // Couldn't found linkId in the savedItem, ignore it
-            return;
-          }
-          let foundSavedItemIndex = savedItem.item.findIndex(saved => saved.linkId == newItem.linkId);
-          if (foundSavedItemIndex != -1) {
-            savedItem.item[foundSavedItemIndex] = newItem;
-            return;
-          } else {
-            replaceItem(savedItem.item);
-          }
-        };
-        replaceItem(savedItem);
-      } else {
-        newItem.item.forEach(newSubItem => {
-          updateItem(newSubItem, savedItem);
-        });
-      }
-    }
   };
 
   popupClear(title, finalOption, logTitle) {
