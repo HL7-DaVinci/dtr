@@ -1,4 +1,6 @@
 const path = require("path");
+console.log(__dirname);
+console.log("Current directory: " + process.cwd());
 
 module.exports = {
 	mode: "production",
