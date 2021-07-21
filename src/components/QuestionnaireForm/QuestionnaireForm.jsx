@@ -1054,7 +1054,7 @@ export default class QuestionnaireForm extends Component {
     }
   }
 
-  updateMergeItem (newItem, savedItem) {
+  updateMergeItem (newItem, savedItem, parentLinkId) {
     if (newItem.item == undefined) {
       //find the corresponding linkId in savedItem and replace it
       function replaceItem(savedItem) {
@@ -1071,7 +1071,7 @@ export default class QuestionnaireForm extends Component {
           }
         };
         //find the parent linkId
-        const parentLinkId = newItem.linkId.slice(0, newItem.linkId.lastIndexOf("."));
+        //const parentLinkId = newItem.linkId.slice(0, newItem.linkId.lastIndexOf("."));
         const savedParentItem = findSavedParentItem(parentLinkId, savedItem);
 
         const replaceOrInsertItem = (newResponseItem, savedParentItem) => {
@@ -1080,14 +1080,14 @@ export default class QuestionnaireForm extends Component {
             savedParentItem.item[replaceIndex] = newResponseItem;
           } else {
             savedParentItem.item.push(newResponseItem);
-            savedParentItem.item.sort((firstItem, secondItem) => {
+           /* savedParentItem.item.sort((firstItem, secondItem) => {
               const getItemNumber = item => Number.parseInt(item.linkId.slice(item.linkId.lastIndexOf(".") + 1));
               if (getItemNumber(firstItem) < getItemNumber(secondItem)) {
                 return -1;
               } else {
                 return 1;
               }
-            });
+            }); */
           }
         };
         if (savedParentItem != undefined) {
@@ -1098,7 +1098,7 @@ export default class QuestionnaireForm extends Component {
       replaceItem(savedItem);
     } else {
       newItem.item.forEach(newSubItem => {
-        this.updateMergeItem(newSubItem, savedItem);
+        this.updateMergeItem(newSubItem, savedItem, newItem.linkId);
       });
     }
   };
