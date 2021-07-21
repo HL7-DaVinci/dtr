@@ -59,7 +59,7 @@ export default class QuestionnaireForm extends Component {
         this.state.savedResponse = mergedResponse;
     } else {
         this.smart.request(this.getRetrieveSaveQuestionnaireUrl() +
-        "status=in-progress" +
+        "&status=in-progress" +
         "&subject=" + this.getPatient()).then((result)=>{
             this.popupClear("Would you like to continue an in-process questionnaire?", "Cancel", false);
             this.processSavedQuestionnaireResponses(result, false);
@@ -89,7 +89,6 @@ export default class QuestionnaireForm extends Component {
 
   getRetrieveSaveQuestionnaireUrl = () => {
     // read configuration 
-    let updateDate = new Date();
     const days = ConfigData.QUESTIONNAIRE_EXPIRATION_DAYS;
     updateDate.setDate(updateDate.getDate() - ConfigData.QUESTIONNAIRE_EXPIRATION_DAYS);
     return "QuestionnaireResponse?" + "_updateDate=" + updateDate.toISOString().split('T')[0];
