@@ -39,7 +39,6 @@ export default class QuestionnaireForm extends Component {
     this.getLibraryPrepopulationResult = this.getLibraryPrepopulationResult.bind(this);
     this.buildGTableItems = this.buildGTableItems.bind(this);
     this.mergeResponseForSameLinkId = this.mergeResponseForSameLinkId.bind(this);
-    //this.updateMergeItem = this.updateMergeItem.bind(this);
     this.updateSavedResponseWithPrepopulation = this.updateSavedResponseWithPrepopulation.bind(this);
 
     DTRQuestionnaireResponseURL += this.fhirVersion.toLowerCase();
@@ -1054,10 +1053,11 @@ export default class QuestionnaireForm extends Component {
     }
   }
 
-  /*updateMergeItem (newItem, savedItem, parentLinkId) {
-    if (newItem.item == undefined) {
-      //find the corresponding linkId in savedItem and replace it
-      function replaceItem(savedItem) {
+
+  updateSavedResponseWithPrepopulation = (newOne, saved) => {
+    const updateMergeItem = (newItem, savedItem, parentLinkId) => {
+      if (newItem.item == undefined) {
+        //find the corresponding linkId in savedItem and replace it
         const findSavedParentItem = (parentLinkId, savedItem) => {
           if (savedItem.linkId == parentLinkId) {
             return savedItem;
@@ -1070,7 +1070,7 @@ export default class QuestionnaireForm extends Component {
             }
           }
         };
-      
+
         const savedParentItem = findSavedParentItem(parentLinkId, savedItem);
         const replaceOrInsertItem = (newResponseItem, savedParentItem) => {
           const replaceIndex = savedParentItem.item.findIndex(item => item.linkId == newResponseItem.linkId);
@@ -1083,49 +1083,6 @@ export default class QuestionnaireForm extends Component {
         if (savedParentItem != undefined) {
           replaceOrInsertItem(newItem, savedParentItem);
         }
-      };
-
-      replaceItem(savedItem);
-    } else {
-      newItem.item.forEach(newSubItem => {
-        this.updateMergeItem(newSubItem, savedItem, newItem.linkId);
-      });
-    }
-  }; */
-
-  updateSavedResponseWithPrepopulation = (newOne, saved) => {
-    const updateMergeItem  = (newItem, savedItem, parentLinkId)  => {
-      if (newItem.item == undefined) {
-        //find the corresponding linkId in savedItem and replace it
-        function replaceItem(savedItem) {
-          const findSavedParentItem = (parentLinkId, savedItem) => {
-            if (savedItem.linkId == parentLinkId) {
-              return savedItem;
-            } else {
-              const parentIndex = savedItem.item.findIndex(item => item.linkId == parentLinkId);
-              if (parentIndex != -1) {
-                return savedItem.item[parentIndex];
-              } else {
-                findSavedParentItem(parentLinkId, savedItem.item);
-              }
-            }
-          };
-        
-          const savedParentItem = findSavedParentItem(parentLinkId, savedItem);
-          const replaceOrInsertItem = (newResponseItem, savedParentItem) => {
-            const replaceIndex = savedParentItem.item.findIndex(item => item.linkId == newResponseItem.linkId);
-            if (replaceIndex != -1) {
-              savedParentItem.item[replaceIndex] = newResponseItem;
-            } else {
-              savedParentItem.item.push(newResponseItem);
-            }
-          };
-          if (savedParentItem != undefined) {
-            replaceOrInsertItem(newItem, savedParentItem);
-          }
-        };
-  
-        replaceItem(savedItem);
       } else {
         newItem.item.forEach(newSubItem => {
           updateMergeItem(newSubItem, savedItem, newItem.linkId);
