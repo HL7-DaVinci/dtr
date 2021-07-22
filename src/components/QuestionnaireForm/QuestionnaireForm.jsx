@@ -762,9 +762,9 @@ export default class QuestionnaireForm extends Component {
         this.getPatient()
     };
     this.addAuthorToResponse(qr, this.getPractitioner());
-    console.log("GetQuestionnaireResponse final QuestionnaireResponse: ", qr);
-
+    
     qr.questionnaire = this.props.qform.id;
+    console.log("GetQuestionnaireResponse final QuestionnaireResponse: ", qr);
 
     console.log(this.props.attested);
     const aa = searchQuestionnaire(qr, this.props.attested);
