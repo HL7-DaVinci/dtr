@@ -725,22 +725,18 @@ export default class QuestionnaireForm extends Component {
         // if there is already an extension with author-extension url
         const completelyFound = item.extension.find(element => element.url === url && element.valueReference.reference === practitionerRef)
         const urlFound = item.extension.find(element => element.url === url && element.valueReference.reference !== practitionerRef)
-        
-        var urlFoundIndex = item.extension.findIndex(element => element.url === url)
-        
+
         if (!completelyFound) {
-          if (urlFound)
+          if (urlFound) {
+            var urlFoundIndex = item.extension.findIndex(element => element.url === url)
+            item.extension[urlFoundIndex].valueReference =
             {
-                console.log("first loop")
-                item.extension[urlFoundIndex].valueReference =
-                {
-                    "reference": practitionerRef
-                }   
+              "reference": practitionerRef
             }
-            else
-            {
-              item.extension.push(urlValRef)
-            }
+          }
+          else {
+            item.extension.push(urlValRef)
+          }
         }
       }
       else {
@@ -766,7 +762,7 @@ export default class QuestionnaireForm extends Component {
         this.getPatient()
     };
     this.addAuthorToResponse(qr, this.getPractitioner());
-    console.log(qr);
+    console.log("GetQuestionnaireResponse final QuestionnaireResponse: ", qr);
 
     qr.questionnaire = this.props.qform.id;
 
