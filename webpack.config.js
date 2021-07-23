@@ -1,7 +1,7 @@
 const path = require("path");
 console.log(__dirname);
 console.log("Current directory: " + process.cwd());
-
+console.log(path.resolve(__dirname, "src/launch.js"));
 module.exports = {
 	mode: "production",
     entry: {
@@ -13,7 +13,7 @@ module.exports = {
       output: {
         filename: "[name].bundle.js",
         path: path.resolve(__dirname, "public/js"),
-        publicPath: "/"
+        publicPath: "./"
       },
 	watch: true,
     devtool: "#eval-source-map",
