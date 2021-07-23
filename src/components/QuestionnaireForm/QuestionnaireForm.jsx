@@ -89,7 +89,7 @@ export default class QuestionnaireForm extends Component {
 
   getRetrieveSaveQuestionnaireUrl = () => {
     // read configuration 
-    const days = ConfigData.QUESTIONNAIRE_EXPIRATION_DAYS;
+    let updateDate = new Date();
     updateDate.setDate(updateDate.getDate() - ConfigData.QUESTIONNAIRE_EXPIRATION_DAYS);
     return "QuestionnaireResponse?" + "_updateDate=" + updateDate.toISOString().split('T')[0];
   }
