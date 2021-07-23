@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "start": "npm-run-all --parallel startBackendDev buildFrontendDev",
-    "buildFrontend": "webpack --config ./webpack.config.prod.js --progress --stats",
-    "buildFrontendDev": "webpack --config ./webpack.config.js --progress",
+    "buildFrontend": "webpack --config ./webpack.config.prod.js",
+    "buildFrontendDev": "webpack --config ./webpack.config.js",
     "startTemplate": "npm-run-all -s buildFrontend startBackend",
     "startProd": "npm-run-all -s buildFrontend startBackend",
     "startBackendDev": "nodemon --watch public ./bin/dev",

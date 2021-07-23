@@ -1,7 +1,5 @@
 const path = require("path");
-console.log(__dirname);
-console.log("Current directory: " + process.cwd());
-console.log(path.resolve(__dirname, "src/launch.js"));
+
 module.exports = {
 	mode: "production",
     entry: {
