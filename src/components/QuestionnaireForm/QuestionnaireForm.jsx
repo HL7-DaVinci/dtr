@@ -40,7 +40,7 @@ export default class QuestionnaireForm extends Component {
     this.buildGTableItems = this.buildGTableItems.bind(this);
     this.mergeResponseForSameLinkId = this.mergeResponseForSameLinkId.bind(this);
     this.addAuthorToResponse = this.addAuthorToResponse.bind(this);
-
+    this.updateSavedResponseWithPrepopulation = this.updateSavedResponseWithPrepopulation.bind(this);
     DTRQuestionnaireResponseURL += this.fhirVersion.toLowerCase();
   }
 
