@@ -42,6 +42,7 @@ export default class QuestionnaireForm extends Component {
     this.getLibraryPrepopulationResult = this.getLibraryPrepopulationResult.bind(this);
     this.buildGTableItems = this.buildGTableItems.bind(this);
     this.mergeResponseForSameLinkId = this.mergeResponseForSameLinkId.bind(this);
+    this.updateSavedResponseWithPrepopulation = this.updateSavedResponseWithPrepopulation.bind(this);
 
     DTRQuestionnaireResponseURL += this.fhirVersion.toLowerCase();
   }
@@ -1078,7 +1079,7 @@ export default class QuestionnaireForm extends Component {
     if (this.partialForms[returnValue]) {
       // load the selected form
       let partialResponse = this.partialForms[returnValue];
-      let saved_response = true;
+      let saved_response = false;
 
       console.log(partialResponse);
 
@@ -1087,12 +1088,13 @@ export default class QuestionnaireForm extends Component {
       // If not using saved QuestionnaireResponse, create a new one
       let newResponse = {
         resourceType: 'QuestionnaireResponse',
-        status: 'draft',
         item: []
       }
 
       const items = this.props.qform.item;
       this.prepopulate(items, newResponse.item, saved_response)
+
+      this.updateSavedResponseWithPrepopulation(newResponse, partialResponse);
 
       // force it to reload the form
       this.loadAndMergeForms(partialResponse);
@@ -1101,6 +1103,51 @@ export default class QuestionnaireForm extends Component {
       console.log("No form loaded.");
     }
   }
+
+
+  updateSavedResponseWithPrepopulation = (newOne, saved) => {
+    const updateMergeItem = (newItem, savedItem, parentLinkId) => {
+      if (newItem.item == undefined) {
+        //find the corresponding linkId in savedItem and replace it
+        const findSavedParentItem = (parentLinkId, savedItem) => {
+          if (savedItem.linkId == parentLinkId) {
+            return savedItem;
+          } else {
+            const parentIndex = savedItem.item.findIndex(item => item.linkId == parentLinkId);
+            if (parentIndex != -1) {
+              return savedItem.item[parentIndex];
+            } else {
+              findSavedParentItem(parentLinkId, savedItem.item);
+            }
+          }
+        };
+
+        const savedParentItem = findSavedParentItem(parentLinkId, savedItem);
+        const replaceOrInsertItem = (newResponseItem, savedParentItem) => {
+          const replaceIndex = savedParentItem.item.findIndex(item => item.linkId == newResponseItem.linkId);
+          if (replaceIndex != -1) {
+            savedParentItem.item[replaceIndex] = newResponseItem;
+          } else {
+            savedParentItem.item.push(newResponseItem);
+          }
+        };
+        if (savedParentItem != undefined) {
+          replaceOrInsertItem(newItem, savedParentItem);
+        }
+      } else {
+        newItem.item.forEach(newSubItem => {
+          updateMergeItem(newSubItem, savedItem, newItem.linkId);
+        });
+      }
+    };
+
+    newOne.item.map(newItem => {
+      let savedIndex = saved.item.findIndex(savedItem => newItem.linkId == savedItem.linkId);
+      if (savedIndex != -1) {
+        updateMergeItem(newItem, saved.item[savedIndex], newOne.linkId);
+      }
+    });
+  };
 
   popupClear(title, finalOption, logTitle) {
     this.setState({
