@@ -91,7 +91,7 @@ export default class QuestionnaireForm extends Component {
     // read configuration 
     let updateDate = new Date();
     updateDate.setDate(updateDate.getDate() - ConfigData.QUESTIONNAIRE_EXPIRATION_DAYS);
-    return "QuestionnaireResponse?" + "_updateDate=" + updateDate.toISOString().split('T')[0];
+    return "QuestionnaireResponse?" + "_lastUpdated=gt" + updateDate.toISOString().split('T')[0];
   }
 
   loadPreviousForm() {
