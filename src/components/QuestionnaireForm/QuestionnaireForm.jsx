@@ -5,6 +5,7 @@ import SelectPopup from './SelectPopup';
 import shortid from "shortid";
 import _ from "lodash";
 import ConfigData from "../../config.json";
+import ReactDOM from 'react-dom'
 
 // NOTE: need to append the right FHIR version to have valid profile URL
 var DTRQuestionnaireResponseURL = "http://hl7.org/fhir/us/davinci-dtr/StructureDefinition/dtr-questionnaireresponse-";
@@ -27,7 +28,9 @@ export default class QuestionnaireForm extends Component {
       formLoaded: "New",
       popupTitle: "Would you like to continue an in-process questionnaire?",
       popupOptions: [],
-      popupFinalOption: "Cancel"
+      popupFinalOption: "Cancel",
+      formFilled: true,
+      formValidationErrors: []
     };
 
     this.outputResponse = this.outputResponse.bind(this);
@@ -41,6 +44,7 @@ export default class QuestionnaireForm extends Component {
     this.buildGTableItems = this.buildGTableItems.bind(this);
     this.mergeResponseForSameLinkId = this.mergeResponseForSameLinkId.bind(this);
     this.getRetrieveSaveQuestionnaireUrl = this.getRetrieveSaveQuestionnaireUrl.bind(this);
+    this.updateSavedResponseWithPrepopulation = this.updateSavedResponseWithPrepopulation.bind(this);
 
     DTRQuestionnaireResponseURL += this.fhirVersion.toLowerCase();
   }
@@ -85,6 +89,38 @@ export default class QuestionnaireForm extends Component {
 
   componentDidMount() {
     this.loadAndMergeForms(this.state.savedResponse);
+
+    const formErrors = LForms.Util.checkValidity();
+    this.setState({
+      formValidationErrors: formErrors == null ? [] : formErrors
+    });
+
+    document.addEventListener('change', event => {
+      if(this.props.filterChecked && event.target.id != "filterCheckbox" && event.target.id != "attestationCheckbox") {
+        const checkIfFilter = (currentErrors, newErrors, targetElementName) => {
+          if (currentErrors.length < newErrors.length)
+            return false;
+
+          const addedErrors = newErrors.filter(error => !currentErrors.includes(error));
+          if (addedErrors.some(error => error.includes(targetElementName))) {
+            return false;
+          }
+
+          return true;
+        };
+        const newErrors = LForms.Util.checkValidity();
+        const ifFilter = checkIfFilter(this.state.formValidationErrors,  newErrors == null? [] : newErrors, event.target.getAttribute("name"));
+        
+        if(ifFilter) {
+          this.props.filterFieldsFn(this.props.formFilled);
+        } else {
+          console.log("Modified field is invalid. Skip filtering.");
+        }
+        this.setState({
+          formValidationErrors: newErrors
+        });
+      }
+    });
   }
 
   getRetrieveSaveQuestionnaireUrl = () => {
@@ -172,14 +208,30 @@ export default class QuestionnaireForm extends Component {
     }
 
     console.log(lform);
+  
     LForms.Util.addFormToPage(lform, "formContainer");
     const header = document.getElementsByClassName("lf-form-title")[0];
     const el = document.createElement('div');
-    el.setAttribute("id", "button-container")
+    el.setAttribute("id", "button-container");
     header.appendChild(el);
     this.props.renderButtons(el);
+
+    const patientInfoEl = document.createElement('div');
+    patientInfoEl.setAttribute("id", "patientInfo-container");
+    header.appendChild(patientInfoEl);
+    let patientId = this.getPatient().replace("Patient/", "");
+    let patientInfoElement = (display) => (<div className="patient-info-panel"><label>Patient: {display}</label></div>);
+    this.smart.request("Patient/"+patientId).then((result) => {
+        ReactDOM.render(patientInfoElement(`${result.name[0].given[0]} ${result.name[0].family}`), patientInfoEl);
+    }, (error) => {
+        console.log("Failed to retrieve the patient information. Error is ", error);
+        ReactDOM.render(patientInfoElement("Unknown"), patientInfoEl);
+    });
+
+    this.props.filterFieldsFn(true);
   }
 
+  
   // Merge the items for the same linkId to comply with the LHCForm
   mergeResponseForSameLinkId(response) {
     let mergedResponse = {
@@ -1036,7 +1088,7 @@ export default class QuestionnaireForm extends Component {
     if (this.partialForms[returnValue]) {
       // load the selected form
       let partialResponse = this.partialForms[returnValue];
-      let saved_response = true;
+      let saved_response = false;
 
       console.log(partialResponse);
 
@@ -1045,12 +1097,13 @@ export default class QuestionnaireForm extends Component {
       // If not using saved QuestionnaireResponse, create a new one
       let newResponse = {
         resourceType: 'QuestionnaireResponse',
-        status: 'draft',
         item: []
       }
 
       const items = this.props.qform.item;
       this.prepopulate(items, newResponse.item, saved_response)
+
+      this.updateSavedResponseWithPrepopulation(newResponse, partialResponse);
 
       // force it to reload the form
       this.loadAndMergeForms(partialResponse);
@@ -1059,6 +1112,51 @@ export default class QuestionnaireForm extends Component {
       console.log("No form loaded.");
     }
   }
+
+
+  updateSavedResponseWithPrepopulation = (newOne, saved) => {
+    const updateMergeItem = (newItem, savedItem, parentLinkId) => {
+      if (newItem.item == undefined) {
+        //find the corresponding linkId in savedItem and replace it
+        const findSavedParentItem = (parentLinkId, savedItem) => {
+          if (savedItem.linkId == parentLinkId) {
+            return savedItem;
+          } else {
+            const parentIndex = savedItem.item.findIndex(item => item.linkId == parentLinkId);
+            if (parentIndex != -1) {
+              return savedItem.item[parentIndex];
+            } else {
+              findSavedParentItem(parentLinkId, savedItem.item);
+            }
+          }
+        };
+
+        const savedParentItem = findSavedParentItem(parentLinkId, savedItem);
+        const replaceOrInsertItem = (newResponseItem, savedParentItem) => {
+          const replaceIndex = savedParentItem.item.findIndex(item => item.linkId == newResponseItem.linkId);
+          if (replaceIndex != -1) {
+            savedParentItem.item[replaceIndex] = newResponseItem;
+          } else {
+            savedParentItem.item.push(newResponseItem);
+          }
+        };
+        if (savedParentItem != undefined) {
+          replaceOrInsertItem(newItem, savedParentItem);
+        }
+      } else {
+        newItem.item.forEach(newSubItem => {
+          updateMergeItem(newSubItem, savedItem, newItem.linkId);
+        });
+      }
+    };
+
+    newOne.item.map(newItem => {
+      let savedIndex = saved.item.findIndex(savedItem => newItem.linkId == savedItem.linkId);
+      if (savedIndex != -1) {
+        updateMergeItem(newItem, saved.item[savedIndex], newOne.linkId);
+      }
+    });
+  };
 
   popupClear(title, finalOption, logTitle) {
     this.setState({
@@ -1081,6 +1179,7 @@ export default class QuestionnaireForm extends Component {
       <div>
         <div id="formContainer">
         </div>
+        {this.props.formFilled ? <div className="form-message-panel"><p>All fields have been filled. Continue or uncheck "Only Show Unfilled Fields" to review and modify the form.</p></div> : null}
         <SelectPopup
           title={this.state.popupTitle}
           options={this.state.popupOptions}
