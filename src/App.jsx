@@ -13,6 +13,7 @@ import Testing from "./components/ConsoleBox/Testing";
 import UserMessage from "./components/UserMessage/UserMessage";
 import TaskPopup from "./components/Popup/TaskPopup";
 import PatientSelect from "./components/PatientSelect/PatientSelect";
+
 // uncomment for testing UserMessage
 // let sampleError = {
 //   annotation: [
@@ -40,6 +41,7 @@ class App extends Component {
       deviceRequest: null,
       bundle: null,
       filter: true,
+      filterChecked: true,
       tasks: false,
       showPopup: true,
       showOverlay: false,
@@ -52,7 +54,8 @@ class App extends Component {
         //   details: sampleError,
         //   infoClass: "error"
         // }
-      ]
+      ],
+      allFieldsFilled: false
     };
     this.smart = props.smart;
     this.patientId = props.patientId;
@@ -62,6 +65,8 @@ class App extends Component {
     this.renderButtons = this.renderButtons.bind(this);
     this.ehrLaunch = this.ehrLaunch.bind(this);
     this.standaloneLaunch = this.standaloneLaunch.bind(this);
+    this.filter = this.filter.bind(this);
+    this.onFilterCheckboxRefChange = this.onFilterCheckboxRefChange.bind(this);
   }
 
   componentDidMount() {
@@ -388,29 +393,56 @@ class App extends Component {
       }
   }
 
-  filter() {
+  filter(defaultFilter) {
       var items = Array.from(document.getElementsByClassName("ng-not-empty"));
       var sections = Array.from(document.getElementsByClassName("section"));
       var empty = Array.from(document.getElementsByClassName("ng-empty"));
 
+      let checked, filterCheckbox;
+      if(!defaultFilter) {
+        filterCheckbox = document.getElementById("filterCheckbox");
+        checked = filterCheckbox ? filterCheckbox.checked : false;
+      } else {
+        checked = true;
+      }
+
       items.map((element) => {
           // filter all not-empty items
           if(element.tagName === "INPUT") { 
-            element.closest('.lf-table-item').hidden=this.state.filter;
+            // check if the item is one of the gtable, if yes, need to make sure all the
+            let inputRowElement = element.closest('.lf-table-item');
+            if (inputRowElement) {
+              if(inputRowElement.classList.contains('lf-layout-horizontal')) {
+                inputRowElement.hidden=checked;
+              } else {
+                //check if all the children input have been filled
+                let childrenInputs = inputRowElement.getElementsByTagName('INPUT');
+                let allFilled = true;
+                for(let input of childrenInputs) {
+                  if(input && !input.value) {
+                    allFilled = false;
+                    break;
+                  }
+                }
+                if(allFilled) {
+                  inputRowElement.hidden = checked;
+                }
+              }
+            }
           }
       });
 
       sections.map((element) => {
         if(!element.querySelector(".ng-empty")) {
             // filter out sections without any empty items
-            element.parentElement.hidden=this.state.filter;
+            element.parentElement.hidden=checked;
         } else {
             // deals with case where the only empty question
-            // is a disabled question.
+            // is a disabled question and a tooltip.
             // though the disabled question is hidden, the empty
             // section remains because of it.
-            if(element.querySelector(".ng-empty:not([disabled])")===null) { 
-                element.parentElement.hidden=this.state.filter;
+            if(element.querySelector(".ng-empty:not([disabled]):not(.tooltipContent)")===null) { 
+                element.parentElement.hidden=checked;
             };
         }
       });
@@ -422,26 +454,34 @@ class App extends Component {
             // having the "empty" class.
             const d = Array.from(element.classList);
             if( d.includes("ng-touched")) {
-                element.closest('.lf-table-item').hidden=this.state.filter;
+                element.closest('.lf-table-item').hidden=checked;
             }
         }
         // we don't want to show disabled items in the filtered view
         if(element.disabled) {
-            element.closest('.lf-table-item').hidden=this.state.filter;
+            element.closest('.lf-table-item').hidden=checked;
         }
 
       });
 
-      this.setState({filter: !this.state.filter})
-  }
+      this.setState({filter: checked});
+      this.setState({allFieldsFilled: document.querySelector("input.ng-empty:not([disabled])") == null});
+    }
 
+  onFilterCheckboxRefChange = node => {
+    let filterCheckbox = document.getElementById("filterCheckbox");
+    if (filterCheckbox != null) {
+      filterCheckbox.checked = this.state.filter;
+    }
+  };
+  
   renderButtons(ref) {
     const element = (<div><div><TaskPopup smart = {this.smart} />
     <div className="task-button">
-        <label>Attestation</label>  <input type="checkbox" onChange={()=>{this.setTasks()}}></input>
+        <label>Attestation</label>  <input type="checkbox" onChange={()=>{this.setTasks()}} id="attestationCheckbox"></input>
     </div>
     <div className="task-button">
-        <label>Filter</label>  <input type="checkbox" onChange={()=>{this.filter()}}></input>
+        <label>Only Show Unfilled Fields</label>  <input type="checkbox" onChange={()=>{this.filter(false)}} id="filterCheckbox" ref={this.onFilterCheckboxRefChange}></input>
     </div></div></div>)
     ReactDOM.render(element, ref);
   }
@@ -504,6 +544,10 @@ class App extends Component {
               smart={this.smart}
               FHIR_PREFIX={this.props.FHIR_PREFIX}
               renderButtons={this.renderButtons}
+              filterFieldsFn={this.filter}
+              filterChecked={this.state.filter}
+              formFilled={this.state.allFieldsFilled}
+              formFilledSetFn={(status)=> this.setState({allFieldsFilled: status})}
             />
           )}
         </div>
