@@ -741,6 +741,11 @@ export default class QuestionnaireForm extends Component {
       }
       else {
         item["extension"] = [urlValRef]
+<<<<<<< HEAD
+=======
+        console.log(item);
+        console.log(practitionerRef);
+>>>>>>> 9697238 (fixed spelling)
       }
     }
     qr.item.map(item => {
