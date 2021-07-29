@@ -4,6 +4,7 @@ import { findValueByPrefix, searchQuestionnaire } from "../../util/util.js";
 import SelectPopup from './SelectPopup';
 import shortid from "shortid";
 import _ from "lodash";
+import ConfigData from "../../config.json";
 import ReactDOM from 'react-dom'
 
 // NOTE: need to append the right FHIR version to have valid profile URL
@@ -42,13 +43,9 @@ export default class QuestionnaireForm extends Component {
     this.getLibraryPrepopulationResult = this.getLibraryPrepopulationResult.bind(this);
     this.buildGTableItems = this.buildGTableItems.bind(this);
     this.mergeResponseForSameLinkId = this.mergeResponseForSameLinkId.bind(this);
-<<<<<<< HEAD
+    this.getRetrieveSaveQuestionnaireUrl = this.getRetrieveSaveQuestionnaireUrl.bind(this);
     this.addAuthorToResponse = this.addAuthorToResponse.bind(this);
     this.updateSavedResponseWithPrepopulation = this.updateSavedResponseWithPrepopulation.bind(this);
-=======
-    this.updateSavedResponseWithPrepopulation = this.updateSavedResponseWithPrepopulation.bind(this);
-
->>>>>>> 2ad9139eb6084ebb81648ba409e5fd2aced8eff1
     DTRQuestionnaireResponseURL += this.fhirVersion.toLowerCase();
   }
 
@@ -65,14 +62,14 @@ export default class QuestionnaireForm extends Component {
       const mergedResponse = this.mergeResponseForSameLinkId(response);
       this.state.savedResponse = mergedResponse;
     } else {
-      this.smart.request("QuestionnaireResponse?" +
-        "status=in-progress" +
-        "&subject=" + this.getPatient()).then((result) => {
-          this.popupClear("Would you like to continue an in-process questionnaire?", "Cancel", false);
-          this.processSavedQuestionnaireResponses(result, false);
-        }, ((result) => {
-          this.popupClear("Error: failed to load in-process questionnaires", "OK", true);
-          this.popupLaunch();
+        this.smart.request(this.getRetrieveSaveQuestionnaireUrl() +
+        "&status=in-progress" +
+        "&subject=" + this.getPatient()).then((result)=>{
+            this.popupClear("Would you like to continue an in-process questionnaire?", "Cancel", false);
+            this.processSavedQuestionnaireResponses(result, false);
+        }, ((result)=>{
+            this.popupClear("Error: failed to load in-process questionnaires", "OK", true);
+            this.popupLaunch();
         })).catch(console.error);
 
       // If not using saved QuestionnaireResponse, create a new one
@@ -126,10 +123,17 @@ export default class QuestionnaireForm extends Component {
     });
   }
 
+  getRetrieveSaveQuestionnaireUrl = () => {
+    // read configuration 
+    let updateDate = new Date();
+    updateDate.setDate(updateDate.getDate() - ConfigData.QUESTIONNAIRE_EXPIRATION_DAYS);
+    return "QuestionnaireResponse?" + "_lastUpdated=gt" + updateDate.toISOString().split('T')[0];
+  }
+
   loadPreviousForm() {
     // search for any QuestionnaireResponses
-    this.smart.request("QuestionnaireResponse?" +
-      "&subject=" + this.getPatient()).then((result) => {
+    this.smart.request(this.getRetrieveSaveQuestionnaireUrl() + 
+          "&subject=" + this.getPatient()).then((result)=>{
 
         this.popupClear("Would you like to load a previous form?", "Cancel", false);
         this.processSavedQuestionnaireResponses(result, true);
@@ -797,11 +801,6 @@ export default class QuestionnaireForm extends Component {
       }
       else {
         item["extension"] = [urlValRef]
-<<<<<<< HEAD
-=======
-        console.log(item);
-        console.log(practitionerRef);
->>>>>>> 9697238 (fixed spelling)
       }
     }
     qr.item.map(item => {
