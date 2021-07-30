@@ -7,11 +7,6 @@ router.get('/', (req, res) => {
     dtrFhirVersion = process.env.FHIR_VERSION;
   }
 
-  var dtrRegisterURL = "http://localhost:3005/register";
-  if (process.env.DTR_REGISTER_URL) {
-    dtrRegisterURL = process.env.DTR_REGISTER_URL;
-  }
-
   const capabilityStatement = {
     resourceType: "CapabilityStatement",
     id: "davinci-dtr-cs",
@@ -41,12 +36,6 @@ router.get('/', (req, res) => {
                   code: "SMART-on-FHIR"
                 }
               ]
-            }
-          ],
-          extension: [
-            {
-              url: "register",
-              valueUri: dtrRegisterURL
             }
           ]
         },
