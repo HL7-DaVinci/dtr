@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import ReactDOM from 'react-dom'
-import { hot } from "react-hot-loader";
 import "./App.css";
 import cqlfhir from "cql-exec-fhir";
 import executeElm from "./elmExecutor/executeElm";
@@ -30,7 +29,7 @@ import PatientSelect from "./components/PatientSelect/PatientSelect";
 //   ]
 // };
 
-class App extends Component {
+export default class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -570,5 +569,3 @@ class App extends Component {
     }
   }
 }
-
-export default hot(module)(App);

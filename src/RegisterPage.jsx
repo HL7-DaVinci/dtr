@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import { hot } from "react-hot-loader";
 import "./RegisterPage.css";
 import {postToClients, deleteClient} from "./util/util";
 
@@ -71,4 +70,4 @@ class RegisterPage extends Component {
     )
   }
 }
-export default hot(module)(RegisterPage);
+export default RegisterPage;
