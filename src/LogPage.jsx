@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import { hot } from "react-hot-loader";
 import "./LogPage.css";
 
 class LogPage extends Component {
@@ -54,4 +53,4 @@ class LogPage extends Component {
 
 
 }
-export default hot(module)(LogPage);
+export default LogPage;

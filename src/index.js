@@ -1,6 +1,6 @@
-import '@babel/polyfill'
-import 'react-app-polyfill/ie11';
-import FHIR from "fhirclient"
+import "@babel/polyfill";
+import "react-app-polyfill/ie11";
+import {client} from "fhirclient";
 import urlUtils from "./util/url";
 import {updateLog} from "./util/util";
 import React from "react";
@@ -26,8 +26,6 @@ console.log(standalone);
 updateLog(log);
 // This endpoint available when deployed in CRD server, for development we have
 // the proxy set up in webpack.config.dev.js so the CRD server needs to be running
-const FHIR_PREFIX = "/fhir/";
-const FILE_PREFIX = "../../"
 var data = `code=${code}&grant_type=authorization_code&redirect_uri=${redirectUri}`;
 // const data = new URLSearchParams();
 // data.append("code", code);
@@ -51,7 +49,7 @@ tokenPost.onload = function() {
       try {
   
         auth_response = JSON.parse(tokenPost.responseText);
-        log.status = "Parsing appContext"
+        log.status = "Parsing appContext";
       } catch (e) {
         log.error = "Failed to parse auth response";
         document.body.innerText = log.error;
@@ -63,27 +61,23 @@ tokenPost.onload = function() {
       let appContext = {};
       try {
         // Fix + encoded spaces back to precent encoded spaces
-        const encodedAppString = auth_response.appContext.replace(/\+/g, '%20');
+        const encodedAppString = auth_response.appContext.replace(/\+/g, "%20");
         const appString = decodeURIComponent(encodedAppString);
         // Could switch to this later
         appString.split("&").map((e)=>{
             const temp = e.split("=");
             appContext[temp[0]] = temp[1];
-        })
+        });
       } catch (e) {
           log.error = "error parsing app context, using default";
           console.log("failed to get appContext");
-          appContext = {
-            template: "Questionnaire/HomeOxygenTherapy",
-            request: '{\\"resourceType\\":\\"DeviceRequest\\",\\"id\\":\\"ecea4560-e72c-4f69-8efd-b0f240ecef40\\",\\"meta\\":{\\"profile\\":[\\"http:\\/\\/hl7.org\\/fhir\\/us\\/davinci-crd\\/STU3\\/StructureDefinition\\/profile-devicerequest-stu3\\"]},\\"status\\":\\"draft\\",\\"codeCodeableConcept\\":{\\"coding\\":[{\\"system\\":\\"https:\\/\\/bluebutton.cms.gov\\/resources\\/codesystem\\/hcpcs\\",\\"code\\":\\"E0424\\"}]},\\"subject\\":{\\"reference\\":\\"Patient\\/e3uD6HlZwY69BYkprsNDh2Du7KroLDCIzX8uiCuKkahM3\\"},\\"authoredOn\\":\\"2019-12-30\\",\\"performer\\":{\\"reference\\":\\"Practitioner\\/1912007\\"}}',
-            filepath: '../../getfile/cms/hcpcs/E0424'
-            }
-        }
+          throw e;
+      }
 
         log.appContext = appContext;
         log.patient = auth_response.patient;
       
-        var smart = FHIR.client({
+        var smart = client({
         serverUrl: serviceUri,
         patientId: log.patient,
         tokenResponse: {
@@ -92,7 +86,8 @@ tokenPost.onload = function() {
             patient: log.patient,
         }
         });
-
+        console.log("the app context");
+        console.log(appContext);
         log.status = "Rendering app";
         updateLog(log);
         const patientId = log.patient;
@@ -104,8 +99,8 @@ tokenPost.onload = function() {
         // too badly.
         ReactDOM.render(
         <App
-          FHIR_PREFIX={FHIR_PREFIX}
-          FILE_PREFIX={FILE_PREFIX}
+          FHIR_PREFIX={appContext.fhirpath}
+          FILE_PREFIX={appContext.filepath}
           appContext={appContext}
           standalone={standalone}
           smart={smart}
@@ -128,7 +123,7 @@ tokenPost.onload = function() {
       return;
     }
   };
-log.status = "Authorizing"
+log.status = "Authorizing";
 tokenPost.send(data);
 
 

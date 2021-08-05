@@ -10,9 +10,8 @@ const debug = require("debug")("dtr:backend");
 /**
  * Get port from environment and store in Express.
  */
-function startServer(serverPort, serverHttpy, serverHost, serverPublic, proxyTarget) {
-
-    const app = startApp(proxyTarget);
+function startServer(serverPort, serverHttps, serverHost, serverPublic) {
+    const app = startApp();
     const port = normalizePort(process.env.PORT || serverPort);
     app.set("port", port);
 
@@ -35,7 +34,6 @@ function startServer(serverPort, serverHttpy, serverHost, serverPublic, proxyTar
 
 
     app.use((req, res, next) => {
-        console.log(req.method);
         if (req.method === "POST") {
             req.body.createdAt = Date.now();
         }
@@ -43,7 +41,7 @@ function startServer(serverPort, serverHttpy, serverHost, serverPublic, proxyTar
         next();
     });
 
-   console.log("backend started")
+   console.log("backend started");
 
     /**
      * Normalize a port into a number, string, or false.
