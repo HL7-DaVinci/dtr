@@ -11,7 +11,7 @@ module.exports = {
       output: {
         filename: "[name].bundle.js",
         path: path.resolve(__dirname, "public/js"),
-        publicPath: "/"
+        publicPath: "./"
       },
 	watch: true,
     devtool: "#eval-source-map",
