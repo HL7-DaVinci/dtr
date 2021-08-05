@@ -10,7 +10,7 @@ const debug = require("debug")("dtr:backend");
 /**
  * Get port from environment and store in Express.
  */
-function startServer(serverPort, serverHttps, serverHost, serverPublic) {
+function startServer(serverPort, initialClient) {
     const app = startApp();
     const port = normalizePort(process.env.PORT || serverPort);
     app.set("port", port);
@@ -30,9 +30,6 @@ function startServer(serverPort, serverHttps, serverHost, serverPublic) {
     server.on("listening", onListening);
 
 
-
-
-
     app.use((req, res, next) => {
         if (req.method === "POST") {
             req.body.createdAt = Date.now();
@@ -42,6 +39,50 @@ function startServer(serverPort, serverHttps, serverHost, serverPublic) {
     });
 
    console.log("backend started");
+
+   registerClient(initialClient, port);
+
+    /**
+     * Register an initial client from config if there is one
+     */
+     function registerClient(client, port) {
+        if ((client !== "") && (client != undefined)) {
+            console.log("register client: " + client);
+
+            var values = client.split("::");
+            const dataStr = JSON.stringify({
+                name: values[0],
+                client: values[1]
+            });
+
+            const options = {
+                hostname: 'localhost',
+                port: port,
+                path: '/clients',
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': dataStr.length //data.length
+                }
+            }
+
+            const req = http.request(options, res => {
+                console.log(`statusCode: ${res.statusCode}`)
+
+                res.on('data', d => {
+                    process.stdout.write(d);
+                    process.stdout.write('\n');
+                })
+            })
+
+            req.on('error', error => {
+                console.error(error)
+            })
+
+            req.write(dataStr)
+            req.end()
+        }
+    }
 
     /**
      * Normalize a port into a number, string, or false.
