@@ -1,5 +1,7 @@
 const express = require("express");
 const dbRouter = require("./routes/database");
+const wellKnownRouter = require("./routes/wellknown");
+const metadataRouter = require("./routes/metadata");
 const bodyParser = require("body-parser");
 
 function startApp() {
@@ -22,6 +24,8 @@ function startApp() {
     });
 
     app.use("/", dbRouter);
+    app.use("/.well-known", wellKnownRouter);
+    app.use("/metadata", metadataRouter);
     console.log("starting backend");
     return app;
 }
