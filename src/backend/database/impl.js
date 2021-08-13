@@ -11,14 +11,17 @@ function getClient(id) {
     return db.get("clients").find({id: id}).value();
 }
 
+function findClient(name, client) {
+    return db.get("clients").find({name: name, client: client}).value();
+}
+
 function getClients() {
     return db.get("clients").value();
 }
 
 function postClient(client) {
     db.get("clients").push(client).write();
-
-};
+}
 
 function getCountAndIncrement() {
     const count = db.get("count").value();
@@ -47,6 +50,7 @@ function deleteClient(id) {
 }
 module.exports = {
     getClient,
+    findClient,
     postClient,
     getClients,
     deleteClient,

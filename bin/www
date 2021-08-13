@@ -59,10 +59,10 @@ function startServer(serverPort, initialClient) {
                 hostname: 'localhost',
                 port: port,
                 path: '/clients',
-                method: 'POST',
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Content-Length': dataStr.length //data.length
+                    'Content-Length': dataStr.length
                 }
             }
 
