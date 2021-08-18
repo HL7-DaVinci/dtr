@@ -4,12 +4,12 @@
   "private": true,
   "scripts": {
     "start": "npm-run-all --parallel startBackendDev buildFrontendDev",
-    "buildFrontend": "webpack --config ./webpack.config.prod.js",
+    "buildFrontendProd": "webpack --config ./webpack.config.prod.js",
+    "buildFrontendTemplate": "webpack --config ./webpack.config.prod.js",
     "buildFrontendDev": "webpack --config ./webpack.config.js",
-    "startTemplate": "npm-run-all -s buildFrontend startBackend",
-    "startProd": "npm-run-all -s buildFrontend startBackend",
+    "startBackendProd": "node ./bin/prod",
+    "startBackendTemplate": "node ./bin/template",
     "startBackendDev": "nodemon --watch public ./bin/dev",
-    "startBackend": "node ./bin/prod",
     "lint": "node ./node_modules/.bin/eslint --ext .js ./"
   },
   "devDependencies": {

@@ -3,8 +3,6 @@
 const startServer = require("./www");
 
 const serverPort = process.env.SERVER_PORT;
-const serverHttps = process.env.SERVER_HTTPS;
-const serverHost = process.env.SERVER_HOST;
-const serverPublic = process.env.SERVER_PUBLIC;
+const initialClient = process.env.INITIAL_CLIENT;
 
-startServer(serverPort, serverHttps, serverHost, serverPublic);
+startServer(serverPort, initialClient);

@@ -3,8 +3,6 @@
 const startServer = require("./www");
 
 const serverPort = 3005;
-const serverHttps = false;
-const serverHost = "0.0.0.0";
-const serverPublic = "0.0.0.0";
+const initialClient = "";
 
-startServer(serverPort, serverHttps, serverHost, serverPublic);
+startServer(serverPort, initialClient);
