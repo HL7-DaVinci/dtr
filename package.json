@@ -5,7 +5,7 @@
   "scripts": {
     "start": "npm-run-all --parallel startBackendDev buildFrontendDev",
     "buildFrontendProd": "webpack --config ./webpack.config.prod.js",
-    "buildFrontendTemplate": "webpack --config ./webpack.config.prod.js",
+    "buildFrontendTemplate": "webpack --config ./webpack.config.prod.js --progress --display-error-details",
     "buildFrontendDev": "webpack --config ./webpack.config.js",
     "startBackendProd": "node ./bin/prod",
     "startBackendTemplate": "node ./bin/template",
