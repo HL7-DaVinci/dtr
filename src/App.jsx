@@ -353,10 +353,9 @@ export default class App extends Component {
         this.setAttested(icon, linkId);
     };
   }
-  setTasks() { 
+  setTasks() {
       if(!this.state.tasks) {
         const questions = Array.from(document.querySelectorAll(`[ng-click="setActiveRow(item)"]:not(.lf-section-header)`));
-
             questions.map((q)=>{
                 var node = document.createElement("div");
                 node.className = "task-input draft"
@@ -446,7 +445,7 @@ export default class App extends Component {
       sections.map((element) => {
         if(!element.querySelector(".ng-empty")) {
             const nonEmpty = Array.from(element.querySelectorAll(".ng-not-empty"))
-            const actuallyNotEmpty = true;
+            let actuallyNotEmpty = true;
             // check multi-choice questions to make sure
             // they actually have an answer before we 
             // filter out the entire section
@@ -478,6 +477,9 @@ export default class App extends Component {
                     const ul = e.parentElement.querySelector("ul");
                     if (ul && !ul.querySelector("li")) {
                         // the multi-choice question doesn't have an answer
+                        doFilter = false;
+                    } else if (!ul) {
+                        // this question is empty and isn't multi-choice
                         doFilter = false;
                     }
                 })
