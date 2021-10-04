@@ -41,21 +41,24 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
       // consoleLog(JSON.stringify(questionnaire),"infoClass");
       retVal.questionnaire = questionnaire;
       fetchedUrls.add(questionnaireReference);
-      // grab all main elm urls
-      // R4 resources use cqf library. 
-      var mainElmReferences = questionnaire.extension.filter(ext => ext.url == "http://hl7.org/fhir/StructureDefinition/cqf-library")
-          .map(lib => lib.valueCanonical);
-      
-      if (mainElmReferences == null || mainElmReferences.length == 0) {
-        // STU3 resources use cqif library.
-        mainElmReferences = questionnaire.extension.filter(ext => ext.url == "http://hl7.org/fhir/StructureDefinition/cqif-library")
-          .map(lib => lib.valueReference.reference);
-      }
 
-      mainElmReferences.forEach((mainElmReference) => {
-        const mainElmUrl = buildFhirUrl(mainElmReference, fhirPrefix, fhirVersion);
-        fetchElm(mainElmUrl, true);
-      });
+      if(questionnaire.extension !== undefined) {
+        // grab all main elm urls
+        // R4 resources use cqf library. 
+        var mainElmReferences = questionnaire.extension.filter(ext => ext.url == "http://hl7.org/fhir/StructureDefinition/cqf-library")
+            .map(lib => lib.valueCanonical);
+        
+        if (mainElmReferences == null || mainElmReferences.length == 0) {
+          // STU3 resources use cqif library.
+          mainElmReferences = questionnaire.extension.filter(ext => ext.url == "http://hl7.org/fhir/StructureDefinition/cqif-library")
+            .map(lib => lib.valueReference.reference);
+        }
+
+        mainElmReferences.forEach((mainElmReference) => {
+          const mainElmUrl = buildFhirUrl(mainElmReference, fhirPrefix, fhirVersion);
+          fetchElm(mainElmUrl, true);
+        });
+      }
       pendingFetches -= 1;
       consoleLog("fetched elms", "infoClass");
       resolveIfDone();

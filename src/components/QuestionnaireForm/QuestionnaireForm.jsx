@@ -7,6 +7,8 @@ import _ from "lodash";
 import ConfigData from "../../config.json";
 import ReactDOM from 'react-dom'
 
+import retrieveQuestions, { sampleBody, buildNextQuestionRequest }  from "../../util/retrieveQuestions";
+
 // NOTE: need to append the right FHIR version to have valid profile URL
 var DTRQuestionnaireResponseURL = "http://hl7.org/fhir/us/davinci-dtr/StructureDefinition/dtr-questionnaireresponse-";
 
@@ -78,7 +80,7 @@ export default class QuestionnaireForm extends Component {
         status: 'draft',
         item: []
       }
-      const items = this.props.qform.item;
+      const items = this.props.qform.item || [];
       const parentItems = [];
       this.handleGtable(items, parentItems, newResponse.item);
       this.prepopulate(items, newResponse.item, false);
@@ -141,7 +143,13 @@ export default class QuestionnaireForm extends Component {
         this.popupClear("Error: failed to load previous forms", "OK", true);
         this.popupLaunch();
       })).catch(console.error);
+  }
 
+  // retrieve next sets of questions
+  loadNextQuestions = () => {
+    console.log("Loading questions ...");
+    const url = this.props.FILE_PATH + "Questionnaire/$next-question";
+    retrieveQuestions(url, buildNextQuestionRequest(this.props.qform));
   }
 
   processSavedQuestionnaireResponses(partialResponses, displayErrorOnNoneFound) {
@@ -822,7 +830,7 @@ export default class QuestionnaireForm extends Component {
         this.getPatient()
     };
     this.addAuthorToResponse(qr, this.getPractitioner());
-    
+
     qr.questionnaire = this.props.qform.id;
     console.log("GetQuestionnaireResponse final QuestionnaireResponse: ", qr);
 
@@ -1226,6 +1234,7 @@ export default class QuestionnaireForm extends Component {
 
   render() {
     console.log(this.state.savedResponse);
+    const isAdaptiveForm = this.props.qform.meta.profile.includes("http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-adapt");
     return (
       <div>
         <div id="formContainer">
@@ -1238,6 +1247,15 @@ export default class QuestionnaireForm extends Component {
           selectedCallback={this.popupCallback.bind(this)}
           setClick={click => this.clickChild = click}
         />
+        {
+          isAdaptiveForm ? (
+            <div className="form-message-panel"><p>Get Next Question from the server.</p>
+              <div> <button className="btn submit-button" onClick={this.loadNextQuestions.bind(this)}>
+                Next Question
+              </button>
+              </div>
+            </div>) : null
+        }
         <div className="status-panel">
           Form Loaded: {this.state.formLoaded}
         </div>

@@ -508,9 +508,10 @@ export default class App extends Component {
   render() {
 
     if (
-      (this.state.questionnaire &&
-        this.state.cqlPrepopulationResults &&
-        this.state.bundle) ||
+      this.state.questionnaire //&&
+       // this.state.cqlPrepopulationResults &&
+       // this.state.bundle)
+      ||
       (this.state.questionnaire && 
         this.state.response && 
         this.props.standalone)
@@ -542,6 +543,7 @@ export default class App extends Component {
               fhirVersion={this.fhirVersion.toUpperCase()}
               smart={this.smart}
               FHIR_PREFIX={this.props.FHIR_PREFIX}
+              FILE_PATH={this.props.FILE_PREFIX}
               renderButtons={this.renderButtons}
               filterFieldsFn={this.filter}
               filterChecked={this.state.filter}
