@@ -88,6 +88,10 @@ export default class App extends Component {
       });
   }
 
+  updateQuestionnaire(updatedQuestionnaire) {
+    this.setState({ questionnaire: updatedQuestionnaire });
+  }
+
   ehrLaunch() {
     const deviceRequest = JSON.parse(this.appContext.request.replace(/\\/g,""));
     this.consoleLog("fetching artifacts", "infoClass");
@@ -549,6 +553,7 @@ export default class App extends Component {
               filterChecked={this.state.filter}
               formFilled={this.state.allFieldsFilled}
               formFilledSetFn={(status)=> this.setState({allFieldsFilled: status})}
+              updateQuestionnaire={this.updateQuestionnaire.bind(this)}
             />
           )}
         </div>

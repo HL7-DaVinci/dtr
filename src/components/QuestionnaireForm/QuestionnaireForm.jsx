@@ -7,7 +7,7 @@ import _ from "lodash";
 import ConfigData from "../../config.json";
 import ReactDOM from 'react-dom'
 
-import retrieveQuestions, { sampleBody, buildNextQuestionRequest }  from "../../util/retrieveQuestions";
+import retrieveQuestions, { sampleBody, sampleResult, buildNextQuestionRequest }  from "../../util/retrieveQuestions";
 
 // NOTE: need to append the right FHIR version to have valid profile URL
 var DTRQuestionnaireResponseURL = "http://hl7.org/fhir/us/davinci-dtr/StructureDefinition/dtr-questionnaireresponse-";
@@ -149,7 +149,11 @@ export default class QuestionnaireForm extends Component {
   loadNextQuestions = () => {
     console.log("Loading questions ...");
     const url = this.props.FILE_PATH + "Questionnaire/$next-question";
-    retrieveQuestions(url, buildNextQuestionRequest(this.props.qform));
+    //const response = retrieveQuestions(url, buildNextQuestionRequest(this.props.qform));
+    const response = sampleResult;
+    console.log("-- Returned questionnaireResponse ", sampleResult);
+    this.props.updateQuestionnaire(response.contained[0]);
+    this.loadAndMergeForms(this.state.savedResponse);
   }
 
   processSavedQuestionnaireResponses(partialResponses, displayErrorOnNoneFound) {
@@ -1234,7 +1238,8 @@ export default class QuestionnaireForm extends Component {
 
   render() {
     console.log(this.state.savedResponse);
-    const isAdaptiveForm = this.props.qform.meta.profile.includes("http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-adapt");
+    console.log("Questionnaire: ", this.props.qform);
+    const isAdaptiveForm = this.props.qform !== undefined && this.props.qform.meta.profile.includes("http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-adapt");
     return (
       <div>
         <div id="formContainer">
