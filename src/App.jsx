@@ -510,11 +510,12 @@ export default class App extends Component {
   }
 
   render() {
-
+    const ifWaitForResource = this.state.questionnaire ? (this.state.questionnaire.extension && this.state.questionnaire.extension.length > 0) : false;
+    console.log("--- Need to wait for additional resource to load: ", ifWaitForResource);
     if (
-      this.state.questionnaire //&&
-       // this.state.cqlPrepopulationResults &&
-       // this.state.bundle)
+      (this.state.questionnaire &&
+        this.state.cqlPrepopulationResults &&
+        this.state.bundle)
       ||
       (this.state.questionnaire && 
         this.state.response && 

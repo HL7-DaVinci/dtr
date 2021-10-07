@@ -1240,6 +1240,8 @@ export default class QuestionnaireForm extends Component {
     console.log(this.state.savedResponse);
     console.log("Questionnaire: ", this.props.qform);
     const isAdaptiveForm = this.props.qform !== undefined && this.props.qform.meta.profile.includes("http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-adapt");
+    const isAdaptiveFormContainItem = isAdaptiveForm && (this.props.qform !== undefined && this.props.qform.item !== undefined && this.props.qform.item.length > 0);
+    const isAdaptiveFormCompleted = isAdaptiveForm && (this.props.qform !== undefined && this.props.qform.status === "")
     return (
       <div>
         <div id="formContainer">
