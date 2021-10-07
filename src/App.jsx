@@ -357,10 +357,9 @@ export default class App extends Component {
         this.setAttested(icon, linkId);
     };
   }
-  setTasks() { 
+  setTasks() {
       if(!this.state.tasks) {
         const questions = Array.from(document.querySelectorAll(`[ng-click="setActiveRow(item)"]:not(.lf-section-header)`));
-
             questions.map((q)=>{
                 var node = document.createElement("div");
                 node.className = "task-input draft"
@@ -416,10 +415,22 @@ export default class App extends Component {
             let inputRowElement = element.closest('.lf-table-item');
             if (inputRowElement) {
               if(inputRowElement.classList.contains('lf-layout-horizontal')) {
-                inputRowElement.hidden=checked;
+                // check if all questions in the row are answered before filtering
+                const totalQs = inputRowElement.querySelectorAll("td").length;
+                const filledQs = inputRowElement.querySelectorAll(".ng-not-empty:not([disabled]):not(.tooltipContent)").length;
+                if(totalQs === filledQs) {
+                    inputRowElement.hidden=checked;
+                }
+              } else if(inputRowElement.parentElement.querySelector("ul")) {
+                  // case for multi-answer questions
+                  // TODO: what's the filter case for these?  Filter if they have any answers?
+                  if(inputRowElement.parentElement.querySelector("ul").querySelector("li")) {
+                      // has elements in its list
+                      inputRowElement.hidden=checked;
+                  }
               } else {
                 //check if all the children input have been filled
-                let childrenInputs = inputRowElement.getElementsByTagName('INPUT');
+                let childrenInputs = Array.from(inputRowElement.getElementsByTagName('INPUT'));
                 let allFilled = true;
                 for(let input of childrenInputs) {
                   if(input && !input.value) {
@@ -437,8 +448,23 @@ export default class App extends Component {
 
       sections.map((element) => {
         if(!element.querySelector(".ng-empty")) {
+            const nonEmpty = Array.from(element.querySelectorAll(".ng-not-empty"))
+            let actuallyNotEmpty = true;
+            // check multi-choice questions to make sure
+            // they actually have an answer before we 
+            // filter out the entire section
+            nonEmpty.forEach(e=> {
+                const ul = e.parentElement.querySelector("ul");
+                if (ul && !ul.querySelector("li")) {
+                    // the multi-choice question doesn't have an answer
+                    // it's actually empty
+                    actuallyNotEmpty = false;
+                }
+            })
             // filter out sections without any empty items
-            element.parentElement.hidden=checked;
+            if(actuallyNotEmpty && !element.parentElement.querySelector(".ng-empty")){
+                element.parentElement.hidden=checked;
+            }
         } else {
             // deals with case where the only empty question
             // is a disabled question and a tooltip.
@@ -446,6 +472,24 @@ export default class App extends Component {
             // section remains because of it.
             if(element.querySelector(".ng-empty:not([disabled]):not(.tooltipContent)")===null) { 
                 element.parentElement.hidden=checked;
+            } else {
+                // check for multi-choice questions
+                // get all empty questions
+                const emptyq = element.querySelectorAll(".ng-empty");
+                let doFilter = true;
+                emptyq.forEach(e=>{
+                    const ul = e.parentElement.querySelector("ul");
+                    if (ul && !ul.querySelector("li")) {
+                        // the multi-choice question doesn't have an answer
+                        doFilter = false;
+                    } else if (!ul) {
+                        // this question is empty and isn't multi-choice
+                        doFilter = false;
+                    }
+                })
+                if(doFilter) {
+                    element.parentElement.hidden=checked;
+                }
             };
         }
       });
