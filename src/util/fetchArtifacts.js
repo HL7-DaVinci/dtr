@@ -23,7 +23,8 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
       mainLibraryElms: [],
       dependentElms: [],
       valueSets: [],
-      mainLibraryMaps: null
+      mainLibraryMaps: null,
+      isAdaptiveFormWithoutExtension: false
     };
 
     function resolveIfDone(){
@@ -40,6 +41,8 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
       consoleLog("fetched questionnaire successfully","infoClass");
       // consoleLog(JSON.stringify(questionnaire),"infoClass");
       retVal.questionnaire = questionnaire;
+      retVal.isAdaptiveFormWithoutExtension = questionnaire.extension && questionnaire.extension.length > 0;
+      
       fetchedUrls.add(questionnaireReference);
 
       if(questionnaire.extension !== undefined) {

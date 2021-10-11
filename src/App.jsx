@@ -54,7 +54,8 @@ export default class App extends Component {
         //   infoClass: "error"
         // }
       ],
-      allFieldsFilled: false
+      allFieldsFilled: false,
+      isAdaptiveFormWithoutExtension: false
     };
     this.smart = props.smart;
     this.patientId = props.patientId;
@@ -114,6 +115,7 @@ export default class App extends Component {
 
           this.setState({ questionnaire: artifacts.questionnaire });
           this.setState({ deviceRequest: deviceRequest });
+          this.setState({ isAdaptiveFormWithoutExtension: artifacts.questionnaire.meta.profile.includes("http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-adapt") && artifacts.questionnaire.extension === undefined });
           // execute for each main library
           return Promise.all(
             artifacts.mainLibraryElms.map(mainLibraryElm => {
@@ -554,8 +556,7 @@ export default class App extends Component {
   }
 
   render() {
-    const ifWaitForResource = this.state.questionnaire ? (this.state.questionnaire.extension && this.state.questionnaire.extension.length > 0) : false;
-    console.log("--- Need to wait for additional resource to load: ", ifWaitForResource);
+    console.log("--- Need to wait for additional resource to load: ", this.state.isAdaptiveFormWithoutExtension);
     if (
       (this.state.questionnaire &&
         this.state.cqlPrepopulationResults &&
@@ -564,6 +565,8 @@ export default class App extends Component {
       (this.state.questionnaire && 
         this.state.response && 
         this.props.standalone)
+      || (this.state.questionnaire && 
+        this.state.isAdaptiveFormWithoutExtension)
     ) {
       return (
           <div>

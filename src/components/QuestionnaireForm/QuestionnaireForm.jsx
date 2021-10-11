@@ -7,7 +7,7 @@ import _ from "lodash";
 import ConfigData from "../../config.json";
 import ReactDOM from 'react-dom'
 
-import retrieveQuestions, { sampleBody, sampleResult, buildNextQuestionRequest }  from "../../util/retrieveQuestions";
+import retrieveQuestions, { retrieveQuestionsCount, sampleBody, sampleResult, buildNextQuestionRequest, completedResult } from "../../util/retrieveQuestions";
 
 // NOTE: need to append the right FHIR version to have valid profile URL
 var DTRQuestionnaireResponseURL = "http://hl7.org/fhir/us/davinci-dtr/StructureDefinition/dtr-questionnaireresponse-";
@@ -32,7 +32,9 @@ export default class QuestionnaireForm extends Component {
       popupOptions: [],
       popupFinalOption: "Cancel",
       formFilled: true,
-      formValidationErrors: []
+      formValidationErrors: [],
+      nextQuestionClick: 0,
+      adFormResponseCompleted: false // from the server
     };
 
     this.outputResponse = this.outputResponse.bind(this);
@@ -135,7 +137,7 @@ export default class QuestionnaireForm extends Component {
   loadPreviousForm() {
     // search for any QuestionnaireResponses
     this.smart.request(this.getRetrieveSaveQuestionnaireUrl() + 
-          "&subject=" + this.getPatient()).then((result)=>{
+      "&subject=" + this.getPatient()).then((result) => {
 
         this.popupClear("Would you like to load a previous form?", "Cancel", false);
         this.processSavedQuestionnaireResponses(result, true);
@@ -150,11 +152,22 @@ export default class QuestionnaireForm extends Component {
     console.log("Loading questions ...");
     const url = this.props.FILE_PATH + "Questionnaire/$next-question";
     //const response = retrieveQuestions(url, buildNextQuestionRequest(this.props.qform));
-    const response = sampleResult;
-    console.log("-- Returned questionnaireResponse ", sampleResult);
-    this.props.updateQuestionnaire(response.contained[0]);
-    this.loadAndMergeForms(this.state.savedResponse);
+
+    retrieveQuestionsCount(this.state.nextQuestionClick)
+      .then(result => {
+        console.log("-- Returned questionnaireResponse ", result);
+        this.setState({
+          adFormResponseCompleted: result.status === "completed"
+        })
+        this.props.updateQuestionnaire(result.contained[0]);
+        this.loadAndMergeForms(result);
+        this.setState({
+          nextQuestionClick: this.state.nextQuestionClick + 1
+        })
+      });
+
   }
+
 
   processSavedQuestionnaireResponses(partialResponses, displayErrorOnNoneFound) {
     let noneFound = true;
@@ -1236,17 +1249,46 @@ export default class QuestionnaireForm extends Component {
     this.clickChild();
   }
 
+  getDisplayButtons() {
+    const isAdaptiveForm = this.props.qform !== undefined && this.props.qform.meta.profile.includes("http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-adapt");
+
+    if (!isAdaptiveForm) {
+      return (<div className="submit-button-panel">
+        <button className="btn submit-button" onClick={this.loadPreviousForm.bind(this)}>
+          Load Previous Form
+        </button>
+        <button className="btn submit-button" onClick={this.sendQuestionnaireResponseToPayer.bind(this)}>
+          Send to Payer
+        </button>
+        <button className="btn submit-button" onClick={this.outputResponse.bind(this, "in-progress")}>
+          Save
+        </button>
+        <button className="btn submit-button" onClick={this.outputResponse.bind(this, "completed")}>
+          Next
+        </button>
+      </div>)
+    }
+    else if (this.state.adFormResponseCompleted) {
+      return (
+        <div className="submit-button-panel">
+          <button className="btn submit-button" onClick={this.sendQuestionnaireResponseToPayer.bind(this)}>
+            Send to Payer
+          </button>
+        </div>
+      )
+    }
+  }
+
   render() {
     console.log(this.state.savedResponse);
     console.log("Questionnaire: ", this.props.qform);
-    const isAdaptiveForm = this.props.qform !== undefined && this.props.qform.meta.profile.includes("http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-adapt");
-    const isAdaptiveFormContainItem = isAdaptiveForm && (this.props.qform !== undefined && this.props.qform.item !== undefined && this.props.qform.item.length > 0);
-    const isAdaptiveFormCompleted = isAdaptiveForm && (this.props.qform !== undefined && this.props.qform.status === "")
+    const isAdaptiveForm = this.props.qform.meta.profile.includes("http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-adapt");
+    const isAdaptiveFormHasItems = this.props.qform && this.props.qform.item && this.props.qform.item.length > 0;
     return (
       <div>
         <div id="formContainer">
         </div>
-        {this.props.formFilled ? <div className="form-message-panel"><p>All fields have been filled. Continue or uncheck "Only Show Unfilled Fields" to review and modify the form.</p></div> : null}
+        {!isAdaptiveForm && this.props.formFilled ? <div className="form-message-panel"><p>All fields have been filled. Continue or uncheck "Only Show Unfilled Fields" to review and modify the form.</p></div> : null}
         <SelectPopup
           title={this.state.popupTitle}
           options={this.state.popupOptions}
@@ -1256,30 +1298,20 @@ export default class QuestionnaireForm extends Component {
         />
         {
           isAdaptiveForm ? (
-            <div className="form-message-panel"><p>Get Next Question from the server.</p>
-              <div> <button className="btn submit-button" onClick={this.loadNextQuestions.bind(this)}>
+            <div className="form-message-panel">
+              {!isAdaptiveFormHasItems && !this.state.adFormResponseCompleted ? (<p>Click Next Question button to proceed.</p>) : null}
+              {!this.state.adFormResponseCompleted ? (<div> <button className="btn submit-button" onClick={this.loadNextQuestions.bind(this)}>
                 Next Question
               </button>
-              </div>
+              </div>) : null}
             </div>) : null
         }
-        <div className="status-panel">
-          Form Loaded: {this.state.formLoaded}
-        </div>
-        <div className="submit-button-panel">
-          <button className="btn submit-button" onClick={this.loadPreviousForm.bind(this)}>
-            Load Previous Form
-          </button>
-          <button className="btn submit-button" onClick={this.sendQuestionnaireResponseToPayer.bind(this)}>
-            Send to Payer
-          </button>
-          <button className="btn submit-button" onClick={this.outputResponse.bind(this, "in-progress")}>
-            Save
-          </button>
-          <button className="btn submit-button" onClick={this.outputResponse.bind(this, "completed")}>
-            Next
-          </button>
-        </div>
+        {
+          !isAdaptiveForm ? (<div className="status-panel">
+            Form Loaded: {this.state.formLoaded}
+          </div>) : null
+        }
+        {this.getDisplayButtons()}
       </div>
     );
   }
