@@ -34,7 +34,8 @@ export default class QuestionnaireForm extends Component {
       formFilled: true,
       formValidationErrors: [],
       nextQuestionClick: 0,
-      adFormResponseCompleted: false // from the server
+      adFormResponseCompleted: false, // from the server
+      questionnaireUpdated: false 
     };
 
     this.outputResponse = this.outputResponse.bind(this);
@@ -51,6 +52,7 @@ export default class QuestionnaireForm extends Component {
     this.addAuthorToResponse = this.addAuthorToResponse.bind(this);
     this.updateSavedResponseWithPrepopulation = this.updateSavedResponseWithPrepopulation.bind(this);
     DTRQuestionnaireResponseURL += this.fhirVersion.toLowerCase();
+    this.repopulateAndReload = this.repopulateAndReload.bind(this);
   }
 
 
@@ -127,6 +129,35 @@ export default class QuestionnaireForm extends Component {
     });
   }
 
+  repopulateAndReload() {
+     // rerun pre-population
+     let newResponse = {
+      resourceType: 'QuestionnaireResponse',
+      status: 'draft',
+      item: []
+    }
+    const items = this.props.qform.item || [];
+    const parentItems = [];
+    this.handleGtable(items, parentItems, newResponse.item);
+    this.prepopulate(items, newResponse.item, false);
+    let mergedResponse = this.mergeResponseForSameLinkId(newResponse);
+    this.state.savedResponse = mergedResponse;
+
+    this.loadAndMergeForms(result);
+
+    this.setState({
+      questionnaireUpdated: false
+    });
+  }
+
+  static getDerivedStateFromProps(props, state) {
+
+    if (!props.isFetchingArtifacts && state.questionnaireUpdated) {
+      console.log("---- getDerivedStateFromProps props", props);
+      this.repopulateAndReload();
+    }
+  }
+
   getRetrieveSaveQuestionnaireUrl = () => {
     // read configuration 
     let updateDate = new Date();
@@ -136,7 +167,7 @@ export default class QuestionnaireForm extends Component {
 
   loadPreviousForm() {
     // search for any QuestionnaireResponses
-    this.smart.request(this.getRetrieveSaveQuestionnaireUrl() + 
+    this.smart.request(this.getRetrieveSaveQuestionnaireUrl() +
       "&subject=" + this.getPatient()).then((result) => {
 
         this.popupClear("Would you like to load a previous form?", "Cancel", false);
@@ -151,6 +182,7 @@ export default class QuestionnaireForm extends Component {
   loadNextQuestions = () => {
     console.log("Loading questions ...");
     const url = this.props.FILE_PATH + "Questionnaire/$next-question";
+    const requestBody = buildNextQuestionRequest(this.props.qform);
     //const response = retrieveQuestions(url, buildNextQuestionRequest(this.props.qform));
 
     retrieveQuestionsCount(this.state.nextQuestionClick)
@@ -159,11 +191,17 @@ export default class QuestionnaireForm extends Component {
         this.setState({
           adFormResponseCompleted: result.status === "completed"
         })
-        this.props.updateQuestionnaire(result.contained[0]);
-        this.loadAndMergeForms(result);
+
         this.setState({
-          nextQuestionClick: this.state.nextQuestionClick + 1
+          nextQuestionClick: this.state.nextQuestionClick + 1,
         })
+
+       // this.props.updateQuestionnaire(result.contained[0]);
+        this.props.ehrLaunch(true, result.contained[0]);
+        this.setState({
+          questionnaireUpdated: true
+        })
+        
       });
 
   }
@@ -233,7 +271,7 @@ export default class QuestionnaireForm extends Component {
     }
 
     console.log(lform);
-  
+
     LForms.Util.addFormToPage(lform, "formContainer");
     const header = document.getElementsByClassName("lf-form-title")[0];
     const el = document.createElement('div');
@@ -246,17 +284,17 @@ export default class QuestionnaireForm extends Component {
     header.appendChild(patientInfoEl);
     let patientId = this.getPatient().replace("Patient/", "");
     let patientInfoElement = (display) => (<div className="patient-info-panel"><label>Patient: {display}</label></div>);
-    this.smart.request("Patient/"+patientId).then((result) => {
-        ReactDOM.render(patientInfoElement(`${result.name[0].given[0]} ${result.name[0].family}`), patientInfoEl);
+    this.smart.request("Patient/" + patientId).then((result) => {
+      ReactDOM.render(patientInfoElement(`${result.name[0].given[0]} ${result.name[0].family}`), patientInfoEl);
     }, (error) => {
-        console.log("Failed to retrieve the patient information. Error is ", error);
-        ReactDOM.render(patientInfoElement("Unknown"), patientInfoEl);
+      console.log("Failed to retrieve the patient information. Error is ", error);
+      ReactDOM.render(patientInfoElement("Unknown"), patientInfoEl);
     });
 
     this.props.filterFieldsFn(true);
   }
 
-  
+
   // Merge the items for the same linkId to comply with the LHCForm
   mergeResponseForSameLinkId(response) {
     let mergedResponse = {
@@ -1312,8 +1350,8 @@ export default class QuestionnaireForm extends Component {
           </div>) : null
         }
         {this.getDisplayButtons()}
-      </div>
-    );
+      </div>)
+    ;
   }
 }
 

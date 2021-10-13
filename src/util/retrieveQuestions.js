@@ -36,6 +36,12 @@ export const sampleResult = {
                     "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-adapt"
                 ]
             },
+            "extension": [
+                {
+                    "url": "http://hl7.org/fhir/StructureDefinition/cqf-library",
+                    "valueCanonical": "http://hl7.org/fhir/us/davinci-dtr/Library/HomeOxygenTherapy-prepopulation"
+                }
+            ],
             "item": [
                 {
                     "linkId": "1",
@@ -88,6 +94,37 @@ export const sampleResult = {
                     "required": true,
                     "linkId": "3",
                     "text": "Text field",
+                },
+                {
+                    "linkId": "3.1.1",
+                    "text": "Relevant Patient Diagnoses (conditions that might be expected to improve with oxygen therapy)",
+                    "type": "open-choice",
+                    "required": true,
+                    "repeats": true,
+                    "extension": [
+                        {
+                            "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression",
+                            "valueExpression": {
+                                "language": "text/cql",
+                                "expression": "\"HomeOxygenTherapyPrepopulation\".RelevantDiagnoses"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "linkId": "3.2",
+                    "text": "Arterial oxygen saturation (Patient on room air while at rest and awake when tested)",
+                    "type": "quantity",
+                    "required": false,
+                    "extension": [
+                        {
+                            "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression",
+                            "valueExpression": {
+                                "language": "text/cql",
+                                "expression": "\"HomeOxygenTherapyPrepopulation\".ArterialOxygenSaturation"
+                            }
+                        }
+                    ]
                 }
             ]
         }
@@ -125,6 +162,7 @@ export const completedResult = {
                     "text": "Order Reason",
                     "type": "choice",
                     "required": true,
+                    "readOnly": true,
                     "extension": [
                         {
                             "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
@@ -168,7 +206,14 @@ export const completedResult = {
 
                 },
                 {
+                    "type": "text",
+                    "required": true,
                     "linkId": "2",
+                    "readOnly": true,
+                    "text": "Text field",
+                },
+                {
+                    "linkId": "3",
                     "text": "Your Prior Auth number is A12345",
                     "type": "display",
                 }
@@ -186,6 +231,15 @@ export const completedResult = {
                         "code": "Replacement",
                         "display": "Replacement"
                     }
+                }
+            ]
+        },
+        {
+            "linkId": "2",
+            "text": "Text field",
+            "answer": [
+                {
+                    "valueString": "Filled text field"
                 }
             ]
         }
@@ -246,6 +300,20 @@ export function buildNextQuestionRequest(questionnaire) {
     requestBody.contained.push(questionnaire);
 
     requestBody.questionnaire = `#${questionnaire.id}`
+
+    const questionnaireReference = {
+        "url": "http://hl7.org/fhir/StructureDefinition/contained-id",
+        "valueReference": {
+            "reference": `#${questionnaire.id}`
+        }
+    };
+    if (requestBody.extension) {
+        requestBody.extension.push(questionnaireReference)
+    } else {
+        requestBody.extension = [
+            questionnaireReference
+        ];
+    }
 
     return requestBody;
 }
