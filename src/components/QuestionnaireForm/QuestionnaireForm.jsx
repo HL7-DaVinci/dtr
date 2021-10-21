@@ -33,9 +33,6 @@ export default class QuestionnaireForm extends Component {
       popupFinalOption: "Cancel",
       formFilled: true,
       formValidationErrors: [],
-      nextQuestionClick: 0,
-      adFormResponseCompleted: false, // from the server
-      questionnaireUpdated: false 
     };
 
     this.outputResponse = this.outputResponse.bind(this);
@@ -53,6 +50,8 @@ export default class QuestionnaireForm extends Component {
     this.updateSavedResponseWithPrepopulation = this.updateSavedResponseWithPrepopulation.bind(this);
     DTRQuestionnaireResponseURL += this.fhirVersion.toLowerCase();
     this.repopulateAndReload = this.repopulateAndReload.bind(this);
+    this.loadNextQuestions = this.loadNextQuestions.bind(this);
+    this.mergeResponses = this.mergeResponses.bind(this);
   }
 
 
@@ -68,14 +67,14 @@ export default class QuestionnaireForm extends Component {
       const mergedResponse = this.mergeResponseForSameLinkId(response);
       this.state.savedResponse = mergedResponse;
     } else {
-        this.smart.request(this.getRetrieveSaveQuestionnaireUrl() +
+      this.smart.request(this.getRetrieveSaveQuestionnaireUrl() +
         "&status=in-progress" +
-        "&subject=" + this.getPatient()).then((result)=>{
-            this.popupClear("Would you like to continue an in-process questionnaire?", "Cancel", false);
-            this.processSavedQuestionnaireResponses(result, false);
-        }, ((result)=>{
-            this.popupClear("Error: failed to load in-process questionnaires", "OK", true);
-            this.popupLaunch();
+        "&subject=" + this.getPatient()).then((result) => {
+          this.popupClear("Would you like to continue an in-process questionnaire?", "Cancel", false);
+          this.processSavedQuestionnaireResponses(result, false);
+        }, ((result) => {
+          this.popupClear("Error: failed to load in-process questionnaires", "OK", true);
+          this.popupLaunch();
         })).catch(console.error);
 
       // If not using saved QuestionnaireResponse, create a new one
@@ -130,8 +129,9 @@ export default class QuestionnaireForm extends Component {
   }
 
   repopulateAndReload() {
-     // rerun pre-population
-     let newResponse = {
+    console.log("*****$$$$$$----- Re-populating and reloading form ----");
+    // rerun pre-population
+    let newResponse = {
       resourceType: 'QuestionnaireResponse',
       status: 'draft',
       item: []
@@ -140,20 +140,22 @@ export default class QuestionnaireForm extends Component {
     const parentItems = [];
     this.handleGtable(items, parentItems, newResponse.item);
     this.prepopulate(items, newResponse.item, false);
-    let mergedResponse = this.mergeResponseForSameLinkId(newResponse);
-    this.state.savedResponse = mergedResponse;
+    
+    const mergedResponse = this.mergeResponses(this.mergeResponseForSameLinkId(newResponse), this.mergeResponseForSameLinkId(this.props.adFormResponseFromServer));
+    this.state.savedResponse = this.mergeResponseForSameLinkId(mergedResponse);
 
-    this.loadAndMergeForms(result);
-
-    this.setState({
-      questionnaireUpdated: false
-    });
+    this.loadAndMergeForms(mergedResponse);
+    this.props.updateReloadQuestionnaire(false);
   }
 
-  static getDerivedStateFromProps(props, state) {
+  mergeResponses(firstResponse, secondResponse) {
+    const combinedItems = firstResponse.item.concat(secondResponse.item);
+    firstResponse.item = combinedItems;
+    return firstResponse;
+  }
 
-    if (!props.isFetchingArtifacts && state.questionnaireUpdated) {
-      console.log("---- getDerivedStateFromProps props", props);
+  componentDidUpdate(prevProps, prevState) {
+    if (this.props.reloadQuestionnaire) {
       this.repopulateAndReload();
     }
   }
@@ -179,31 +181,20 @@ export default class QuestionnaireForm extends Component {
   }
 
   // retrieve next sets of questions
-  loadNextQuestions = () => {
-    console.log("Loading questions ...");
+  loadNextQuestions() {
+    console.log("Loading questions ... clickCount ", this.props.adFormNextQuestionClickCount);
     const url = this.props.FILE_PATH + "Questionnaire/$next-question";
     const requestBody = buildNextQuestionRequest(this.props.qform);
     //const response = retrieveQuestions(url, buildNextQuestionRequest(this.props.qform));
 
-    retrieveQuestionsCount(this.state.nextQuestionClick)
+    retrieveQuestionsCount(this.props.adFormNextQuestionClickCount)
       .then(result => {
         console.log("-- Returned questionnaireResponse ", result);
-        this.setState({
-          adFormResponseCompleted: result.status === "completed"
-        })
-
-        this.setState({
-          nextQuestionClick: this.state.nextQuestionClick + 1,
-        })
-
-       // this.props.updateQuestionnaire(result.contained[0]);
+        this.props.updateAdFormResponseFromServer(result);
+        this.props.updateClickCount(this.props.adFormNextQuestionClickCount + 1);
+        this.props.updateAdFormCompleted(result.status === "completed");
         this.props.ehrLaunch(true, result.contained[0]);
-        this.setState({
-          questionnaireUpdated: true
-        })
-        
       });
-
   }
 
 
@@ -303,29 +294,31 @@ export default class QuestionnaireForm extends Component {
       item: []
     };
     const responseItems = response.item;
-    let itemKeyList = new Set();
-    for (let i = 0; i < responseItems.length; i++) {
-      itemKeyList.add(responseItems[i].linkId);
-    }
-    itemKeyList.forEach(linkId => {
-      let linkIdItem = {
-        linkId,
-        item: []
-      };
-      let filteredItems = responseItems.filter(responseItem => responseItem.linkId == linkId
-      );
-      if (filteredItems) {
-        filteredItems.forEach(foundItem => {
-          if (foundItem.item) {
-            linkIdItem.item.push(...foundItem.item);
-          } else {
-            linkIdItem = foundItem;
-            linkIdItem.item = null;
-          }
-        });
-        mergedResponse.item.push(linkIdItem);
+    if (responseItems) {
+      let itemKeyList = new Set();
+      for (let i = 0; i < responseItems.length; i++) {
+        itemKeyList.add(responseItems[i].linkId);
       }
-    });
+      itemKeyList.forEach(linkId => {
+        let linkIdItem = {
+          linkId,
+          item: []
+        };
+        let filteredItems = responseItems.filter(responseItem => responseItem.linkId == linkId
+        );
+        if (filteredItems) {
+          filteredItems.forEach(foundItem => {
+            if (foundItem.item) {
+              linkIdItem.item.push(...foundItem.item);
+            } else {
+              linkIdItem = foundItem;
+              linkIdItem.item = null;
+            }
+          });
+          mergedResponse.item.push(linkIdItem);
+        }
+      });
+    }
     return mergedResponse;
   }
 
@@ -1306,7 +1299,7 @@ export default class QuestionnaireForm extends Component {
         </button>
       </div>)
     }
-    else if (this.state.adFormResponseCompleted) {
+    else if (this.props.adFormCompleted) {
       return (
         <div className="submit-button-panel">
           <button className="btn submit-button" onClick={this.sendQuestionnaireResponseToPayer.bind(this)}>
@@ -1337,8 +1330,8 @@ export default class QuestionnaireForm extends Component {
         {
           isAdaptiveForm ? (
             <div className="form-message-panel">
-              {!isAdaptiveFormHasItems && !this.state.adFormResponseCompleted ? (<p>Click Next Question button to proceed.</p>) : null}
-              {!this.state.adFormResponseCompleted ? (<div> <button className="btn submit-button" onClick={this.loadNextQuestions.bind(this)}>
+              {!isAdaptiveFormHasItems && !this.props.adFormCompleted ? (<p>Click Next Question button to proceed.</p>) : null}
+              {!this.props.adFormCompleted ? (<div> <button className="btn submit-button" onClick={this.loadNextQuestions}>
                 Next Question
               </button>
               </div>) : null}
@@ -1351,7 +1344,7 @@ export default class QuestionnaireForm extends Component {
         }
         {this.getDisplayButtons()}
       </div>)
-    ;
+      ;
   }
 }
 

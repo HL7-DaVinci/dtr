@@ -271,6 +271,7 @@ const resultList = [
 
 export function retrieveQuestionsCount(clickTime) {
     let index = 0;
+    console.log("========= retrieveQuestionCount clickTime:", clickTime);
     if (clickTime > 1) {
         index = 1;
     } else {

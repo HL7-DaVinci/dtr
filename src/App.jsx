@@ -56,7 +56,11 @@ export default class App extends Component {
       ],
       allFieldsFilled: false,
       isAdaptiveFormWithoutExtension: false,
-      isFetchingArtifacts: true
+      isFetchingArtifacts: true,
+      reloadQuestionnaire: false,
+      adFormNextQuestionClickCount: 0,
+      adFormCompleted: false,
+      adFormResponseFromServer: undefined
     };
     this.smart = props.smart;
     this.patientId = props.patientId;
@@ -68,6 +72,7 @@ export default class App extends Component {
     this.standaloneLaunch = this.standaloneLaunch.bind(this);
     this.filter = this.filter.bind(this);
     this.onFilterCheckboxRefChange = this.onFilterCheckboxRefChange.bind(this);
+    this.updateReloadQuestionnaire = this.updateReloadQuestionnaire.bind(this);
   }
 
   componentDidMount() {
@@ -101,6 +106,8 @@ export default class App extends Component {
     this.setState({
       isFetchingArtifacts: true
     })
+    const reloadQuestionnaire = questionnaire !== undefined;
+    console.log("---- ehrLaunch set isFetchingArtifacts: ", this.state.isFetchingArtifacts);
     fetchFhirVersion(this.props.smart.state.serverUrl)
     .then(fhirVersion => {
       this.fhirVersion = fhirVersion;
@@ -232,7 +239,8 @@ export default class App extends Component {
           this.setState({ 
             bundle: fullBundle,
             cqlPrepopulationResults: allLibrariesResults, 
-            isFetchingArtifacts: false
+            isFetchingArtifacts: false,
+            reloadQuestionnaire
           });
         });
     });
@@ -565,6 +573,11 @@ export default class App extends Component {
     return messages;
   }
 
+  updateReloadQuestionnaire(isReload) {
+    this.setState({
+      reloadQuestionnaire: isReload
+    })
+  }
   render() {
     console.log("--- Need to wait for additional resource to load: ", this.state.isAdaptiveFormWithoutExtension);
     if (
@@ -614,6 +627,14 @@ export default class App extends Component {
               updateQuestionnaire={this.updateQuestionnaire.bind(this)}
               ehrLaunch={this.ehrLaunch}
               isFetchingArtifacts={this.state.isFetchingArtifacts}
+              reloadQuestionnaire={this.state.reloadQuestionnaire}
+              updateReloadQuestionnaire={this.updateReloadQuestionnaire}
+              adFormNextQuestionClickCount={this.state.adFormNextQuestionClickCount}
+              updateClickCount={count => this.setState({adFormNextQuestionClickCount: count})}
+              adFormCompleted={this.state.adFormCompleted}
+              updateAdFormCompleted={(completed) => this.setState({adFormCompleted: completed})}
+              adFormResponseFromServer={this.state.adFormResponseFromServer}
+              updateAdFormResponseFromServer={(response) => this.setState({adFormResponseFromServer: response})}
             />
           )}
         </div>
