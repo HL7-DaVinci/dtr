@@ -256,11 +256,12 @@ export default function retrieveQuestions(url, body) {
     };
 
 
-    /*fetch(url, requestOptions)
-        .then(result =>
-            console.log("response", result)); */
+    return fetch(url, requestOptions);
 
-    return new Promise(completedResult);
+    /*.then(result =>
+            console.log("response", result));
+
+    return new Promise(completedResult);*/
 
 }
 
@@ -285,19 +286,26 @@ export function retrieveQuestionsCount(clickTime) {
     });
 }
 
-export function buildNextQuestionRequest(questionnaire) {
-    const requestBody = {
-        "resourceType": "QuestionnaireResponse",
-        "meta": {
-            "profile": [
-                "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaireresponse-adapt"
-            ]
-        },
-        "contained": [
-        ],
-        "status": "in-progress"
-    };
+export function buildNextQuestionRequest(questionnaire, questionnaireResponse) {
+    let requestBody = undefined;
+    if (!questionnaireResponse) {
+        requestBody = {
+            "resourceType": "QuestionnaireResponse",
+            "meta": {
+                "profile": [
+                    "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaireresponse-adapt"
+                ]
+            },
+            "contained": [
+            ],
+            "status": "in-progress"
+        };
+    } else {
+        requestBody = questionnaireResponse;
+    }
 
+    requestBody.status = "in-progress";
+    requestBody.contained = [];
     requestBody.contained.push(questionnaire);
 
     requestBody.questionnaire = `#${questionnaire.id}`

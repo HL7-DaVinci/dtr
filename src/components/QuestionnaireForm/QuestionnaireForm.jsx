@@ -129,7 +129,7 @@ export default class QuestionnaireForm extends Component {
   }
 
   repopulateAndReload() {
-    console.log("*****$$$$$$----- Re-populating and reloading form ----");
+    console.log("----- Re-populating and reloading form ----");
     // rerun pre-population
     let newResponse = {
       resourceType: 'QuestionnaireResponse',
@@ -141,9 +141,9 @@ export default class QuestionnaireForm extends Component {
     this.handleGtable(items, parentItems, newResponse.item);
     this.prepopulate(items, newResponse.item, false);
     
+    // merge pre-populated response and response from the server
     const mergedResponse = this.mergeResponses(this.mergeResponseForSameLinkId(newResponse), this.mergeResponseForSameLinkId(this.props.adFormResponseFromServer));
     this.state.savedResponse = this.mergeResponseForSameLinkId(mergedResponse);
-
     this.loadAndMergeForms(mergedResponse);
     this.props.updateReloadQuestionnaire(false);
   }
@@ -182,12 +182,12 @@ export default class QuestionnaireForm extends Component {
 
   // retrieve next sets of questions
   loadNextQuestions() {
-    console.log("Loading questions ... clickCount ", this.props.adFormNextQuestionClickCount);
+    console.log("Loading next questions ... clickCount ", this.props.adFormNextQuestionClickCount);
     const url = this.props.FILE_PATH + "Questionnaire/$next-question";
-    const requestBody = buildNextQuestionRequest(this.props.qform);
-    //const response = retrieveQuestions(url, buildNextQuestionRequest(this.props.qform));
-
-    retrieveQuestionsCount(this.props.adFormNextQuestionClickCount)
+    
+    const currentQuestionnaireResponse = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', this.fhirVersion, "#formContainer");;
+    retrieveQuestions(url, buildNextQuestionRequest(this.props.qform, currentQuestionnaireResponse))
+      .then(result => result.json())
       .then(result => {
         console.log("-- Returned questionnaireResponse ", result);
         this.props.updateAdFormResponseFromServer(result);
@@ -904,6 +904,11 @@ export default class QuestionnaireForm extends Component {
       body: JSON.stringify(qr)
     };
 
+    // add the contained questionnaire for adaptive form 
+    const isAdaptiveForm = this.props.qform.meta.profile.includes("http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-adapt");
+    qr.contained = [];
+    qr.contained.push(this.props.qform);
+    
     function handleFetchErrors(response) {
       if (!response.ok) {
         let msg = "Failure when fetching resource";
@@ -1312,7 +1317,6 @@ export default class QuestionnaireForm extends Component {
 
   render() {
     console.log(this.state.savedResponse);
-    console.log("Questionnaire: ", this.props.qform);
     const isAdaptiveForm = this.props.qform.meta.profile.includes("http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-adapt");
     const isAdaptiveFormHasItems = this.props.qform && this.props.qform.item && this.props.qform.item.length > 0;
     return (
