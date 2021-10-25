@@ -182,14 +182,13 @@ export default class QuestionnaireForm extends Component {
 
   // retrieve next sets of questions
   loadNextQuestions() {
-    console.log("Loading next questions ... clickCount ", this.props.adFormNextQuestionClickCount);
     const url = this.props.FILE_PATH + "Questionnaire/$next-question";
     
     const currentQuestionnaireResponse = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', this.fhirVersion, "#formContainer");;
     retrieveQuestions(url, buildNextQuestionRequest(this.props.qform, currentQuestionnaireResponse))
       .then(result => result.json())
       .then(result => {
-        console.log("-- Returned questionnaireResponse ", result);
+        console.log("-- Returned from payer server questionnaireResponse ", result);
         this.props.updateAdFormResponseFromServer(result);
         this.props.updateClickCount(this.props.adFormNextQuestionClickCount + 1);
         this.props.updateAdFormCompleted(result.status === "completed");
@@ -906,9 +905,11 @@ export default class QuestionnaireForm extends Component {
 
     // add the contained questionnaire for adaptive form 
     const isAdaptiveForm = this.props.qform.meta.profile.includes("http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-adapt");
-    qr.contained = [];
-    qr.contained.push(this.props.qform);
-    
+    if(isAdaptiveForm) {
+      qr.contained = [];
+      qr.contained.push(this.props.qform);
+    }
+
     function handleFetchErrors(response) {
       if (!response.ok) {
         let msg = "Failure when fetching resource";

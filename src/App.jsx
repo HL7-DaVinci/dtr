@@ -573,7 +573,6 @@ export default class App extends Component {
   }
 
   render() {
-    console.log("--- Need to wait for additional resource to load: ", this.state.isAdaptiveFormWithoutExtension);
     if (
       (this.state.questionnaire &&
         this.state.cqlPrepopulationResults &&
