@@ -76,8 +76,7 @@ export default class App extends Component {
 
   componentDidMount() {
       if(!this.props.standalone) {
-        console.log("Questionnaire Reference", this.appContext.template)
-          this.ehrLaunch(false);
+        this.ehrLaunch(false);
       }
   }
 
@@ -128,7 +127,7 @@ export default class App extends Component {
           this.setState({ questionnaire: artifacts.questionnaire });
           this.setState({ deviceRequest: deviceRequest });
           this.setState({ isAdaptiveFormWithoutExtension: artifacts.questionnaire.meta.profile.includes("http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-adapt") && (artifacts.questionnaire.extension === undefined || !artifacts.questionnaire.extension.includes(e => e.url === "http://hl7.org/fhir/StructureDefinition/cqf-library")) });
-          console.log("--- after setting state ----")
+          
           // execute for each main library
           return Promise.all(
             artifacts.mainLibraryElms.map(mainLibraryElm => {
