@@ -7,7 +7,7 @@ import _ from "lodash";
 import ConfigData from "../../config.json";
 import ReactDOM from 'react-dom'
 
-import retrieveQuestions, { retrieveQuestionsCount, sampleBody, sampleResult, buildNextQuestionRequest, completedResult } from "../../util/retrieveQuestions";
+import retrieveQuestions, { buildNextQuestionRequest } from "../../util/retrieveQuestions";
 
 // NOTE: need to append the right FHIR version to have valid profile URL
 var DTRQuestionnaireResponseURL = "http://hl7.org/fhir/us/davinci-dtr/StructureDefinition/dtr-questionnaireresponse-";
@@ -188,7 +188,7 @@ export default class QuestionnaireForm extends Component {
     retrieveQuestions(url, buildNextQuestionRequest(this.props.qform, currentQuestionnaireResponse))
       .then(result => result.json())
       .then(result => {
-        console.log("-- Returned from payer server questionnaireResponse ", result);
+        console.log("-- loadNextQuestions response returned from payer server questionnaireResponse ", result);
         this.props.updateAdFormResponseFromServer(result);
         this.props.updateClickCount(this.props.adFormNextQuestionClickCount + 1);
         this.props.updateAdFormCompleted(result.status === "completed");
