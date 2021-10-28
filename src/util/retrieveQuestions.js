@@ -255,14 +255,7 @@ export default function retrieveQuestions(url, body) {
         body: JSON.stringify(body)
     };
 
-
     return fetch(url, requestOptions);
-
-    /*.then(result =>
-            console.log("response", result));
-
-    return new Promise(completedResult);*/
-
 }
 
 const resultList = [
@@ -270,9 +263,9 @@ const resultList = [
     completedResult
 ];
 
+// function to mock questions returned from the server
 export function retrieveQuestionsCount(clickTime) {
     let index = 0;
-    console.log("========= retrieveQuestionCount clickTime:", clickTime);
     if (clickTime > 1) {
         index = 1;
     } else {
