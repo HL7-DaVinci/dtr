@@ -126,7 +126,7 @@ export default class App extends Component {
 
           this.setState({ questionnaire: artifacts.questionnaire });
           this.setState({ deviceRequest: deviceRequest });
-          this.setState({ isAdaptiveFormWithoutExtension: artifacts.questionnaire.meta.profile.includes("http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-adapt") && (artifacts.questionnaire.extension === undefined || !artifacts.questionnaire.extension.includes(e => e.url === "http://hl7.org/fhir/StructureDefinition/cqf-library")) });
+          this.setState({ isAdaptiveFormWithoutExtension: artifacts.questionnaire.meta && artifacts.questionnaire.meta.profile && artifacts.questionnaire.meta.profile.includes("http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-adapt") && (artifacts.questionnaire.extension === undefined || !artifacts.questionnaire.extension.includes(e => e.url === "http://hl7.org/fhir/StructureDefinition/cqf-library")) });
           
           // execute for each main library
           return Promise.all(
