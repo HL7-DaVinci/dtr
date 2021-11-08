@@ -1287,7 +1287,9 @@ export default class QuestionnaireForm extends Component {
   }
 
   getDisplayButtons() {
-    const isAdaptiveForm = this.props.qform !== undefined && this.props.qform.meta.profile.includes("http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-adapt");
+    const isAdaptiveForm = this.props.qform !== undefined && 
+        this.props.qform.meta && this.props.qform.meta.profile  
+        this.props.qform.meta.profile.includes("http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-adapt");
 
     if (!isAdaptiveForm) {
       return (<div className="submit-button-panel">
@@ -1318,7 +1320,8 @@ export default class QuestionnaireForm extends Component {
 
   render() {
     console.log(this.state.savedResponse);
-    const isAdaptiveForm = this.props.qform.meta.profile.includes("http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-adapt");
+    const isAdaptiveForm = this.props.qform.meta && this.props.qform.meta.profile && 
+      this.props.qform.meta.profile.includes("http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-adapt");
     const isAdaptiveFormHasItems = this.props.qform && this.props.qform.item && this.props.qform.item.length > 0;
     return (
       <div>
