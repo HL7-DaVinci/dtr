@@ -52,6 +52,7 @@ export default class QuestionnaireForm extends Component {
     this.repopulateAndReload = this.repopulateAndReload.bind(this);
     this.loadNextQuestions = this.loadNextQuestions.bind(this);
     this.mergeResponses = this.mergeResponses.bind(this);
+    this.isAdaptiveForm = this.isAdaptiveForm.bind(this);
   }
 
 
@@ -904,8 +905,7 @@ export default class QuestionnaireForm extends Component {
     };
 
     // add the contained questionnaire for adaptive form 
-    const isAdaptiveForm = this.props.qform.meta.profile.includes("http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-adapt");
-    if (isAdaptiveForm) {
+    if (this.isAdaptiveForm()) {
       qr.contained = [];
       qr.contained.push(this.props.qform);
     }
@@ -934,10 +934,20 @@ export default class QuestionnaireForm extends Component {
     return;
   }
 
+  isAdaptiveForm() {
+    return this.props.qform.meta && this.props.qform.meta.profile && this.props.qform.meta.profile.includes("http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-adapt");
+  }
+
   // create the questionnaire response based on the current state
   outputResponse(status) {
     var qr = this.getQuestionnaireResponse(status);
 
+     // add the contained questionnaire for adaptive form 
+     if (this.isAdaptiveForm()) {
+       qr.contained = [];
+       qr.contained.push(this.props.qform);
+     }
+ 
     if (status == "in-progress") {
       this.storeQuestionnaireResponseToEhr(qr, true);
       this.popupClear("Partially completed form (QuestionnaireResponse) saved to EHR", "OK", true);
@@ -1213,6 +1223,7 @@ export default class QuestionnaireForm extends Component {
         item: []
       }
 
+      // TODO using 
       const items = this.props.qform.item;
       this.prepopulate(items, newResponse.item, saved_response)
 
@@ -1287,9 +1298,7 @@ export default class QuestionnaireForm extends Component {
   }
 
   getDisplayButtons() {
-    const isAdaptiveForm = this.props.qform !== undefined && this.props.qform.meta && this.props.qform.meta.profile && this.props.qform.meta.profile.includes("http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-adapt");
-
-    if (!isAdaptiveForm) {
+    if (!this.isAdaptiveForm()) {
       return (<div className="submit-button-panel">
         <button className="btn submit-button" onClick={this.loadPreviousForm.bind(this)}>
           Load Previous Form
@@ -1335,7 +1344,7 @@ export default class QuestionnaireForm extends Component {
 
   render() {
     console.log(this.state.savedResponse);
-    const isAdaptiveForm = this.props.qform.meta && this.props.qform.meta.profile && this.props.qform.meta.profile.includes("http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-adapt");
+    const isAdaptiveForm = this.isAdaptiveForm();
     const isAdaptiveFormHasItems = this.props.qform && this.props.qform.item && this.props.qform.item.length > 0;
     return (
       <div>
