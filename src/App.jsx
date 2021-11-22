@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, useCallback } from "react";
 import ReactDOM from 'react-dom'
 import "./App.css";
 import cqlfhir from "cql-exec-fhir";
@@ -60,7 +60,8 @@ export default class App extends Component {
       reloadQuestionnaire: false,
       adFormNextQuestionClickCount: 0,
       adFormCompleted: false,
-      adFormResponseFromServer: undefined
+      adFormResponseFromServer: undefined,
+      savedResponse: null
     };
     this.smart = props.smart;
     this.patientId = props.patientId;
@@ -94,9 +95,14 @@ export default class App extends Component {
       });
   }
 
-  updateQuestionnaire(updatedQuestionnaire) {
-    this.setState({ questionnaire: updatedQuestionnaire });
+  updateQuestionnaire(updatedQuestionnaire, response) {
+    this.setState({
+      questionnaire: updatedQuestionnaire,
+      reloadQuestionnaire: true,
+      savedResponse: response
+    })
   }
+}
 
   ehrLaunch(isContainedQuestionnaire, questionnaire) {
     const deviceRequest = JSON.parse(this.appContext.request.replace(/\\/g,""));
@@ -626,6 +632,8 @@ export default class App extends Component {
               updateAdFormCompleted={(completed) => this.setState({adFormCompleted: completed})}
               adFormResponseFromServer={this.state.adFormResponseFromServer}
               updateAdFormResponseFromServer={(response) => this.setState({adFormResponseFromServer: response})}
+              savedResponse={this.state.savedResponse}
+              updateSavedResponse={response => this.setState({savedResponse: response})}
             />
           )}
         </div>
