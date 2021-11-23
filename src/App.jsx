@@ -103,7 +103,6 @@ export default class App extends Component {
     })
   }
 
-
   ehrLaunch(isContainedQuestionnaire, questionnaire) {
     const deviceRequest = JSON.parse(this.appContext.request.replace(/\\/g,""));
     this.consoleLog("fetching artifacts", "infoClass");

@@ -874,9 +874,11 @@ export default class QuestionnaireForm extends Component {
         item["extension"] = [urlValRef]
       }
     }
-    qr.item.map(item => {
-      traverseToItemsLeafNode(item, practitionerRef)
-    })
+    if(qr.item) {
+      qr.item.map(item => {
+        traverseToItemsLeafNode(item, practitionerRef)
+      })
+    }
   }
 
   getQuestionnaireResponse(status) {
@@ -1291,9 +1293,11 @@ export default class QuestionnaireForm extends Component {
           replaceOrInsertItem(newItem, savedParentItem);
         }
       } else {
-        newItem.item.forEach(newSubItem => {
-          updateMergeItem(newSubItem, savedItem, newItem.linkId);
-        });
+        if(newItem.item) {
+          newItem.item.forEach(newSubItem => {
+            updateMergeItem(newSubItem, savedItem, newItem.linkId);
+          });
+        }
       }
     };
 
