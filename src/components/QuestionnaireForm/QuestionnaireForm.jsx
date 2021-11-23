@@ -201,10 +201,14 @@ export default class QuestionnaireForm extends Component {
       .then(result => result.json())
       .then(result => {
         console.log("-- loadNextQuestions response returned from payer server questionnaireResponse ", result);
-        this.props.updateAdFormResponseFromServer(result);
-        this.props.updateClickCount(this.props.adFormNextQuestionClickCount + 1);
-        this.props.updateAdFormCompleted(result.status === "completed");
-        this.props.ehrLaunch(true, result.contained[0]);
+        if(result.error === undefined) {
+          this.props.updateAdFormResponseFromServer(result);
+          this.props.updateClickCount(this.props.adFormNextQuestionClickCount + 1);
+          this.props.updateAdFormCompleted(result.status === "completed");
+          this.props.ehrLaunch(true, result.contained[0]);
+        } else {
+          alert("Failed to load next questions. Error: " + result.error);
+        }
       });
   }
 
