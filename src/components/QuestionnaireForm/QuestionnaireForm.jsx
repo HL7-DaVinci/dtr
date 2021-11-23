@@ -870,9 +870,11 @@ export default class QuestionnaireForm extends Component {
         item["extension"] = [urlValRef]
       }
     }
-    qr.item.map(item => {
-      traverseToItemsLeafNode(item, practitionerRef)
-    })
+    if(qr.item) {
+      qr.item.map(item => {
+        traverseToItemsLeafNode(item, practitionerRef)
+      })
+    }
   }
 
   getQuestionnaireResponse(status) {
