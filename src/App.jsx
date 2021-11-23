@@ -102,7 +102,6 @@ export default class App extends Component {
       savedResponse: response
     })
   }
-}
 
   ehrLaunch(isContainedQuestionnaire, questionnaire) {
     const deviceRequest = JSON.parse(this.appContext.request.replace(/\\/g,""));
