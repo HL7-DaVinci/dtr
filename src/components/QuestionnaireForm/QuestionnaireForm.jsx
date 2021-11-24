@@ -1337,7 +1337,7 @@ export default class QuestionnaireForm extends Component {
             Save
           </button>
           <button className="btn submit-button" onClick={this.outputResponse.bind(this, "completed")}>
-            Next
+            Proceed To Prior Auth
           </button>
         </div>)
       }
@@ -1349,7 +1349,7 @@ export default class QuestionnaireForm extends Component {
                 Send to Payer
               </button>
               <button className="btn submit-button" onClick={this.outputResponse.bind(this, "completed")}>
-                Next
+                Proceed To Prior Auth
               </button>
             </div>
           )
@@ -1357,13 +1357,14 @@ export default class QuestionnaireForm extends Component {
         else {
           return (
             <div className="submit-button-panel">
-              <button className="btn submit-button" onClick={this.loadPreviousForm.bind(this)}>
+              {this.isAdaptiveFormWithoutItem() ? (
+                <button className="btn submit-button" onClick={this.loadPreviousForm.bind(this)}>
                 Load Previous Form
-              </button>
+                 </button>
+              ) : null}
               {this.isAdaptiveFormWithItem() ? (<button className="btn submit-button" onClick={this.outputResponse.bind(this, "in-progress")}>
                 Save
               </button>) : null}
-
             </div>
           )
         }
@@ -1374,6 +1375,7 @@ export default class QuestionnaireForm extends Component {
       console.log(this.props.savedResponse);
       const isAdaptiveForm = this.isAdaptiveForm();
       const showPopup = !isAdaptiveForm || this.isAdaptiveFormWithoutItem();
+      console.log("----- showPopup: ", showPopup);
       return (
         <div>
           <div id="formContainer">
