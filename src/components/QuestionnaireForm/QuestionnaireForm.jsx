@@ -1032,6 +1032,7 @@ export default class QuestionnaireForm extends Component {
     };
 
     const priorAuthBundle = JSON.parse(JSON.stringify(this.props.bundle));
+    if(priorAuthBundle) {
     priorAuthBundle.entry.unshift({ resource: managingOrg });
     priorAuthBundle.entry.unshift({ resource: facility });
     priorAuthBundle.entry.unshift({ resource: insurer });
@@ -1162,6 +1163,9 @@ export default class QuestionnaireForm extends Component {
     priorAuthBundle.entry.unshift({ resource: priorAuthClaim });
 
     this.props.setPriorAuthClaim(priorAuthBundle);
+  } else {
+    alert("Prior Auth Bundle is not available. Can't submit to prior auth.")
+  }
     // } else {
     //   alert("NOT submitting for prior auth");
     // }
@@ -1209,22 +1213,6 @@ export default class QuestionnaireForm extends Component {
     return resourceType + "/" + entry.resource.id;
   }
 
-
-  popupClear(title, finalOption, logTitle) {
-    this.setState({
-      popupTitle: title,
-      popupOptions: [],
-      popupFinalOption: finalOption
-    });
-    if (logTitle) {
-      console.log(title);
-    }
-  }
-
-  popupLaunch() {
-    this.clickChild();
-  }
-
   popupCallback(returnValue) {
     // display the form loaded
     this.setState({
@@ -1248,7 +1236,6 @@ export default class QuestionnaireForm extends Component {
           item: []
         }
 
-        // Using contained questionnaire from partial response if available
         const items = this.props.qform.item;
         this.prepopulate(items, newResponse.item, saved_response)
 
@@ -1302,9 +1289,11 @@ export default class QuestionnaireForm extends Component {
     };
 
     newOne.item.map(newItem => {
-      let savedIndex = saved.item.findIndex(savedItem => newItem.linkId == savedItem.linkId);
-      if (savedIndex != -1) {
-        updateMergeItem(newItem, saved.item[savedIndex], newOne.linkId);
+      if (saved.item !== undefined) {
+        let savedIndex = saved.item.findIndex(savedItem => newItem.linkId == savedItem.linkId);
+        if (savedIndex != -1) {
+          updateMergeItem(newItem, saved.item[savedIndex], newOne.linkId);
+        }
       }
     });
   };
@@ -1375,7 +1364,6 @@ export default class QuestionnaireForm extends Component {
       console.log(this.props.savedResponse);
       const isAdaptiveForm = this.isAdaptiveForm();
       const showPopup = !isAdaptiveForm || this.isAdaptiveFormWithoutItem();
-      console.log("----- showPopup: ", showPopup);
       return (
         <div>
           <div id="formContainer">
