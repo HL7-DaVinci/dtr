@@ -186,18 +186,24 @@ export default class QuestionnaireForm extends Component {
   loadNextQuestions() {
     const url = this.props.FILE_PATH + "Questionnaire/$next-question";
     
-    const currentQuestionnaireResponse = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', this.fhirVersion, "#formContainer");;
-    retrieveQuestions(url, buildNextQuestionRequest(this.props.qform, currentQuestionnaireResponse))
+    const currentQuestionnaireResponse = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', this.fhirVersion, "#formContainer");
+    const mergedResponse = this.mergeResponseForSameLinkId(currentQuestionnaireResponse);
+    retrieveQuestions(url, buildNextQuestionRequest(this.props.qform, mergedResponse))
       .then(result => result.json())
       .then(result => {
         console.log("-- loadNextQuestions response returned from payer server questionnaireResponse ", result);
+        let newResponse = {
+          resourceType: 'QuestionnaireResponse',
+          status: 'draft',
+          item: []
+        }
+        this.prepopulate(result.contained[0].item, newResponse.item, true);
         this.props.updateAdFormResponseFromServer(result);
         this.props.updateClickCount(this.props.adFormNextQuestionClickCount + 1);
         this.props.updateAdFormCompleted(result.status === "completed");
         this.props.ehrLaunch(true, result.contained[0]);
       });
   }
-
 
   processSavedQuestionnaireResponses(partialResponses, displayErrorOnNoneFound) {
     let noneFound = true;
@@ -259,6 +265,7 @@ export default class QuestionnaireForm extends Component {
     };
 
     if (newResponse) {
+      newResponse = this.mergeResponseForSameLinkId(newResponse);
       lform = LForms.Util.mergeFHIRDataIntoLForms("QuestionnaireResponse", newResponse, lform, this.props.fhirVersion)
     }
 
@@ -467,6 +474,7 @@ export default class QuestionnaireForm extends Component {
         prepopulationResult = cqlResults[
           libraryName
         ][statementName];
+        console.log(`Found library "${libraryName}"`);
       } else {
         prepopulationResult = null;
         console.log(`Couldn't find library "${libraryName}"`);
