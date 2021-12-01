@@ -60,8 +60,7 @@ export default class App extends Component {
       reloadQuestionnaire: false,
       adFormNextQuestionClickCount: 0,
       adFormCompleted: false,
-      adFormResponseFromServer: undefined,
-      savedResponse: null
+      adFormResponseFromServer: undefined
     };
     this.smart = props.smart;
     this.patientId = props.patientId;
@@ -95,11 +94,10 @@ export default class App extends Component {
       });
   }
 
-  updateQuestionnaire(updatedQuestionnaire, response) {
+  updateQuestionnaire(updatedQuestionnaire) {
     this.setState({
       questionnaire: updatedQuestionnaire,
       reloadQuestionnaire: true,
-      savedResponse: response
     })
   }
 
@@ -631,8 +629,6 @@ export default class App extends Component {
               updateAdFormCompleted={(completed) => this.setState({adFormCompleted: completed})}
               adFormResponseFromServer={this.state.adFormResponseFromServer}
               updateAdFormResponseFromServer={(response) => this.setState({adFormResponseFromServer: response})}
-              savedResponse={this.state.savedResponse}
-              updateSavedResponse={response => this.setState({savedResponse: response})}
             />
           )}
         </div>
