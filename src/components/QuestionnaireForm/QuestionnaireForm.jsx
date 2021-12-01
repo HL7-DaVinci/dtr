@@ -32,7 +32,7 @@ export default class QuestionnaireForm extends Component {
       popupOptions: [],
       popupFinalOption: "Cancel",
       formFilled: true,
-      formValidationErrors: [],
+      formValidationErrors: []
     };
 
     this.outputResponse = this.outputResponse.bind(this);
@@ -54,6 +54,8 @@ export default class QuestionnaireForm extends Component {
     this.mergeResponses = this.mergeResponses.bind(this);
     this.isAdaptiveForm = this.isAdaptiveForm.bind(this);
     this.getDisplayButtons = this.getDisplayButtons.bind(this);
+    this.isAdaptiveFormWithoutItem = this.isAdaptiveFormWithoutItem.bind(this);
+    this.isAdaptiveFormWithItem = this.isAdaptiveFormWithItem.bind(this);
   }
 
 
@@ -67,7 +69,9 @@ export default class QuestionnaireForm extends Component {
       this.handleGtable(items, parentItems, response.item);
       this.prepopulate(items, response.item, true);
       const mergedResponse = this.mergeResponseForSameLinkId(response);
-      this.state.savedResponse = mergedResponse;
+      this.setState({
+        savedResponse: mergedResponse
+      })
     } else {
       this.smart.request(this.getRetrieveSaveQuestionnaireUrl() +
         "&status=in-progress" +
@@ -90,20 +94,22 @@ export default class QuestionnaireForm extends Component {
       this.handleGtable(items, parentItems, newResponse.item);
       this.prepopulate(items, newResponse.item, false);
       let mergedResponse = this.mergeResponseForSameLinkId(newResponse);
-      this.state.savedResponse = mergedResponse;
+      this.setState({
+        savedResponse: mergedResponse
+      })
+      localStorage.setItem("lastSavedResponse", JSON.stringify(mergedResponse));
     }
   }
 
   componentDidMount() {
     this.loadAndMergeForms(this.state.savedResponse);
-
     const formErrors = LForms.Util.checkValidity();
     this.setState({
       formValidationErrors: formErrors == null ? [] : formErrors
     });
 
     document.addEventListener('change', event => {
-      if(this.props.filterChecked && event.target.id != "filterCheckbox" && event.target.id != "attestationCheckbox") {
+      if (this.props.filterChecked && event.target.id != "filterCheckbox" && event.target.id != "attestationCheckbox") {
         const checkIfFilter = (currentErrors, newErrors, targetElementName) => {
           if (currentErrors.length < newErrors.length)
             return false;
@@ -116,9 +122,9 @@ export default class QuestionnaireForm extends Component {
           return true;
         };
         const newErrors = LForms.Util.checkValidity();
-        const ifFilter = checkIfFilter(this.state.formValidationErrors,  newErrors == null? [] : newErrors, event.target.getAttribute("name"));
-        
-        if(ifFilter) {
+        const ifFilter = checkIfFilter(this.state.formValidationErrors, newErrors == null ? [] : newErrors, event.target.getAttribute("name"));
+
+        if (ifFilter) {
           this.props.filterFieldsFn(this.props.formFilled);
         } else {
           console.log("Modified field is invalid. Skip filtering.");
@@ -142,10 +148,16 @@ export default class QuestionnaireForm extends Component {
     const parentItems = [];
     this.handleGtable(items, parentItems, newResponse.item);
     this.prepopulate(items, newResponse.item, false);
-    
+
     // merge pre-populated response and response from the server
-    const mergedResponse = this.mergeResponses(this.mergeResponseForSameLinkId(newResponse), this.mergeResponseForSameLinkId(this.props.adFormResponseFromServer));
-    this.state.savedResponse = this.mergeResponseForSameLinkId(mergedResponse);
+    let mergedResponse = newResponse;
+    if (this.props.adFormResponseFromServer) {
+      mergedResponse = this.mergeResponses(this.mergeResponseForSameLinkId(newResponse), this.mergeResponseForSameLinkId(this.props.adFormResponseFromServer));
+    } else {
+      mergedResponse = this.mergeResponses(this.mergeResponseForSameLinkId(newResponse), JSON.parse(localStorage.getItem("lastSavedResponse")));
+    }
+    
+    mergedResponse = this.mergeResponseForSameLinkId(mergedResponse);
     this.loadAndMergeForms(mergedResponse);
     this.props.updateReloadQuestionnaire(false);
   }
@@ -185,23 +197,27 @@ export default class QuestionnaireForm extends Component {
   // retrieve next sets of questions
   loadNextQuestions() {
     const url = this.props.FILE_PATH + "Questionnaire/$next-question";
-    
-    const currentQuestionnaireResponse = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', this.fhirVersion, "#formContainer");
+
+    const currentQuestionnaireResponse = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', this.fhirVersion, "#formContainer");;
     const mergedResponse = this.mergeResponseForSameLinkId(currentQuestionnaireResponse);
     retrieveQuestions(url, buildNextQuestionRequest(this.props.qform, mergedResponse))
       .then(result => result.json())
       .then(result => {
         console.log("-- loadNextQuestions response returned from payer server questionnaireResponse ", result);
-        let newResponse = {
-          resourceType: 'QuestionnaireResponse',
-          status: 'draft',
-          item: []
+        if(result.error === undefined) {
+          let newResponse = {
+            resourceType: 'QuestionnaireResponse',
+            status: 'draft',
+            item: []
+          }
+          this.prepopulate(result.contained[0].item, newResponse.item, true);
+          this.props.updateAdFormResponseFromServer(result);
+          this.props.updateClickCount(this.props.adFormNextQuestionClickCount + 1);
+          this.props.updateAdFormCompleted(result.status === "completed");
+          this.props.ehrLaunch(true, result.contained[0]);
+        } else {
+          alert("Failed to load next questions. Error: " + result.error);
         }
-        this.prepopulate(result.contained[0].item, newResponse.item, true);
-        this.props.updateAdFormResponseFromServer(result);
-        this.props.updateClickCount(this.props.adFormNextQuestionClickCount + 1);
-        this.props.updateAdFormCompleted(result.status === "completed");
-        this.props.ehrLaunch(true, result.contained[0]);
       });
   }
 
@@ -236,8 +252,10 @@ export default class QuestionnaireForm extends Component {
       console.log(this.state.popupOptions);
       console.log(this.partialForms);
 
+      //check if show popup
+      const showPopup = !this.isAdaptiveForm() || this.isAdaptiveFormWithoutItem();
       // only show the popupOptions if there is one to show
-      if (count > 0) {
+      if (count > 0 && showPopup) {
         noneFound = false;
         this.popupLaunch();
       }
@@ -868,9 +886,11 @@ export default class QuestionnaireForm extends Component {
         item["extension"] = [urlValRef]
       }
     }
-    qr.item.map(item => {
-      traverseToItemsLeafNode(item, practitionerRef)
-    })
+    if(qr.item) {
+      qr.item.map(item => {
+        traverseToItemsLeafNode(item, practitionerRef)
+      })
+    }
   }
 
   getQuestionnaireResponse(status) {
@@ -914,7 +934,7 @@ export default class QuestionnaireForm extends Component {
     };
 
     // add the contained questionnaire for adaptive form 
-    if(this.isAdaptiveForm()) {
+    if (this.isAdaptiveForm()) {
       qr.contained = [];
       qr.contained.push(this.props.qform);
     }
@@ -943,9 +963,38 @@ export default class QuestionnaireForm extends Component {
     return;
   }
 
+  isAdaptiveForm() {
+    return this.props.qform.meta && this.props.qform.meta.profile && this.props.qform.meta.profile.includes("http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-adapt");
+  }
+
+  isAdaptiveFormWithoutItem() {
+    return this.isAdaptiveForm() && this.props.qform && (this.props.qform.item === undefined || this.props.qform.item.length <= 0);
+  }
+
+  isAdaptiveFormWithItem() {
+    return this.isAdaptiveForm() && this.props.qform && this.props.qform.item && this.props.qform.item.length >0;
+  }
+
+  isPriorAuthBundleValid(bundle) {
+    const resourceTypeList = ["Patient", "Practitioner", "Organization", "Location", "Coverage"];
+
+    return resourceTypeList.every(resourceType => {
+      var entry = bundle.entry.find(function (entry) {
+        return entry.resource.resourceType == resourceType;
+      });
+      return entry !== undefined;
+    });
+  }
+
   // create the questionnaire response based on the current state
   outputResponse(status) {
     var qr = this.getQuestionnaireResponse(status);
+
+    // add the contained questionnaire for adaptive form 
+    if (this.isAdaptiveForm()) {
+      qr.contained = [];
+      qr.contained.push(this.props.qform);
+    }
 
     if (status == "in-progress") {
       this.storeQuestionnaireResponseToEhr(qr, true);
@@ -1006,141 +1055,139 @@ export default class QuestionnaireForm extends Component {
     };
 
     const priorAuthBundle = JSON.parse(JSON.stringify(this.props.bundle));
-    priorAuthBundle.entry.unshift({ resource: managingOrg });
-    priorAuthBundle.entry.unshift({ resource: facility });
-    priorAuthBundle.entry.unshift({ resource: insurer });
-    priorAuthBundle.entry.unshift({ resource: this.props.deviceRequest });
-    priorAuthBundle.entry.unshift({ resource: qr });
-    console.log(priorAuthBundle);
+    if (priorAuthBundle && this.isPriorAuthBundleValid(priorAuthBundle)) {
+      priorAuthBundle.entry.unshift({ resource: managingOrg });
+      priorAuthBundle.entry.unshift({ resource: facility });
+      priorAuthBundle.entry.unshift({ resource: insurer });
+      priorAuthBundle.entry.unshift({ resource: this.props.deviceRequest });
+      priorAuthBundle.entry.unshift({ resource: qr });
 
-    this.generateAndStoreDocumentReference(qr, priorAuthBundle);
-    this.storeQuestionnaireResponseToEhr(qr, false);
+      this.generateAndStoreDocumentReference(qr, priorAuthBundle);
+      this.storeQuestionnaireResponseToEhr(qr, false);
 
-    // if (this.props.priorAuthReq) {
-    const priorAuthClaim = {
-      resourceType: "Claim",
-      status: "active",
-      type: {
-        coding: [
-          {
-            system: "http://terminology.hl7.org/CodeSystem/claim-type",
-            code: "professional",
-            display: "Professional"
-          }
-        ]
-      },
-      identifier: [
-        {
-          system: "urn:uuid:mitre-drls",
-          value: shortid.generate()
-        }
-      ],
-      use: "preauthorization",
-      patient: { reference: this.makeReference(priorAuthBundle, "Patient") },
-      created: qr.authored,
-      provider: {
-        // TODO: make this organization
-        reference: this.makeReference(priorAuthBundle, "Practitioner")
-      },
-      insurer: {
-        reference: this.makeReference(priorAuthBundle, "Organization")
-      },
-      facility: {
-        reference: this.makeReference(priorAuthBundle, "Location")
-      },
-      priority: { coding: [{ code: "normal" }] },
-      careTeam: [
-        {
-          sequence: 1,
-          provider: {
-            reference: this.makeReference(priorAuthBundle, "Practitioner")
-          },
-          extension: [
+      const priorAuthClaim = {
+        resourceType: "Claim",
+        status: "active",
+        type: {
+          coding: [
             {
-              url: "http://terminology.hl7.org/ValueSet/v2-0912",
-              valueCode: "OP"
+              system: "http://terminology.hl7.org/CodeSystem/claim-type",
+              code: "professional",
+              display: "Professional"
             }
           ]
-        }
-      ],
-      supportingInfo: [
-        {
-          sequence: 1,
-          category: {
-            coding: [
-              {
-                system:
-                  "http://hl7.org/us/davinci-pas/CodeSystem/PASSupportingInfoType",
-                code: "patientEvent"
-              }
-            ]
-          },
-          timingPeriod: {
-            start: "2020-01-01",
-            end: "2021-01-01"
-          }
         },
-        {
-          sequence: 2,
-          category: {
-            coding: [
+        identifier: [
+          {
+            system: "urn:uuid:mitre-drls",
+            value: shortid.generate()
+          }
+        ],
+        use: "preauthorization",
+        patient: { reference: this.makeReference(priorAuthBundle, "Patient") },
+        created: qr.authored,
+        provider: {
+          // TODO: make this organization
+          reference: this.makeReference(priorAuthBundle, "Practitioner")
+        },
+        insurer: {
+          reference: this.makeReference(priorAuthBundle, "Organization")
+        },
+        facility: {
+          reference: this.makeReference(priorAuthBundle, "Location")
+        },
+        priority: { coding: [{ code: "normal" }] },
+        careTeam: [
+          {
+            sequence: 1,
+            provider: {
+              reference: this.makeReference(priorAuthBundle, "Practitioner")
+            },
+            extension: [
               {
-                system:
-                  "http://terminology.hl7.org/CodeSystem/claiminformationcategory",
-                code: "info",
-                display: "Information"
+                url: "http://terminology.hl7.org/ValueSet/v2-0912",
+                valueCode: "OP"
               }
             ]
+          }
+        ],
+        supportingInfo: [
+          {
+            sequence: 1,
+            category: {
+              coding: [
+                {
+                  system:
+                    "http://hl7.org/us/davinci-pas/CodeSystem/PASSupportingInfoType",
+                  code: "patientEvent"
+                }
+              ]
+            },
+            timingPeriod: {
+              start: "2020-01-01",
+              end: "2021-01-01"
+            }
           },
-          valueReference: {
-            reference: this.makeReference(
-              priorAuthBundle,
-              "QuestionnaireResponse"
-            )
+          {
+            sequence: 2,
+            category: {
+              coding: [
+                {
+                  system:
+                    "http://terminology.hl7.org/CodeSystem/claiminformationcategory",
+                  code: "info",
+                  display: "Information"
+                }
+              ]
+            },
+            valueReference: {
+              reference: this.makeReference(
+                priorAuthBundle,
+                "QuestionnaireResponse"
+              )
+            }
           }
-        }
-      ],
-      item: [
-        {
-          sequence: 1,
-          careTeamSequence: [1],
-          productOrService: this.getCode(),
-          quantity: {
-            value: 1
+        ],
+        item: [
+          {
+            sequence: 1,
+            careTeamSequence: [1],
+            productOrService: this.getCode(),
+            quantity: {
+              value: 1
+            }
+            // TODO: add extensions
           }
-          // TODO: add extensions
-        }
-      ],
-      diagnosis: [],
-      insurance: [
-        {
-          sequence: 1,
-          focal: true,
-          coverage: {
-            // TODO: diagnosis is not a reference it must be CodeableConcept
-            reference: this.makeReference(priorAuthBundle, "Coverage")
+        ],
+        diagnosis: [],
+        insurance: [
+          {
+            sequence: 1,
+            focal: true,
+            coverage: {
+              // TODO: diagnosis is not a reference it must be CodeableConcept
+              reference: this.makeReference(priorAuthBundle, "Coverage")
+            }
           }
+        ]
+      };
+      var sequence = 1;
+      priorAuthBundle.entry.forEach(function (entry, index) {
+        if (entry.resource.resourceType == "Condition") {
+          priorAuthClaim.diagnosis.push({
+            sequence: sequence++,
+            diagnosisReference: { reference: "Condition/" + entry.resource.id }
+          });
         }
-      ]
-    };
-    var sequence = 1;
-    priorAuthBundle.entry.forEach(function (entry, index) {
-      if (entry.resource.resourceType == "Condition") {
-        priorAuthClaim.diagnosis.push({
-          sequence: sequence++,
-          diagnosisReference: { reference: "Condition/" + entry.resource.id }
-        });
-      }
-    });
-    console.log(priorAuthClaim);
+      });
+      console.log(priorAuthClaim);
 
-    priorAuthBundle.entry.unshift({ resource: priorAuthClaim });
-    console.log(priorAuthBundle);
+      priorAuthBundle.entry.unshift({ resource: priorAuthClaim });
 
-    this.props.setPriorAuthClaim(priorAuthBundle);
-    // } else {
-    //   alert("NOT submitting for prior auth");
-    // }
+      this.props.setPriorAuthClaim(priorAuthBundle);
+    } else {
+      alert("Prior Auth Bundle is not available or does not contain enough resources for Prior Auth. Can't submit to prior auth.")
+    }
   }
 
   isEmptyAnswer(answer) {
@@ -1185,7 +1232,6 @@ export default class QuestionnaireForm extends Component {
     return resourceType + "/" + entry.resource.id;
   }
 
-
   popupClear(title, finalOption, logTitle) {
     this.setState({
       popupTitle: title,
@@ -1214,22 +1260,24 @@ export default class QuestionnaireForm extends Component {
 
       console.log(partialResponse);
 
-      this.setState({ savedResponse: partialResponse });
+      if(partialResponse.contained && partialResponse.contained[0].resourceType === "Questionnaire") {
+        localStorage.setItem("lastSavedResponse", JSON.stringify(partialResponse));
+        this.props.updateQuestionnaire(partialResponse.contained[0]);
+      } else {
+        // If not using saved QuestionnaireResponse, create a new one
+        let newResponse = {
+          resourceType: 'QuestionnaireResponse',
+          item: []
+        }
 
-      // If not using saved QuestionnaireResponse, create a new one
-      let newResponse = {
-        resourceType: 'QuestionnaireResponse',
-        item: []
+        const items = this.props.qform.item;
+        this.prepopulate(items, newResponse.item, saved_response)
+
+        this.updateSavedResponseWithPrepopulation(newResponse, partialResponse);
+
+        // force it to reload the form
+        this.loadAndMergeForms(partialResponse);
       }
-
-      const items = this.props.qform.item;
-      this.prepopulate(items, newResponse.item, saved_response)
-
-      this.updateSavedResponseWithPrepopulation(newResponse, partialResponse);
-
-      // force it to reload the form
-      this.loadAndMergeForms(partialResponse);
-
     } else {
       console.log("No form loaded.");
     }
@@ -1266,103 +1314,109 @@ export default class QuestionnaireForm extends Component {
           replaceOrInsertItem(newItem, savedParentItem);
         }
       } else {
-        newItem.item.forEach(newSubItem => {
-          updateMergeItem(newSubItem, savedItem, newItem.linkId);
-        });
+        if(newItem.item) {
+          newItem.item.forEach(newSubItem => {
+            updateMergeItem(newSubItem, savedItem, newItem.linkId);
+          });
+        }
       }
     };
 
     newOne.item.map(newItem => {
-      let savedIndex = saved.item.findIndex(savedItem => newItem.linkId == savedItem.linkId);
-      if (savedIndex != -1) {
-        updateMergeItem(newItem, saved.item[savedIndex], newOne.linkId);
+      if (saved.item !== undefined) {
+        let savedIndex = saved.item.findIndex(savedItem => newItem.linkId == savedItem.linkId);
+        if (savedIndex != -1) {
+          updateMergeItem(newItem, saved.item[savedIndex], newOne.linkId);
+        }
       }
     });
   };
 
-  popupClear(title, finalOption, logTitle) {
-    this.setState({
-      popupTitle: title,
-      popupOptions: [],
-      popupFinalOption: finalOption
-    });
-    if (logTitle) {
-      console.log(title);
-    }
-  }
-
-  popupLaunch() {
-    this.clickChild();
-  }
-
-  isAdaptiveForm() {
-    return this.props.qform !== undefined && 
-    this.props.qform.meta !== undefined && this.props.qform.meta.profile !== undefined &&
-    this.props.qform.meta.profile.includes("http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-adapt");
-  }
-
-  getDisplayButtons() {
-    if (!this.isAdaptiveForm()) {
-      return (<div className="submit-button-panel">
-        <button className="btn submit-button" onClick={this.loadPreviousForm.bind(this)}>
-          Load Previous Form
-        </button>
-        <button className="btn submit-button" onClick={this.sendQuestionnaireResponseToPayer.bind(this)}>
-          Send to Payer
-        </button>
-        <button className="btn submit-button" onClick={this.outputResponse.bind(this, "in-progress")}>
-          Save
-        </button>
-        <button className="btn submit-button" onClick={this.outputResponse.bind(this, "completed")}>
-          Next
-        </button>
-      </div>)
-    }
-    else if (this.props.adFormCompleted) {
-      return (
-        <div className="submit-button-panel">
+    getDisplayButtons() {
+      if (!this.isAdaptiveForm()) {
+        return (<div className="submit-button-panel">
+          <button className="btn submit-button" onClick={this.loadPreviousForm.bind(this)}>
+            Load Previous Form
+          </button>
           <button className="btn submit-button" onClick={this.sendQuestionnaireResponseToPayer.bind(this)}>
             Send to Payer
           </button>
-        </div>
-      )
+          <button className="btn submit-button" onClick={this.outputResponse.bind(this, "in-progress")}>
+            Save to EHR
+          </button>
+          <button className="btn submit-button" onClick={this.outputResponse.bind(this, "completed")}>
+            Proceed To Prior Auth
+          </button>
+        </div>)
+      }
+      else {
+        if (this.props.adFormCompleted) {
+          return (
+            <div className="submit-button-panel">
+              <button className="btn submit-button" onClick={this.sendQuestionnaireResponseToPayer.bind(this)}>
+                Send to Payer
+              </button>
+              <button className="btn submit-button" onClick={this.outputResponse.bind(this, "completed")}>
+                Proceed To Prior Auth
+              </button>
+            </div>
+          )
+        }
+        else {
+          return (
+            <div className="submit-button-panel">
+              {this.isAdaptiveFormWithoutItem() ? (
+                <button className="btn submit-button" onClick={this.loadPreviousForm.bind(this)}>
+                Load Previous Form
+                 </button>
+              ) : null}
+              {this.isAdaptiveFormWithItem() ? (<button className="btn submit-button" onClick={this.outputResponse.bind(this, "in-progress")}>
+                Save To EHR
+              </button>) : null}
+            </div>
+          )
+        }
+      }
+    }
+
+    render() {
+      console.log(this.props.savedResponse);
+      const isAdaptiveForm = this.isAdaptiveForm();
+      const showPopup = !isAdaptiveForm || this.isAdaptiveFormWithoutItem();
+      return (
+        <div>
+          <div id="formContainer">
+          </div>
+          {!isAdaptiveForm && this.props.formFilled ? <div className="form-message-panel"><p>All fields have been filled. Continue or uncheck "Only Show Unfilled Fields" to review and modify the form.</p></div> : null}
+          {
+            showPopup ? (
+              <SelectPopup
+              title={this.state.popupTitle}
+              options={this.state.popupOptions}
+              finalOption={this.state.popupFinalOption}
+              selectedCallback={this.popupCallback.bind(this)}
+              setClick={click => this.clickChild = click}
+            />
+            ) : null
+          }
+          {
+            isAdaptiveForm ? (
+              <div className="form-message-panel">
+                {this.isAdaptiveFormWithoutItem() && !this.props.adFormCompleted ? (<p>Click Next Question button to proceed.</p>) : null}
+                {!this.props.adFormCompleted ? (<div> <button className="btn submit-button" onClick={this.loadNextQuestions}>
+                  Next Question
+                </button>
+                </div>) : null}
+              </div>) : null
+          }
+          {
+            !isAdaptiveForm ? (<div className="status-panel">
+              Form Loaded: {this.state.formLoaded}
+            </div>) : null
+          }
+          {this.getDisplayButtons()}
+        </div>)
+        ;
     }
   }
-
-  render() {
-    console.log(this.state.savedResponse);
-    const isAdaptiveForm = this.isAdaptiveForm();
-    const isAdaptiveFormHasItems = this.props.qform && this.props.qform.item && this.props.qform.item.length > 0;
-    return (
-      <div>
-        <div id="formContainer">
-        </div>
-        {!isAdaptiveForm && this.props.formFilled ? <div className="form-message-panel"><p>All fields have been filled. Continue or uncheck "Only Show Unfilled Fields" to review and modify the form.</p></div> : null}
-        <SelectPopup
-          title={this.state.popupTitle}
-          options={this.state.popupOptions}
-          finalOption={this.state.popupFinalOption}
-          selectedCallback={this.popupCallback.bind(this)}
-          setClick={click => this.clickChild = click}
-        />
-        {
-          isAdaptiveForm ? (
-            <div className="form-message-panel">
-              {!isAdaptiveFormHasItems && !this.props.adFormCompleted ? (<p>Click Next Question button to proceed.</p>) : null}
-              {!this.props.adFormCompleted ? (<div> <button className="btn submit-button" onClick={this.loadNextQuestions}>
-                Next Question
-              </button>
-              </div>) : null}
-            </div>) : null
-        }
-        {
-          !isAdaptiveForm ? (<div className="status-panel">
-            Form Loaded: {this.state.formLoaded}
-          </div>) : null
-        }
-        {this.getDisplayButtons()}
-      </div>)
-      ;
-  }
-}
 
