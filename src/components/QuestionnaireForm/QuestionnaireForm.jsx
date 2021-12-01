@@ -26,7 +26,7 @@ export default class QuestionnaireForm extends Component {
       sectionLinks: {},
       fullView: true,
       turnOffValues: [],
-      //savedResponse: null,
+      savedResponse: null,
       formLoaded: "New",
       popupTitle: "Would you like to continue an in-process questionnaire?",
       popupOptions: [],
@@ -69,8 +69,9 @@ export default class QuestionnaireForm extends Component {
       this.handleGtable(items, parentItems, response.item);
       this.prepopulate(items, response.item, true);
       const mergedResponse = this.mergeResponseForSameLinkId(response);
-      //this.state.savedResponse = mergedResponse;
-      this.props.updateSavedResponse(mergedResponse);
+      this.setState({
+        savedResponse: mergedResponse
+      })
     } else {
       this.smart.request(this.getRetrieveSaveQuestionnaireUrl() +
         "&status=in-progress" +
@@ -93,14 +94,15 @@ export default class QuestionnaireForm extends Component {
       this.handleGtable(items, parentItems, newResponse.item);
       this.prepopulate(items, newResponse.item, false);
       let mergedResponse = this.mergeResponseForSameLinkId(newResponse);
-      //this.state.savedResponse = mergedResponse;
-      this.props.updateSavedResponse(mergedResponse);
+      this.setState({
+        savedResponse: mergedResponse
+      })
+      localStorage.setItem("lastSavedResponse", JSON.stringify(mergedResponse));
     }
   }
 
   componentDidMount() {
-    this.loadAndMergeForms(this.props.savedResponse);
-
+    this.loadAndMergeForms(this.state.savedResponse);
     const formErrors = LForms.Util.checkValidity();
     this.setState({
       formValidationErrors: formErrors == null ? [] : formErrors
@@ -152,10 +154,9 @@ export default class QuestionnaireForm extends Component {
     if (this.props.adFormResponseFromServer) {
       mergedResponse = this.mergeResponses(this.mergeResponseForSameLinkId(newResponse), this.mergeResponseForSameLinkId(this.props.adFormResponseFromServer));
     } else {
-      mergedResponse = this.mergeResponses(this.mergeResponseForSameLinkId(newResponse), this.props.savedResponse);
+      mergedResponse = this.mergeResponses(this.mergeResponseForSameLinkId(newResponse), JSON.parse(localStorage.getItem("lastSavedResponse")));
     }
 
-    this.props.updateSavedResponse(this.mergeResponseForSameLinkId(mergedResponse));
     this.loadAndMergeForms(mergedResponse);
     this.props.updateReloadQuestionnaire(false);
   }
@@ -1227,9 +1228,9 @@ export default class QuestionnaireForm extends Component {
       console.log(partialResponse);
 
       if(partialResponse.contained && partialResponse.contained[0].resourceType === "Questionnaire") {
-        this.props.updateQuestionnaire(partialResponse.contained[0], partialResponse);
+        localStorage.setItem("lastSavedResponse", JSON.stringify(partialResponse));
+        this.props.updateQuestionnaire(partialResponse.contained[0]);
       } else {
-        this.props.updateSavedResponse(partialResponse);
         // If not using saved QuestionnaireResponse, create a new one
         let newResponse = {
           resourceType: 'QuestionnaireResponse',
@@ -1297,21 +1298,6 @@ export default class QuestionnaireForm extends Component {
       }
     });
   };
-
-  popupClear(title, finalOption, logTitle) {
-    this.setState({
-      popupTitle: title,
-      popupOptions: [],
-      popupFinalOption: finalOption
-    });
-    if (logTitle) {
-      console.log(title);
-    }
-  }
-
-  popupLaunch() {
-    this.clickChild();
-  }
 
     getDisplayButtons() {
       if (!this.isAdaptiveForm()) {
