@@ -156,7 +156,8 @@ export default class QuestionnaireForm extends Component {
     } else {
       mergedResponse = this.mergeResponses(this.mergeResponseForSameLinkId(newResponse), JSON.parse(localStorage.getItem("lastSavedResponse")));
     }
-
+    
+    mergedResponse = this.mergeResponseForSameLinkId(mergedResponse);
     this.loadAndMergeForms(mergedResponse);
     this.props.updateReloadQuestionnaire(false);
   }
@@ -245,8 +246,10 @@ export default class QuestionnaireForm extends Component {
       console.log(this.state.popupOptions);
       console.log(this.partialForms);
 
+      //check if show popup
+      const showPopup = !this.isAdaptiveForm() || this.isAdaptiveFormWithoutItem();
       // only show the popupOptions if there is one to show
-      if (count > 0) {
+      if (count > 0 && showPopup) {
         noneFound = false;
         this.popupLaunch();
       }
@@ -964,6 +967,17 @@ export default class QuestionnaireForm extends Component {
     return this.isAdaptiveForm() && this.props.qform && this.props.qform.item && this.props.qform.item.length >0;
   }
 
+  isPriorAuthBundleValid(bundle) {
+    const resourceTypeList = ["Patient", "Practitioner", "Organization", "Location", "Coverage"];
+
+    return resourceTypeList.every(resourceType => {
+      var entry = bundle.entry.find(function (entry) {
+        return entry.resource.resourceType == resourceType;
+      });
+      return entry !== undefined;
+    });
+  }
+
   // create the questionnaire response based on the current state
   outputResponse(status) {
     var qr = this.getQuestionnaireResponse(status);
@@ -1033,7 +1047,7 @@ export default class QuestionnaireForm extends Component {
     };
 
     const priorAuthBundle = JSON.parse(JSON.stringify(this.props.bundle));
-    if(priorAuthBundle) {
+    if (priorAuthBundle && this.isPriorAuthBundleValid(priorAuthBundle)) {
     priorAuthBundle.entry.unshift({ resource: managingOrg });
     priorAuthBundle.entry.unshift({ resource: facility });
     priorAuthBundle.entry.unshift({ resource: insurer });
@@ -1043,7 +1057,6 @@ export default class QuestionnaireForm extends Component {
     this.generateAndStoreDocumentReference(qr, priorAuthBundle);
     this.storeQuestionnaireResponseToEhr(qr, false);
 
-    // if (this.props.priorAuthReq) {
     const priorAuthClaim = {
       resourceType: "Claim",
       status: "active",
@@ -1165,11 +1178,8 @@ export default class QuestionnaireForm extends Component {
 
     this.props.setPriorAuthClaim(priorAuthBundle);
   } else {
-    alert("Prior Auth Bundle is not available. Can't submit to prior auth.")
+    alert("Prior Auth Bundle is not available or does not contain enough resources for Prior Auth. Can't submit to prior auth.")
   }
-    // } else {
-    //   alert("NOT submitting for prior auth");
-    // }
   }
 
   isEmptyAnswer(answer) {
@@ -1212,6 +1222,21 @@ export default class QuestionnaireForm extends Component {
       return entry.resource.resourceType == resourceType;
     });
     return resourceType + "/" + entry.resource.id;
+  }
+
+  popupClear(title, finalOption, logTitle) {
+    this.setState({
+      popupTitle: title,
+      popupOptions: [],
+      popupFinalOption: finalOption
+    });
+    if (logTitle) {
+      console.log(title);
+    }
+  }
+
+  popupLaunch() {
+    this.clickChild();
   }
 
   popupCallback(returnValue) {
