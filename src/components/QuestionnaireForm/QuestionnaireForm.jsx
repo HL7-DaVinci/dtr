@@ -1048,138 +1048,138 @@ export default class QuestionnaireForm extends Component {
 
     const priorAuthBundle = JSON.parse(JSON.stringify(this.props.bundle));
     if (priorAuthBundle && this.isPriorAuthBundleValid(priorAuthBundle)) {
-    priorAuthBundle.entry.unshift({ resource: managingOrg });
-    priorAuthBundle.entry.unshift({ resource: facility });
-    priorAuthBundle.entry.unshift({ resource: insurer });
-    priorAuthBundle.entry.unshift({ resource: this.props.deviceRequest });
-    priorAuthBundle.entry.unshift({ resource: qr });
+      priorAuthBundle.entry.unshift({ resource: managingOrg });
+      priorAuthBundle.entry.unshift({ resource: facility });
+      priorAuthBundle.entry.unshift({ resource: insurer });
+      priorAuthBundle.entry.unshift({ resource: this.props.deviceRequest });
+      priorAuthBundle.entry.unshift({ resource: qr });
 
-    this.generateAndStoreDocumentReference(qr, priorAuthBundle);
-    this.storeQuestionnaireResponseToEhr(qr, false);
+      this.generateAndStoreDocumentReference(qr, priorAuthBundle);
+      this.storeQuestionnaireResponseToEhr(qr, false);
 
-    const priorAuthClaim = {
-      resourceType: "Claim",
-      status: "active",
-      type: {
-        coding: [
-          {
-            system: "http://terminology.hl7.org/CodeSystem/claim-type",
-            code: "professional",
-            display: "Professional"
-          }
-        ]
-      },
-      identifier: [
-        {
-          system: "urn:uuid:mitre-drls",
-          value: shortid.generate()
-        }
-      ],
-      use: "preauthorization",
-      patient: { reference: this.makeReference(priorAuthBundle, "Patient") },
-      created: qr.authored,
-      provider: {
-        // TODO: make this organization
-        reference: this.makeReference(priorAuthBundle, "Practitioner")
-      },
-      insurer: {
-        reference: this.makeReference(priorAuthBundle, "Organization")
-      },
-      facility: {
-        reference: this.makeReference(priorAuthBundle, "Location")
-      },
-      priority: { coding: [{ code: "normal" }] },
-      careTeam: [
-        {
-          sequence: 1,
-          provider: {
-            reference: this.makeReference(priorAuthBundle, "Practitioner")
-          },
-          extension: [
+      const priorAuthClaim = {
+        resourceType: "Claim",
+        status: "active",
+        type: {
+          coding: [
             {
-              url: "http://terminology.hl7.org/ValueSet/v2-0912",
-              valueCode: "OP"
+              system: "http://terminology.hl7.org/CodeSystem/claim-type",
+              code: "professional",
+              display: "Professional"
             }
           ]
-        }
-      ],
-      supportingInfo: [
-        {
-          sequence: 1,
-          category: {
-            coding: [
-              {
-                system:
-                  "http://hl7.org/us/davinci-pas/CodeSystem/PASSupportingInfoType",
-                code: "patientEvent"
-              }
-            ]
-          },
-          timingPeriod: {
-            start: "2020-01-01",
-            end: "2021-01-01"
-          }
         },
-        {
-          sequence: 2,
-          category: {
-            coding: [
+        identifier: [
+          {
+            system: "urn:uuid:mitre-drls",
+            value: shortid.generate()
+          }
+        ],
+        use: "preauthorization",
+        patient: { reference: this.makeReference(priorAuthBundle, "Patient") },
+        created: qr.authored,
+        provider: {
+          // TODO: make this organization
+          reference: this.makeReference(priorAuthBundle, "Practitioner")
+        },
+        insurer: {
+          reference: this.makeReference(priorAuthBundle, "Organization")
+        },
+        facility: {
+          reference: this.makeReference(priorAuthBundle, "Location")
+        },
+        priority: { coding: [{ code: "normal" }] },
+        careTeam: [
+          {
+            sequence: 1,
+            provider: {
+              reference: this.makeReference(priorAuthBundle, "Practitioner")
+            },
+            extension: [
               {
-                system:
-                  "http://terminology.hl7.org/CodeSystem/claiminformationcategory",
-                code: "info",
-                display: "Information"
+                url: "http://terminology.hl7.org/ValueSet/v2-0912",
+                valueCode: "OP"
               }
             ]
+          }
+        ],
+        supportingInfo: [
+          {
+            sequence: 1,
+            category: {
+              coding: [
+                {
+                  system:
+                    "http://hl7.org/us/davinci-pas/CodeSystem/PASSupportingInfoType",
+                  code: "patientEvent"
+                }
+              ]
+            },
+            timingPeriod: {
+              start: "2020-01-01",
+              end: "2021-01-01"
+            }
           },
-          valueReference: {
-            reference: this.makeReference(
-              priorAuthBundle,
-              "QuestionnaireResponse"
-            )
+          {
+            sequence: 2,
+            category: {
+              coding: [
+                {
+                  system:
+                    "http://terminology.hl7.org/CodeSystem/claiminformationcategory",
+                  code: "info",
+                  display: "Information"
+                }
+              ]
+            },
+            valueReference: {
+              reference: this.makeReference(
+                priorAuthBundle,
+                "QuestionnaireResponse"
+              )
+            }
           }
-        }
-      ],
-      item: [
-        {
-          sequence: 1,
-          careTeamSequence: [1],
-          productOrService: this.getCode(),
-          quantity: {
-            value: 1
+        ],
+        item: [
+          {
+            sequence: 1,
+            careTeamSequence: [1],
+            productOrService: this.getCode(),
+            quantity: {
+              value: 1
+            }
+            // TODO: add extensions
           }
-          // TODO: add extensions
-        }
-      ],
-      diagnosis: [],
-      insurance: [
-        {
-          sequence: 1,
-          focal: true,
-          coverage: {
-            // TODO: diagnosis is not a reference it must be CodeableConcept
-            reference: this.makeReference(priorAuthBundle, "Coverage")
+        ],
+        diagnosis: [],
+        insurance: [
+          {
+            sequence: 1,
+            focal: true,
+            coverage: {
+              // TODO: diagnosis is not a reference it must be CodeableConcept
+              reference: this.makeReference(priorAuthBundle, "Coverage")
+            }
           }
+        ]
+      };
+      var sequence = 1;
+      priorAuthBundle.entry.forEach(function (entry, index) {
+        if (entry.resource.resourceType == "Condition") {
+          priorAuthClaim.diagnosis.push({
+            sequence: sequence++,
+            diagnosisReference: { reference: "Condition/" + entry.resource.id }
+          });
         }
-      ]
-    };
-    var sequence = 1;
-    priorAuthBundle.entry.forEach(function (entry, index) {
-      if (entry.resource.resourceType == "Condition") {
-        priorAuthClaim.diagnosis.push({
-          sequence: sequence++,
-          diagnosisReference: { reference: "Condition/" + entry.resource.id }
-        });
-      }
-    });
-    console.log(priorAuthClaim);
+      });
+      console.log(priorAuthClaim);
 
-    priorAuthBundle.entry.unshift({ resource: priorAuthClaim });
+      priorAuthBundle.entry.unshift({ resource: priorAuthClaim });
 
-    this.props.setPriorAuthClaim(priorAuthBundle);
-  } else {
-    alert("Prior Auth Bundle is not available or does not contain enough resources for Prior Auth. Can't submit to prior auth.")
-  }
+      this.props.setPriorAuthClaim(priorAuthBundle);
+    } else {
+      alert("Prior Auth Bundle is not available or does not contain enough resources for Prior Auth. Can't submit to prior auth.")
+    }
   }
 
   isEmptyAnswer(answer) {
@@ -1334,7 +1334,7 @@ export default class QuestionnaireForm extends Component {
             Send to Payer
           </button>
           <button className="btn submit-button" onClick={this.outputResponse.bind(this, "in-progress")}>
-            Save
+            Save to EHR
           </button>
           <button className="btn submit-button" onClick={this.outputResponse.bind(this, "completed")}>
             Proceed To Prior Auth
@@ -1363,7 +1363,7 @@ export default class QuestionnaireForm extends Component {
                  </button>
               ) : null}
               {this.isAdaptiveFormWithItem() ? (<button className="btn submit-button" onClick={this.outputResponse.bind(this, "in-progress")}>
-                Save
+                Save To EHR
               </button>) : null}
             </div>
           )
