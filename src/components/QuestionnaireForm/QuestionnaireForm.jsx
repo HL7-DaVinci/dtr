@@ -157,7 +157,6 @@ export default class QuestionnaireForm extends Component {
       mergedResponse = this.mergeResponses(this.mergeResponseForSameLinkId(newResponse), JSON.parse(localStorage.getItem("lastSavedResponse")));
     }
     
-    mergedResponse = this.mergeResponseForSameLinkId(mergedResponse);
     this.loadAndMergeForms(mergedResponse);
     this.props.updateReloadQuestionnaire(false);
   }
@@ -199,8 +198,8 @@ export default class QuestionnaireForm extends Component {
     const url = this.props.FILE_PATH + "Questionnaire/$next-question";
 
     const currentQuestionnaireResponse = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', this.fhirVersion, "#formContainer");;
-    const mergedResponse = this.mergeResponseForSameLinkId(currentQuestionnaireResponse);
-    retrieveQuestions(url, buildNextQuestionRequest(this.props.qform, mergedResponse))
+    //const mergedResponse = this.mergeResponseForSameLinkId(currentQuestionnaireResponse);
+    retrieveQuestions(url, buildNextQuestionRequest(this.props.qform, currentQuestionnaireResponse))
       .then(result => result.json())
       .then(result => {
         console.log("-- loadNextQuestions response returned from payer server questionnaireResponse ", result);
@@ -976,13 +975,16 @@ export default class QuestionnaireForm extends Component {
   }
 
   isPriorAuthBundleValid(bundle) {
-    const resourceTypeList = ["Patient", "Practitioner", "Organization", "Location", "Coverage"];
+    const resourceTypeList = ["Patient", "Practitioner"];
 
     return resourceTypeList.every(resourceType => {
-      var entry = bundle.entry.find(function (entry) {
-        return entry.resource.resourceType == resourceType;
+      let foundEntry = bundle.entry.find(function (entry) {
+        return entry.resource.resourceType === resourceType;
       });
-      return entry !== undefined;
+      if (foundEntry === undefined) {
+        console.warn("--- isPriorAuthBundleValid: bundle missing required resource ", resourceType);
+      }
+      return foundEntry !== undefined;
     });
   }
 
@@ -1210,25 +1212,13 @@ export default class QuestionnaireForm extends Component {
   }
 
   makeReference(bundle, resourceType) {
-    try {
-      if (resourceType == undefined || resourceType == null) {
-        console.log("resourceType undefined or null");
-      }
-    } catch (error) {
-      console.log(error.message);
-      console.log(error.name);
-      return;
-    }
-    if (resourceType == "DeviceRequest") {
-      entry.resource.resourceType = resourceType;
-    } else if (resourceType == "ServiceRequest") {
-      entry.resource.resourceType = resourceType;
-    } else if (resourceType == "MedicationRequest") {
-      entry.resource.resourceType = resourceType;
-    }
     var entry = bundle.entry.find(function (entry) {
       return entry.resource.resourceType == resourceType;
     });
+    if(!entry) {
+      console.warn("Couldn't find entry for resource ", resourceType);
+      return;
+    }
     return resourceType + "/" + entry.resource.id;
   }
 
