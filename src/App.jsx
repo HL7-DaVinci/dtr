@@ -58,7 +58,6 @@ export default class App extends Component {
       isAdaptiveFormWithoutExtension: false,
       isFetchingArtifacts: true,
       reloadQuestionnaire: false,
-      adFormNextQuestionClickCount: 0,
       adFormCompleted: false,
       adFormResponseFromServer: undefined
     };
@@ -623,8 +622,6 @@ export default class App extends Component {
               ehrLaunch={this.ehrLaunch}
               reloadQuestionnaire={this.state.reloadQuestionnaire}
               updateReloadQuestionnaire={(reload) => this.setState({reloadQuestionnaire: reload})}
-              adFormNextQuestionClickCount={this.state.adFormNextQuestionClickCount}
-              updateClickCount={count => this.setState({adFormNextQuestionClickCount: count})}
               adFormCompleted={this.state.adFormCompleted}
               updateAdFormCompleted={(completed) => this.setState({adFormCompleted: completed})}
               adFormResponseFromServer={this.state.adFormResponseFromServer}

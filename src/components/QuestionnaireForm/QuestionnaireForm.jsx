@@ -211,7 +211,6 @@ export default class QuestionnaireForm extends Component {
           }
           this.prepopulate(result.contained[0].item, newResponse.item, true);
           this.props.updateAdFormResponseFromServer(result);
-          this.props.updateClickCount(this.props.adFormNextQuestionClickCount + 1);
           this.props.updateAdFormCompleted(result.status === "completed");
           this.props.ehrLaunch(true, result.contained[0]);
         } else {
