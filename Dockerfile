@@ -1,9 +1,6 @@
-FROM node:10-alpine
-RUN mkdir -p /home/node/app/node_modules && chown -R node:node /home/node/app
+FROM node:14-alpine
 WORKDIR /home/node/app
-COPY package*.json ./
-USER node
-RUN npm install
 COPY --chown=node:node . .
+RUN npm install
 EXPOSE 3005
-CMD [ "/home/node/app/run.sh" ]
+CMD npm run startProd
