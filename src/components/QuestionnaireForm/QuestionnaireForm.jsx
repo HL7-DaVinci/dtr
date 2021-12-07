@@ -998,9 +998,14 @@ export default class QuestionnaireForm extends Component {
     }
 
     if (status == "in-progress") {
-      this.storeQuestionnaireResponseToEhr(qr, true);
+      const showPopup = !this.isAdaptiveForm() || this.isAdaptiveFormWithoutItem();
+      this.storeQuestionnaireResponseToEhr(qr, showPopup);
       this.popupClear("Partially completed form (QuestionnaireResponse) saved to EHR", "OK", true);
-      this.popupLaunch();
+      if(showPopup) {
+        this.popupLaunch();
+      } else {
+        alert("Partially completed form (QuestionnaireResponse) saved to EHR");
+      }
       return;
     }
 
