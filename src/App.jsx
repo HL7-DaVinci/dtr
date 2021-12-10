@@ -1,4 +1,4 @@
-import React, { Component, useCallback } from "react";
+import React, { Component } from "react";
 import ReactDOM from 'react-dom'
 import "./App.css";
 import cqlfhir from "cql-exec-fhir";
