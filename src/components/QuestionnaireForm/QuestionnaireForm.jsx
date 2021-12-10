@@ -1374,7 +1374,6 @@ export default class QuestionnaireForm extends Component {
     }
 
     render() {
-      console.log(this.props.savedResponse);
       const isAdaptiveForm = this.isAdaptiveForm();
       const showPopup = !isAdaptiveForm || this.isAdaptiveFormWithoutItem();
       return (

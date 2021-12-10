@@ -430,7 +430,7 @@ export default class App extends Component {
 
       items.map((element) => {
           // filter all not-empty items
-          if(element.tagName === "INPUT") { 
+          if(element.tagName === "INPUT" || element.tagName === "TEXTAREA") { 
             // check if the item is one of the gtable, if yes, need to make sure all the
             let inputRowElement = element.closest('.lf-table-item');
             if (inputRowElement) {
