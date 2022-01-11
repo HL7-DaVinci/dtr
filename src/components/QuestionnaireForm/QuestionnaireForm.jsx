@@ -7,6 +7,8 @@ import _ from "lodash";
 import ConfigData from "../../config.json";
 import ReactDOM from 'react-dom'
 
+import retrieveQuestions, { buildNextQuestionRequest } from "../../util/retrieveQuestions";
+
 // NOTE: need to append the right FHIR version to have valid profile URL
 var DTRQuestionnaireResponseURL = "http://hl7.org/fhir/us/davinci-dtr/StructureDefinition/dtr-questionnaireresponse-";
 
@@ -47,6 +49,13 @@ export default class QuestionnaireForm extends Component {
     this.addAuthorToResponse = this.addAuthorToResponse.bind(this);
     this.updateSavedResponseWithPrepopulation = this.updateSavedResponseWithPrepopulation.bind(this);
     DTRQuestionnaireResponseURL += this.fhirVersion.toLowerCase();
+    this.repopulateAndReload = this.repopulateAndReload.bind(this);
+    this.loadNextQuestions = this.loadNextQuestions.bind(this);
+    this.mergeResponses = this.mergeResponses.bind(this);
+    this.isAdaptiveForm = this.isAdaptiveForm.bind(this);
+    this.getDisplayButtons = this.getDisplayButtons.bind(this);
+    this.isAdaptiveFormWithoutItem = this.isAdaptiveFormWithoutItem.bind(this);
+    this.isAdaptiveFormWithItem = this.isAdaptiveFormWithItem.bind(this);
   }
 
 
@@ -60,16 +69,18 @@ export default class QuestionnaireForm extends Component {
       this.handleGtable(items, parentItems, response.item);
       this.prepopulate(items, response.item, true);
       const mergedResponse = this.mergeResponseForSameLinkId(response);
-      this.state.savedResponse = mergedResponse;
+      this.setState({
+        savedResponse: mergedResponse
+      })
     } else {
-        this.smart.request(this.getRetrieveSaveQuestionnaireUrl() +
+      this.smart.request(this.getRetrieveSaveQuestionnaireUrl() +
         "&status=in-progress" +
-        "&subject=" + this.getPatient()).then((result)=>{
-            this.popupClear("Would you like to continue an in-process questionnaire?", "Cancel", false);
-            this.processSavedQuestionnaireResponses(result, false);
-        }, ((result)=>{
-            this.popupClear("Error: failed to load in-process questionnaires", "OK", true);
-            this.popupLaunch();
+        "&subject=" + this.getPatient()).then((result) => {
+          this.popupClear("Would you like to continue an in-process questionnaire?", "Cancel", false);
+          this.processSavedQuestionnaireResponses(result, false);
+        }, ((result) => {
+          this.popupClear("Error: failed to load in-process questionnaires", "OK", true);
+          this.popupLaunch();
         })).catch(console.error);
 
       // If not using saved QuestionnaireResponse, create a new one
@@ -78,25 +89,27 @@ export default class QuestionnaireForm extends Component {
         status: 'draft',
         item: []
       }
-      const items = this.props.qform.item;
+      const items = this.props.qform.item || [];
       const parentItems = [];
       this.handleGtable(items, parentItems, newResponse.item);
       this.prepopulate(items, newResponse.item, false);
       let mergedResponse = this.mergeResponseForSameLinkId(newResponse);
-      this.state.savedResponse = mergedResponse;
+      this.setState({
+        savedResponse: mergedResponse
+      })
+      localStorage.setItem("lastSavedResponse", JSON.stringify(mergedResponse));
     }
   }
 
   componentDidMount() {
     this.loadAndMergeForms(this.state.savedResponse);
-
     const formErrors = LForms.Util.checkValidity();
     this.setState({
       formValidationErrors: formErrors == null ? [] : formErrors
     });
 
     document.addEventListener('change', event => {
-      if(this.props.filterChecked && event.target.id != "filterCheckbox" && event.target.id != "attestationCheckbox") {
+      if (this.props.filterChecked && event.target.id != "filterCheckbox" && event.target.id != "attestationCheckbox") {
         const checkIfFilter = (currentErrors, newErrors, targetElementName) => {
           if (currentErrors.length < newErrors.length)
             return false;
@@ -109,9 +122,9 @@ export default class QuestionnaireForm extends Component {
           return true;
         };
         const newErrors = LForms.Util.checkValidity();
-        const ifFilter = checkIfFilter(this.state.formValidationErrors,  newErrors == null? [] : newErrors, event.target.getAttribute("name"));
-        
-        if(ifFilter) {
+        const ifFilter = checkIfFilter(this.state.formValidationErrors, newErrors == null ? [] : newErrors, event.target.getAttribute("name"));
+
+        if (ifFilter) {
           this.props.filterFieldsFn(this.props.formFilled);
         } else {
           console.log("Modified field is invalid. Skip filtering.");
@@ -123,6 +136,43 @@ export default class QuestionnaireForm extends Component {
     });
   }
 
+  repopulateAndReload() {
+    console.log("----- Re-populating and reloading form ----");
+    // rerun pre-population
+    let newResponse = {
+      resourceType: 'QuestionnaireResponse',
+      status: 'draft',
+      item: []
+    }
+    const items = this.props.qform.item || [];
+    const parentItems = [];
+    this.handleGtable(items, parentItems, newResponse.item);
+    this.prepopulate(items, newResponse.item, false);
+
+    // merge pre-populated response and response from the server
+    let mergedResponse = newResponse;
+    if (this.props.adFormResponseFromServer) {
+      mergedResponse = this.mergeResponses(this.mergeResponseForSameLinkId(newResponse), this.mergeResponseForSameLinkId(this.props.adFormResponseFromServer));
+    } else {
+      mergedResponse = this.mergeResponses(this.mergeResponseForSameLinkId(newResponse), JSON.parse(localStorage.getItem("lastSavedResponse")));
+    }
+    
+    this.loadAndMergeForms(mergedResponse);
+    this.props.updateReloadQuestionnaire(false);
+  }
+
+  mergeResponses(firstResponse, secondResponse) {
+    const combinedItems = firstResponse.item.concat(secondResponse.item);
+    firstResponse.item = combinedItems;
+    return firstResponse;
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (this.props.reloadQuestionnaire) {
+      this.repopulateAndReload();
+    }
+  }
+
   getRetrieveSaveQuestionnaireUrl = () => {
     // read configuration 
     let updateDate = new Date();
@@ -132,8 +182,8 @@ export default class QuestionnaireForm extends Component {
 
   loadPreviousForm() {
     // search for any QuestionnaireResponses
-    this.smart.request(this.getRetrieveSaveQuestionnaireUrl() + 
-          "&subject=" + this.getPatient()).then((result)=>{
+    this.smart.request(this.getRetrieveSaveQuestionnaireUrl() +
+      "&subject=" + this.getPatient()).then((result) => {
 
         this.popupClear("Would you like to load a previous form?", "Cancel", false);
         this.processSavedQuestionnaireResponses(result, true);
@@ -141,7 +191,32 @@ export default class QuestionnaireForm extends Component {
         this.popupClear("Error: failed to load previous forms", "OK", true);
         this.popupLaunch();
       })).catch(console.error);
+  }
 
+  // retrieve next sets of questions
+  loadNextQuestions() {
+    const url = this.props.FILE_PATH + "Questionnaire/$next-question";
+
+    const currentQuestionnaireResponse = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', this.fhirVersion, "#formContainer");;
+    //const mergedResponse = this.mergeResponseForSameLinkId(currentQuestionnaireResponse);
+    retrieveQuestions(url, buildNextQuestionRequest(this.props.qform, currentQuestionnaireResponse))
+      .then(result => result.json())
+      .then(result => {
+        console.log("-- loadNextQuestions response returned from payer server questionnaireResponse ", result);
+        if(result.error === undefined) {
+          let newResponse = {
+            resourceType: 'QuestionnaireResponse',
+            status: 'draft',
+            item: []
+          }
+          this.prepopulate(result.contained[0].item, newResponse.item, true);
+          this.props.updateAdFormResponseFromServer(result);
+          this.props.updateAdFormCompleted(result.status === "completed");
+          this.props.ehrLaunch(true, result.contained[0]);
+        } else {
+          alert("Failed to load next questions. Error: " + result.error);
+        }
+      });
   }
 
   processSavedQuestionnaireResponses(partialResponses, displayErrorOnNoneFound) {
@@ -175,8 +250,10 @@ export default class QuestionnaireForm extends Component {
       console.log(this.state.popupOptions);
       console.log(this.partialForms);
 
+      //check if show popup
+      const showPopup = !this.isAdaptiveForm() || this.isAdaptiveFormWithoutItem();
       // only show the popupOptions if there is one to show
-      if (count > 0) {
+      if (count > 0 && showPopup) {
         noneFound = false;
         this.popupLaunch();
       }
@@ -204,11 +281,12 @@ export default class QuestionnaireForm extends Component {
     };
 
     if (newResponse) {
+      newResponse = this.mergeResponseForSameLinkId(newResponse);
       lform = LForms.Util.mergeFHIRDataIntoLForms("QuestionnaireResponse", newResponse, lform, this.props.fhirVersion)
     }
 
     console.log(lform);
-  
+
     LForms.Util.addFormToPage(lform, "formContainer");
     const header = document.getElementsByClassName("lf-form-title")[0];
     const el = document.createElement('div');
@@ -221,17 +299,17 @@ export default class QuestionnaireForm extends Component {
     header.appendChild(patientInfoEl);
     let patientId = this.getPatient().replace("Patient/", "");
     let patientInfoElement = (display) => (<div className="patient-info-panel"><label>Patient: {display}</label></div>);
-    this.smart.request("Patient/"+patientId).then((result) => {
-        ReactDOM.render(patientInfoElement(`${result.name[0].given[0]} ${result.name[0].family}`), patientInfoEl);
+    this.smart.request("Patient/" + patientId).then((result) => {
+      ReactDOM.render(patientInfoElement(`${result.name[0].given[0]} ${result.name[0].family}`), patientInfoEl);
     }, (error) => {
-        console.log("Failed to retrieve the patient information. Error is ", error);
-        ReactDOM.render(patientInfoElement("Unknown"), patientInfoEl);
+      console.log("Failed to retrieve the patient information. Error is ", error);
+      ReactDOM.render(patientInfoElement("Unknown"), patientInfoEl);
     });
 
     this.props.filterFieldsFn(true);
   }
 
-  
+
   // Merge the items for the same linkId to comply with the LHCForm
   mergeResponseForSameLinkId(response) {
     let mergedResponse = {
@@ -240,29 +318,31 @@ export default class QuestionnaireForm extends Component {
       item: []
     };
     const responseItems = response.item;
-    let itemKeyList = new Set();
-    for (let i = 0; i < responseItems.length; i++) {
-      itemKeyList.add(responseItems[i].linkId);
-    }
-    itemKeyList.forEach(linkId => {
-      let linkIdItem = {
-        linkId,
-        item: []
-      };
-      let filteredItems = responseItems.filter(responseItem => responseItem.linkId == linkId
-      );
-      if (filteredItems) {
-        filteredItems.forEach(foundItem => {
-          if (foundItem.item) {
-            linkIdItem.item.push(...foundItem.item);
-          } else {
-            linkIdItem = foundItem;
-            linkIdItem.item = null;
-          }
-        });
-        mergedResponse.item.push(linkIdItem);
+    if (responseItems) {
+      let itemKeyList = new Set();
+      for (let i = 0; i < responseItems.length; i++) {
+        itemKeyList.add(responseItems[i].linkId);
       }
-    });
+      itemKeyList.forEach(linkId => {
+        let linkIdItem = {
+          linkId,
+          item: []
+        };
+        let filteredItems = responseItems.filter(responseItem => responseItem.linkId == linkId
+        );
+        if (filteredItems) {
+          filteredItems.forEach(foundItem => {
+            if (foundItem.item) {
+              linkIdItem.item.push(...foundItem.item);
+            } else {
+              linkIdItem = foundItem;
+              linkIdItem.item = null;
+            }
+          });
+          mergedResponse.item.push(linkIdItem);
+        }
+      });
+    }
     return mergedResponse;
   }
 
@@ -410,6 +490,7 @@ export default class QuestionnaireForm extends Component {
         prepopulationResult = cqlResults[
           libraryName
         ][statementName];
+        console.log(`Found library "${libraryName}"`);
       } else {
         prepopulationResult = null;
         console.log(`Couldn't find library "${libraryName}"`);
@@ -803,9 +884,11 @@ export default class QuestionnaireForm extends Component {
         item["extension"] = [urlValRef]
       }
     }
-    qr.item.map(item => {
-      traverseToItemsLeafNode(item, practitionerRef)
-    })
+    if(qr.item) {
+      qr.item.map(item => {
+        traverseToItemsLeafNode(item, practitionerRef)
+      })
+    }
   }
 
   getQuestionnaireResponse(status) {
@@ -822,7 +905,7 @@ export default class QuestionnaireForm extends Component {
         this.getPatient()
     };
     this.addAuthorToResponse(qr, this.getPractitioner());
-    
+
     qr.questionnaire = this.props.qform.id;
     console.log("GetQuestionnaireResponse final QuestionnaireResponse: ", qr);
 
@@ -848,6 +931,12 @@ export default class QuestionnaireForm extends Component {
       body: JSON.stringify(qr)
     };
 
+    // add the contained questionnaire for adaptive form 
+    if (this.isAdaptiveForm()) {
+      qr.contained = [];
+      qr.contained.push(this.props.qform);
+    }
+
     function handleFetchErrors(response) {
       if (!response.ok) {
         let msg = "Failure when fetching resource";
@@ -872,14 +961,51 @@ export default class QuestionnaireForm extends Component {
     return;
   }
 
+  isAdaptiveForm() {
+    return this.props.qform.meta && this.props.qform.meta.profile && this.props.qform.meta.profile.includes("http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-adapt");
+  }
+
+  isAdaptiveFormWithoutItem() {
+    return this.isAdaptiveForm() && this.props.qform && (this.props.qform.item === undefined || this.props.qform.item.length <= 0);
+  }
+
+  isAdaptiveFormWithItem() {
+    return this.isAdaptiveForm() && this.props.qform && this.props.qform.item && this.props.qform.item.length >0;
+  }
+
+  isPriorAuthBundleValid(bundle) {
+    const resourceTypeList = ["Patient", "Practitioner"];
+
+    return resourceTypeList.every(resourceType => {
+      let foundEntry = bundle.entry.find(function (entry) {
+        return entry.resource.resourceType === resourceType;
+      });
+      if (foundEntry === undefined) {
+        console.warn("--- isPriorAuthBundleValid: bundle missing required resource ", resourceType);
+      }
+      return foundEntry !== undefined;
+    });
+  }
+
   // create the questionnaire response based on the current state
   outputResponse(status) {
     var qr = this.getQuestionnaireResponse(status);
 
+    // add the contained questionnaire for adaptive form 
+    if (this.isAdaptiveForm()) {
+      qr.contained = [];
+      qr.contained.push(this.props.qform);
+    }
+
     if (status == "in-progress") {
-      this.storeQuestionnaireResponseToEhr(qr, true);
+      const showPopup = !this.isAdaptiveForm() || this.isAdaptiveFormWithoutItem();
+      this.storeQuestionnaireResponseToEhr(qr, showPopup);
       this.popupClear("Partially completed form (QuestionnaireResponse) saved to EHR", "OK", true);
-      this.popupLaunch();
+      if(showPopup) {
+        this.popupLaunch();
+      } else {
+        alert("Partially completed form (QuestionnaireResponse) saved to EHR");
+      }
       return;
     }
 
@@ -935,141 +1061,139 @@ export default class QuestionnaireForm extends Component {
     };
 
     const priorAuthBundle = JSON.parse(JSON.stringify(this.props.bundle));
-    priorAuthBundle.entry.unshift({ resource: managingOrg });
-    priorAuthBundle.entry.unshift({ resource: facility });
-    priorAuthBundle.entry.unshift({ resource: insurer });
-    priorAuthBundle.entry.unshift({ resource: this.props.deviceRequest });
-    priorAuthBundle.entry.unshift({ resource: qr });
-    console.log(priorAuthBundle);
+    if (priorAuthBundle && this.isPriorAuthBundleValid(priorAuthBundle)) {
+      priorAuthBundle.entry.unshift({ resource: managingOrg });
+      priorAuthBundle.entry.unshift({ resource: facility });
+      priorAuthBundle.entry.unshift({ resource: insurer });
+      priorAuthBundle.entry.unshift({ resource: this.props.deviceRequest });
+      priorAuthBundle.entry.unshift({ resource: qr });
 
-    this.generateAndStoreDocumentReference(qr, priorAuthBundle);
-    this.storeQuestionnaireResponseToEhr(qr, false);
+      this.generateAndStoreDocumentReference(qr, priorAuthBundle);
+      this.storeQuestionnaireResponseToEhr(qr, false);
 
-    // if (this.props.priorAuthReq) {
-    const priorAuthClaim = {
-      resourceType: "Claim",
-      status: "active",
-      type: {
-        coding: [
-          {
-            system: "http://terminology.hl7.org/CodeSystem/claim-type",
-            code: "professional",
-            display: "Professional"
-          }
-        ]
-      },
-      identifier: [
-        {
-          system: "urn:uuid:mitre-drls",
-          value: shortid.generate()
-        }
-      ],
-      use: "preauthorization",
-      patient: { reference: this.makeReference(priorAuthBundle, "Patient") },
-      created: qr.authored,
-      provider: {
-        // TODO: make this organization
-        reference: this.makeReference(priorAuthBundle, "Practitioner")
-      },
-      insurer: {
-        reference: this.makeReference(priorAuthBundle, "Organization")
-      },
-      facility: {
-        reference: this.makeReference(priorAuthBundle, "Location")
-      },
-      priority: { coding: [{ code: "normal" }] },
-      careTeam: [
-        {
-          sequence: 1,
-          provider: {
-            reference: this.makeReference(priorAuthBundle, "Practitioner")
-          },
-          extension: [
+      const priorAuthClaim = {
+        resourceType: "Claim",
+        status: "active",
+        type: {
+          coding: [
             {
-              url: "http://terminology.hl7.org/ValueSet/v2-0912",
-              valueCode: "OP"
+              system: "http://terminology.hl7.org/CodeSystem/claim-type",
+              code: "professional",
+              display: "Professional"
             }
           ]
-        }
-      ],
-      supportingInfo: [
-        {
-          sequence: 1,
-          category: {
-            coding: [
-              {
-                system:
-                  "http://hl7.org/us/davinci-pas/CodeSystem/PASSupportingInfoType",
-                code: "patientEvent"
-              }
-            ]
-          },
-          timingPeriod: {
-            start: "2020-01-01",
-            end: "2021-01-01"
-          }
         },
-        {
-          sequence: 2,
-          category: {
-            coding: [
+        identifier: [
+          {
+            system: "urn:uuid:mitre-drls",
+            value: shortid.generate()
+          }
+        ],
+        use: "preauthorization",
+        patient: { reference: this.makeReference(priorAuthBundle, "Patient") },
+        created: qr.authored,
+        provider: {
+          // TODO: make this organization
+          reference: this.makeReference(priorAuthBundle, "Practitioner")
+        },
+        insurer: {
+          reference: this.makeReference(priorAuthBundle, "Organization")
+        },
+        facility: {
+          reference: this.makeReference(priorAuthBundle, "Location")
+        },
+        priority: { coding: [{ code: "normal" }] },
+        careTeam: [
+          {
+            sequence: 1,
+            provider: {
+              reference: this.makeReference(priorAuthBundle, "Practitioner")
+            },
+            extension: [
               {
-                system:
-                  "http://terminology.hl7.org/CodeSystem/claiminformationcategory",
-                code: "info",
-                display: "Information"
+                url: "http://terminology.hl7.org/ValueSet/v2-0912",
+                valueCode: "OP"
               }
             ]
+          }
+        ],
+        supportingInfo: [
+          {
+            sequence: 1,
+            category: {
+              coding: [
+                {
+                  system:
+                    "http://hl7.org/us/davinci-pas/CodeSystem/PASSupportingInfoType",
+                  code: "patientEvent"
+                }
+              ]
+            },
+            timingPeriod: {
+              start: "2020-01-01",
+              end: "2021-01-01"
+            }
           },
-          valueReference: {
-            reference: this.makeReference(
-              priorAuthBundle,
-              "QuestionnaireResponse"
-            )
+          {
+            sequence: 2,
+            category: {
+              coding: [
+                {
+                  system:
+                    "http://terminology.hl7.org/CodeSystem/claiminformationcategory",
+                  code: "info",
+                  display: "Information"
+                }
+              ]
+            },
+            valueReference: {
+              reference: this.makeReference(
+                priorAuthBundle,
+                "QuestionnaireResponse"
+              )
+            }
           }
-        }
-      ],
-      item: [
-        {
-          sequence: 1,
-          careTeamSequence: [1],
-          productOrService: this.getCode(),
-          quantity: {
-            value: 1
+        ],
+        item: [
+          {
+            sequence: 1,
+            careTeamSequence: [1],
+            productOrService: this.getCode(),
+            quantity: {
+              value: 1
+            }
+            // TODO: add extensions
           }
-          // TODO: add extensions
-        }
-      ],
-      diagnosis: [],
-      insurance: [
-        {
-          sequence: 1,
-          focal: true,
-          coverage: {
-            // TODO: diagnosis is not a reference it must be CodeableConcept
-            reference: this.makeReference(priorAuthBundle, "Coverage")
+        ],
+        diagnosis: [],
+        insurance: [
+          {
+            sequence: 1,
+            focal: true,
+            coverage: {
+              // TODO: diagnosis is not a reference it must be CodeableConcept
+              reference: this.makeReference(priorAuthBundle, "Coverage")
+            }
           }
+        ]
+      };
+      var sequence = 1;
+      priorAuthBundle.entry.forEach(function (entry, index) {
+        if (entry.resource.resourceType == "Condition") {
+          priorAuthClaim.diagnosis.push({
+            sequence: sequence++,
+            diagnosisReference: { reference: "Condition/" + entry.resource.id }
+          });
         }
-      ]
-    };
-    var sequence = 1;
-    priorAuthBundle.entry.forEach(function (entry, index) {
-      if (entry.resource.resourceType == "Condition") {
-        priorAuthClaim.diagnosis.push({
-          sequence: sequence++,
-          diagnosisReference: { reference: "Condition/" + entry.resource.id }
-        });
-      }
-    });
-    console.log(priorAuthClaim);
+      });
+      console.log(priorAuthClaim);
 
-    priorAuthBundle.entry.unshift({ resource: priorAuthClaim });
-    console.log(priorAuthBundle);
+      priorAuthBundle.entry.unshift({ resource: priorAuthClaim });
 
-    this.props.setPriorAuthClaim(priorAuthBundle);
-    // } else {
-    //   alert("NOT submitting for prior auth");
-    // }
+      this.props.setPriorAuthClaim(priorAuthBundle);
+    } else {
+      alert("Prior Auth Bundle is not available or does not contain enough resources for Prior Auth. Can't submit to prior auth.")
+    }
   }
 
   isEmptyAnswer(answer) {
@@ -1092,28 +1216,15 @@ export default class QuestionnaireForm extends Component {
   }
 
   makeReference(bundle, resourceType) {
-    try {
-      if (resourceType == undefined || resourceType == null) {
-        console.log("resourceType undefined or null");
-      }
-    } catch (error) {
-      console.log(error.message);
-      console.log(error.name);
-      return;
-    }
-    if (resourceType == "DeviceRequest") {
-      entry.resource.resourceType = resourceType;
-    } else if (resourceType == "ServiceRequest") {
-      entry.resource.resourceType = resourceType;
-    } else if (resourceType == "MedicationRequest") {
-      entry.resource.resourceType = resourceType;
-    }
     var entry = bundle.entry.find(function (entry) {
       return entry.resource.resourceType == resourceType;
     });
+    if(!entry) {
+      console.warn("Couldn't find entry for resource ", resourceType);
+      return;
+    }
     return resourceType + "/" + entry.resource.id;
   }
-
 
   popupClear(title, finalOption, logTitle) {
     this.setState({
@@ -1143,22 +1254,24 @@ export default class QuestionnaireForm extends Component {
 
       console.log(partialResponse);
 
-      this.setState({ savedResponse: partialResponse });
+      if(partialResponse.contained && partialResponse.contained[0].resourceType === "Questionnaire") {
+        localStorage.setItem("lastSavedResponse", JSON.stringify(partialResponse));
+        this.props.updateQuestionnaire(partialResponse.contained[0]);
+      } else {
+        // If not using saved QuestionnaireResponse, create a new one
+        let newResponse = {
+          resourceType: 'QuestionnaireResponse',
+          item: []
+        }
 
-      // If not using saved QuestionnaireResponse, create a new one
-      let newResponse = {
-        resourceType: 'QuestionnaireResponse',
-        item: []
+        const items = this.props.qform.item;
+        this.prepopulate(items, newResponse.item, saved_response)
+
+        this.updateSavedResponseWithPrepopulation(newResponse, partialResponse);
+
+        // force it to reload the form
+        this.loadAndMergeForms(partialResponse);
       }
-
-      const items = this.props.qform.item;
-      this.prepopulate(items, newResponse.item, saved_response)
-
-      this.updateSavedResponseWithPrepopulation(newResponse, partialResponse);
-
-      // force it to reload the form
-      this.loadAndMergeForms(partialResponse);
-
     } else {
       console.log("No form loaded.");
     }
@@ -1195,53 +1308,27 @@ export default class QuestionnaireForm extends Component {
           replaceOrInsertItem(newItem, savedParentItem);
         }
       } else {
-        newItem.item.forEach(newSubItem => {
-          updateMergeItem(newSubItem, savedItem, newItem.linkId);
-        });
+        if(newItem.item) {
+          newItem.item.forEach(newSubItem => {
+            updateMergeItem(newSubItem, savedItem, newItem.linkId);
+          });
+        }
       }
     };
 
     newOne.item.map(newItem => {
-      let savedIndex = saved.item.findIndex(savedItem => newItem.linkId == savedItem.linkId);
-      if (savedIndex != -1) {
-        updateMergeItem(newItem, saved.item[savedIndex], newOne.linkId);
+      if (saved.item !== undefined) {
+        let savedIndex = saved.item.findIndex(savedItem => newItem.linkId == savedItem.linkId);
+        if (savedIndex != -1) {
+          updateMergeItem(newItem, saved.item[savedIndex], newOne.linkId);
+        }
       }
     });
   };
 
-  popupClear(title, finalOption, logTitle) {
-    this.setState({
-      popupTitle: title,
-      popupOptions: [],
-      popupFinalOption: finalOption
-    });
-    if (logTitle) {
-      console.log(title);
-    }
-  }
-
-  popupLaunch() {
-    this.clickChild();
-  }
-
-  render() {
-    console.log(this.state.savedResponse);
-    return (
-      <div>
-        <div id="formContainer">
-        </div>
-        {this.props.formFilled ? <div className="form-message-panel"><p>All fields have been filled. Continue or uncheck "Only Show Unfilled Fields" to review and modify the form.</p></div> : null}
-        <SelectPopup
-          title={this.state.popupTitle}
-          options={this.state.popupOptions}
-          finalOption={this.state.popupFinalOption}
-          selectedCallback={this.popupCallback.bind(this)}
-          setClick={click => this.clickChild = click}
-        />
-        <div className="status-panel">
-          Form Loaded: {this.state.formLoaded}
-        </div>
-        <div className="submit-button-panel">
+    getDisplayButtons() {
+      if (!this.isAdaptiveForm()) {
+        return (<div className="submit-button-panel">
           <button className="btn submit-button" onClick={this.loadPreviousForm.bind(this)}>
             Load Previous Form
           </button>
@@ -1249,14 +1336,80 @@ export default class QuestionnaireForm extends Component {
             Send to Payer
           </button>
           <button className="btn submit-button" onClick={this.outputResponse.bind(this, "in-progress")}>
-            Save
+            Save to EHR
           </button>
           <button className="btn submit-button" onClick={this.outputResponse.bind(this, "completed")}>
-            Next
+            Proceed To Prior Auth
           </button>
-        </div>
-      </div>
-    );
+        </div>)
+      }
+      else {
+        if (this.props.adFormCompleted) {
+          return (
+            <div className="submit-button-panel">
+              <button className="btn submit-button" onClick={this.sendQuestionnaireResponseToPayer.bind(this)}>
+                Send to Payer
+              </button>
+              <button className="btn submit-button" onClick={this.outputResponse.bind(this, "completed")}>
+                Proceed To Prior Auth
+              </button>
+            </div>
+          )
+        }
+        else {
+          return (
+            <div className="submit-button-panel">
+              {this.isAdaptiveFormWithoutItem() ? (
+                <button className="btn submit-button" onClick={this.loadPreviousForm.bind(this)}>
+                Load Previous Form
+                 </button>
+              ) : null}
+              {this.isAdaptiveFormWithItem() ? (<button className="btn submit-button" onClick={this.outputResponse.bind(this, "in-progress")}>
+                Save To EHR
+              </button>) : null}
+            </div>
+          )
+        }
+      }
+    }
+
+    render() {
+      const isAdaptiveForm = this.isAdaptiveForm();
+      const showPopup = !isAdaptiveForm || this.isAdaptiveFormWithoutItem();
+      return (
+        <div>
+          <div id="formContainer">
+          </div>
+          {!isAdaptiveForm && this.props.formFilled ? <div className="form-message-panel"><p>All fields have been filled. Continue or uncheck "Only Show Unfilled Fields" to review and modify the form.</p></div> : null}
+          {
+            showPopup ? (
+              <SelectPopup
+              title={this.state.popupTitle}
+              options={this.state.popupOptions}
+              finalOption={this.state.popupFinalOption}
+              selectedCallback={this.popupCallback.bind(this)}
+              setClick={click => this.clickChild = click}
+            />
+            ) : null
+          }
+          {
+            isAdaptiveForm ? (
+              <div className="form-message-panel">
+                {this.isAdaptiveFormWithoutItem() && !this.props.adFormCompleted ? (<p>Click Next Question button to proceed.</p>) : null}
+                {!this.props.adFormCompleted ? (<div> <button className="btn submit-button" onClick={this.loadNextQuestions}>
+                  Next Question
+                </button>
+                </div>) : null}
+              </div>) : null
+          }
+          {
+            !isAdaptiveForm ? (<div className="status-panel">
+              Form Loaded: {this.state.formLoaded}
+            </div>) : null
+          }
+          {this.getDisplayButtons()}
+        </div>)
+        ;
+    }
   }
-}
 
