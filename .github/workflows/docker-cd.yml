@@ -27,3 +27,5 @@ jobs:
         context: .
         push: true
         tags: codexrems/dtr:latest
+
+    
