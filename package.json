@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "start": "npm-run-all --parallel startBackendDev buildFrontendDev",
+    "startProd": "npm-run-all --parallel startBackendProd buildFrontendProd",
     "buildFrontendProd": "webpack --config ./webpack.config.prod.js",
     "buildFrontendTemplate": "webpack --config ./webpack.config.prod.js",
     "buildFrontendDev": "webpack --config ./webpack.config.js",
@@ -58,6 +59,7 @@
     "regenerator-runtime": "^0.12.1",
     "shortid": "^2.2.15",
     "url-search-params-polyfill": "^7.0.1",
+    "webpack": "^4.28.3",
     "whatwg-fetch": "^3.0.0"
   },
   "browsersList": [
