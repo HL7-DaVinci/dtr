@@ -10,7 +10,7 @@
     "buildFrontendDev": "webpack --config ./webpack.config.js",
     "startBackendProd": "node ./bin/prod",
     "startBackendTemplate": "node ./bin/template",
-    "startBackendDev": "nodemon --watch public ./bin/dev",
+    "startBackendDev": "nodemon --inspect=0.0.0.0:3006 --watch public ./bin/dev ",
     "lint": "node ./node_modules/.bin/eslint --ext .js ./"
   },
   "devDependencies": {
