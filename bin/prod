@@ -2,7 +2,7 @@
 
 const startServer = require("./www");
 
-const serverPort = 3005;
-const initialClient = "";
+const serverPort = process.env.REACT_APP_SERVER_PORT ? process.env.REACT_APP_SERVER_PORT : 3005;
+const initialClient = process.env.REACT_APP_INITIAL_CLIENT ? process.env.REACT_APP_INITIAL_CLIENT : "http://localhost:8080/test-ehr/r4::app-login";
 
 startServer(serverPort, initialClient);
