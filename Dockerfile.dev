@@ -3,4 +3,5 @@ WORKDIR /home/node/app/dtr
 COPY --chown=node:node . .
 RUN npm install
 EXPOSE 3005
-CMD npm run startProd
+EXPOSE 3006
+CMD ./dockerRunnerDev.sh

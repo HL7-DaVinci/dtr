@@ -1,0 +1,48 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug DTR Backend (Docker)",
+            "port": 3006,
+            "request": "attach",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node",
+            "localRoot": "${workspaceFolder}",
+            "remoteRoot": "/home/node/app/dtr",
+            "restart": true
+        },
+        {
+            "name": "Debug DTR Backend (Local)",
+            "port": 3006,
+            "request": "attach",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node",
+            "restart": true
+        },
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "Debug DTR Frontend (Launch Local + Docker)",
+            "url": "http://localhost:3005/register",
+            "webRoot": "${workspaceFolder}",
+            "runtimeArgs": [
+                "--remote-debugging-port=9222"
+              ]
+        },
+        {
+            "type": "chrome",
+            "request": "attach", // Launch Chrome According To: https://github.com/microsoft/vscode-chrome-debug#attach
+            "name": "Debug DTR Frontend (Attach Local + Docker)",
+            "url": "http://localhost:3005/*",
+            "port": 9222,
+            "webRoot": "${workspaceFolder}",
+        }
+    ]
+}
