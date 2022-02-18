@@ -1198,8 +1198,6 @@ export default class QuestionnaireForm extends Component {
         value: shortid.generate()
       }
       priorAuthBundle.signature = signature;
-      console.log(priorAuthClaim);
-      console.log(priorAuthBundle);
       priorAuthBundle.entry.unshift({ resource: priorAuthClaim });
 
       this.props.setPriorAuthClaim(priorAuthBundle);
