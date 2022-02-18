@@ -3,6 +3,6 @@
 const startServer = require("./www");
 
 const serverPort = 3005;
-const initialClient = "";
+const initialClient = "http://localhost:8080/test-ehr/r4::app-login";
 
 startServer(serverPort, initialClient);
