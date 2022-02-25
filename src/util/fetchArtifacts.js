@@ -24,13 +24,41 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
       dependentElms: [],
       valueSets: [],
       mainLibraryMaps: null,
-      isAdaptiveFormWithoutExtension: false
+      isAdaptiveFormWithoutExtension: false,
+      questionnaireElms: []
     };
 
     function resolveIfDone(){
       if (pendingFetches != 0) return;
       if (retVal.questionnaire && retVal.mainLibraryElms) resolve(retVal);
       else reject("Failed to fetch all artifacts.");
+    }
+
+    function findQuestionnaireEmbeddedCql(inputItems) {
+      inputItems.forEach(item => {
+        const itemExtensions = item.extension;
+        if(item.extension) {
+          let findEmbeddedCql = item.extension.find(ext => 
+            ext.url === "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression" 
+            && ext.valueExpression && ext.valueExpression.language === "application/elm+json");
+    
+          if(findEmbeddedCql) {
+            const itemLibrary = JSON.parse(findEmbeddedCql.valueExpression.expression);
+            itemLibrary.library.identifier= {
+              id: "LibraryLinkId" + item.linkId,
+              version: "0.0.1"
+            };
+            retVal.questionnaireElms.push(itemLibrary);
+            elmLibraryMaps[itemLibrary.library.identifier.id] = itemLibrary;
+            retVal.mainLibraryMaps = elmLibraryMaps;
+            retVal.mainLibraryElms.push(itemLibrary);
+          }
+        } 
+        
+        if(item.item !== undefined && item.item.length > 0) {
+          findQuestionnaireEmbeddedCql(item.item);
+        }
+      });
     }
 
     pendingFetches += 1;
@@ -45,6 +73,8 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
           retVal.isAdaptiveFormWithoutExtension = questionnaire.extension && questionnaire.extension.length > 0;
 
           fetchedUrls.add(questionnaireReference);
+
+          findQuestionnaireEmbeddedCql(questionnaire.item);
 
           if (questionnaire.extension !== undefined) {
             // grab all main elm urls

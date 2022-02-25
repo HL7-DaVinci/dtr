@@ -129,7 +129,7 @@ export default class App extends Component {
           this.setState({ questionnaire: artifacts.questionnaire });
           this.setState({ deviceRequest: deviceRequest });
           this.setState({ isAdaptiveFormWithoutExtension: artifacts.questionnaire.meta && artifacts.questionnaire.meta.profile && artifacts.questionnaire.meta.profile.includes("http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-adapt") && (artifacts.questionnaire.extension === undefined || !artifacts.questionnaire.extension.includes(e => e.url === "http://hl7.org/fhir/StructureDefinition/cqf-library")) });
-          
+          this.setState({ });
           // execute for each main library
           return Promise.all(
             artifacts.mainLibraryElms.map(mainLibraryElm => {
@@ -157,7 +157,7 @@ export default class App extends Component {
               const executionInputs = {
                 elm: mainLibraryElm,
                 // look at main library elms to determine dependent elms to include
-                elmDependencies: mainLibraryElm.library.includes.def.map(
+                elmDependencies: mainLibraryElm.library.includes ? mainLibraryElm.library.includes.def.map(
                   includeStatement => {
                     let foundLibrary = artifacts.dependentElms.find(elm => {
                       return (
@@ -172,7 +172,7 @@ export default class App extends Component {
                       this.consoleLog(`Could not find library ${includeStatement.path}. Check if it is referenced in FHIR Library (${mainLibraryElm.library.identifier.id}) properly.`, `errorClass`)
                     }
                   }
-                ),
+                ) : undefined,
                 valueSetDB: {},
                 parameters: parameterObj,
                 mainLibraryMaps: artifacts.mainLibraryMaps
@@ -263,6 +263,9 @@ export default class App extends Component {
 
   // fill the valueSetDB in executionInputs with the required valuesets from their artifact source
   fillValueSetDB(executionInputs, artifacts) {
+    if (!executionInputs.elmDependencies) {
+      return;
+    }
     // create list of all ELMs that will be used
     let allElms = executionInputs.elmDependencies.slice();
     allElms.push(executionInputs.elm);
