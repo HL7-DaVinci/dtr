@@ -1009,7 +1009,6 @@ export default class QuestionnaireForm extends Component {
       return;
     }
 
-    console.log(qr);
     // For HIMSS Demo with Mettle always use GCS as payor info
     const managingOrg = {
       resourceType: "Organization",
