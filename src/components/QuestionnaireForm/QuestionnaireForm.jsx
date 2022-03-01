@@ -1010,17 +1010,6 @@ export default class QuestionnaireForm extends Component {
     }
 
     // For HIMSS Demo with Mettle always use GCS as payor info
-    const insurer = {
-      resourceType: "Organization",
-      id: "org1234",
-      name: "GCS",
-      identifier: [
-        {
-          system: "urn:ietf:rfc:3986",
-          value: "2.16.840.1.113883.13.34.110.1.150.2"
-        }
-      ]
-    };
     const managingOrg = {
       resourceType: "Organization",
       id: "org1111",
@@ -1064,7 +1053,6 @@ export default class QuestionnaireForm extends Component {
     if (priorAuthBundle && this.isPriorAuthBundleValid(priorAuthBundle)) {
       priorAuthBundle.entry.unshift({ resource: managingOrg });
       priorAuthBundle.entry.unshift({ resource: facility });
-      priorAuthBundle.entry.unshift({ resource: insurer });
       priorAuthBundle.entry.unshift({ resource: this.props.deviceRequest });
       priorAuthBundle.entry.unshift({ resource: qr });
 
@@ -1095,9 +1083,6 @@ export default class QuestionnaireForm extends Component {
         provider: {
           // TODO: make this organization
           reference: this.makeReference(priorAuthBundle, "Practitioner")
-        },
-        insurer: {
-          reference: this.makeReference(priorAuthBundle, "Organization")
         },
         facility: {
           reference: this.makeReference(priorAuthBundle, "Location")
@@ -1177,6 +1162,19 @@ export default class QuestionnaireForm extends Component {
           }
         ]
       };
+
+      const signature = {
+        resourceType: "Signature",
+        type: [
+          {
+            system: "urn:iso-astm:E1762-95:2013",
+            code: "1.2.840.10065.1.12.1.14",
+            display: "Source Signature"
+          }
+        ],
+        when:  new Date(Date.now()).toISOString(),
+        who:  this.makeReference(priorAuthBundle, "Practitioner")
+      }
       var sequence = 1;
       priorAuthBundle.entry.forEach(function (entry, index) {
         if (entry.resource.resourceType == "Condition") {
@@ -1186,8 +1184,19 @@ export default class QuestionnaireForm extends Component {
           });
         }
       });
-      console.log(priorAuthClaim);
-
+      priorAuthBundle.timestamp = new Date(Date.now()).toISOString()
+      priorAuthBundle.language = "en";
+      priorAuthBundle.id = shortid.generate();
+      priorAuthBundle.meta = {
+        lastUpdated: Date.now()
+      }
+      priorAuthBundle.implicitRules = "http://build.fhir.org/ig/HL7/davinci-pas/StructureDefinition-profile-pas-request-bundle"
+      priorAuthBundle.identifier = {
+        use: "official",
+        system: "urn:uuid:mitre-drls",
+        value: shortid.generate()
+      }
+      priorAuthBundle.signature = signature;
       priorAuthBundle.entry.unshift({ resource: priorAuthClaim });
 
       this.props.setPriorAuthClaim(priorAuthBundle);

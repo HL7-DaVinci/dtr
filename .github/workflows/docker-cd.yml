@@ -23,4 +23,4 @@ jobs:
       with:
         context: .
         push: true
-        tags: smalho01234/dtr:latest
+        tags: codexrems/dtr:REMSvlatest
