@@ -24,8 +24,7 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
       dependentElms: [],
       valueSets: [],
       mainLibraryMaps: null,
-      isAdaptiveFormWithoutExtension: false,
-      questionnaireElms: []
+      isAdaptiveFormWithoutExtension: false
     };
 
     function resolveIfDone(){
@@ -35,6 +34,9 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
     }
 
     function findQuestionnaireEmbeddedCql(inputItems) {
+      if(!inputItems) {
+        return;
+      }
       inputItems.forEach(item => {
         const itemExtensions = item.extension;
         if(item.extension) {
@@ -48,7 +50,6 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
               id: "LibraryLinkId" + item.linkId,
               version: "0.0.1"
             };
-            retVal.questionnaireElms.push(itemLibrary);
             elmLibraryMaps[itemLibrary.library.identifier.id] = itemLibrary;
             retVal.mainLibraryMaps = elmLibraryMaps;
             retVal.mainLibraryElms.push(itemLibrary);
@@ -111,6 +112,8 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
 
         //fetchedUrls.add(questionnaireReference);
 
+        findQuestionnaireEmbeddedCql(questionnaire.item);
+        
         if (questionnaire.extension !== undefined) {
           // grab all main elm urls
           // R4 resources use cqf library. 

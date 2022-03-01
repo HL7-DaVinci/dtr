@@ -475,7 +475,7 @@ export default class QuestionnaireForm extends Component {
       // this is embedded CQL in Questionnaire
       if(value.language === "application/elm+json") {
         libraryName = "LibraryLinkId" + item.linkId;
-        statementName = "linkId." + item.linkId;
+        statementName = "LinkId." + item.linkId;
       }
       else {
         // split library designator from statement
