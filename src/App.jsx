@@ -36,6 +36,7 @@ export default class App extends Component {
       questionnaire: null,
       response: null,
       priorAuthClaim: null,
+      specialtyRxBundle: null,
       cqlPrepopulationResults: null,
       deviceRequest: null,
       bundle: null,
@@ -349,6 +350,10 @@ export default class App extends Component {
     this.setState({ priorAuthClaim: claimBundle });
   }
 
+  setSpecialtyRxBundle(specialtyRxBundleParam) {
+    this.setState({ specialtyRxBundle: specialtyRxBundleParam });
+  }
+
   getQuestionByName(question) {
       //question should be the HTML node
       const temp = question.getElementsByClassName("lf-item-code ng-hide")[0].innerText.trim();
@@ -609,6 +614,7 @@ export default class App extends Component {
               attested={this.state.attested}
               priorAuthReq={this.props.priorAuthReq === "true" ? true : false}
               setPriorAuthClaim={this.setPriorAuthClaim.bind(this)}
+              setSpecialtyRxBundle={this.setSpecialtyRxBundle.bind(this)}
               fhirVersion={this.fhirVersion.toUpperCase()}
               smart={this.smart}
               FHIR_PREFIX={this.props.FHIR_PREFIX}

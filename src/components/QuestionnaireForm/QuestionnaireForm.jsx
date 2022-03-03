@@ -1199,7 +1199,114 @@ export default class QuestionnaireForm extends Component {
       priorAuthBundle.signature = signature;
       priorAuthBundle.entry.unshift({ resource: priorAuthClaim });
 
+      const specialtyRxBundle = JSON.parse(JSON.stringify(priorAuthBundle));
+      specialtyRxBundle.type = "message";
+      if (this.makeReference(priorAuthBundle, "MedicationRequest")) {
+        const pharmacy = {
+          resourceType: "Organization",
+          id: "pharm0111",
+          identifier: [
+            {
+              system: "http://hl7.org/fhir/sid/us-npi",
+              value: "1837247346"
+            },
+            {
+              system: "http://terminology.hl7.org/CodeSystem/NCPDPProviderIdentificationNumber",
+              value: "838283882"
+            }
+          ],
+          telecom: [
+            {
+              system : "phone", 
+              value : "919-234-5174",
+              use : "work", 
+              rank : "1", 
+            }
+          ],
+          address: [
+            {
+              use: "work",
+              state: "IL",
+              postalCode: "62864",
+              city: "Mount Vernon",
+              line: ["1500 Main St"]
+            }
+          ]
+        }
+
+        const specialtyRxSearchResult = {
+          resourceType: "Bundle",
+          type: "searchset",
+          id: "bundle02",
+          total: 0,
+          link: [
+            {
+              relation: "self",
+              url: "",
+            }
+          ],
+          entry: []
+        }
+
+        const specialtyRxParameters = {
+          resourceType: "Parameters",
+          id: "param0111",
+          parameter: [
+            {
+              name: "source-patient",
+              reference: this.makeReference(priorAuthBundle, "Patient")
+            },
+            {
+              name: "prescription",
+              reference: this.makeReference(priorAuthBundle, "MedicationRequest")
+            },
+            {
+              name: "pharmacy",
+              reference: "Organization/pharm0111"
+            },
+            {
+              name: "prescriber",
+              reference: this.makeReference(priorAuthBundle, "Practitioner")
+            },
+            {
+              name: "search-result",
+              reference: "Bundle/bundle02"
+            },
+  
+          ]
+        }
+  
+        const specialtyRxMessageHeader = {
+          resourceType: "MessageHeader",
+          id: "msghdr0111",
+          event: [
+            {
+              eventCoding: {
+                system: "http://hl7.org/fhir/us/specialty-rx/CodeSystem/specialty-rx-event-type",
+                code: "query-response-unsolicited",
+              }
+            }
+          ],
+          focus: {
+            parameters: {
+              reference: "Parameters/param0111"
+            }
+          }
+  
+        }       
+        
+        specialtyRxBundle.entry.unshift({ resource: specialtyRxSearchResult });
+        specialtyRxBundle.entry.unshift({ resource: pharmacy });
+        specialtyRxBundle.entry.unshift({ resource: specialtyRxParameters });
+        specialtyRxBundle.entry.unshift({ resource: specialtyRxMessageHeader });
+
+      }
+
+      console.log("specialtyRx", specialtyRxBundle);
+
+
       this.props.setPriorAuthClaim(priorAuthBundle);
+      this.props.setSpecialtyRxBundle(specialtyRxBundle);
     } else {
       alert("Prior Auth Bundle is not available or does not contain enough resources for Prior Auth. Can't submit to prior auth.")
     }
