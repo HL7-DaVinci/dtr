@@ -12,6 +12,7 @@ import Testing from "./components/ConsoleBox/Testing";
 import UserMessage from "./components/UserMessage/UserMessage";
 import TaskPopup from "./components/Popup/TaskPopup";
 import PatientSelect from "./components/PatientSelect/PatientSelect";
+import RemsInterface from "./components/RemsInterface/RemsInterface";
 
 // uncomment for testing UserMessage
 // let sampleError = {
@@ -600,8 +601,8 @@ export default class App extends Component {
           >
 
           </div>
-          {this.state.priorAuthClaim ? (
-            <PriorAuth claimBundle={this.state.priorAuthClaim} />
+          {this.state.specialtyRxBundle ? (
+            <RemsInterface specialtyRxBundle={this.state.specialtyRxBundle} />
           ) : (
             <QuestionnaireForm
               qform={this.state.questionnaire}
