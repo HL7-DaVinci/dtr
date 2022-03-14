@@ -48,7 +48,7 @@ export default class RemsInterface extends Component {
         <div>
             <div className="container left-form">
                 {this.renderBundle()}
-                <button className="submit-btn" onClick={()=>{this.sendMessage("http://localhost:3010/api/doctorOder/FHIR")}}>Submit</button>
+                <button className="submit-btn" onClick={()=>{this.sendMessage("http://localhost:3010/api/doctorOrder/FHIR")}}>Submit</button>
 
             </div>
             <div className="right-form">
