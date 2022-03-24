@@ -1454,14 +1454,11 @@ export default class QuestionnaireForm extends Component {
           <button className="btn submit-button" onClick={this.loadPreviousForm.bind(this)}>
             Load Previous Form
           </button>
-          <button className="btn submit-button" onClick={this.sendQuestionnaireResponseToPayer.bind(this)}>
-            Send to Payer
-          </button>
           <button className="btn submit-button" onClick={this.outputResponse.bind(this, "in-progress")}>
             Save to EHR
           </button>
           <button className="btn submit-button" onClick={this.outputResponse.bind(this, "completed")}>
-            Proceed To Prior Auth
+            Submit REMS Bundle
           </button>
         </div>)
       }
@@ -1469,11 +1466,8 @@ export default class QuestionnaireForm extends Component {
         if (this.props.adFormCompleted) {
           return (
             <div className="submit-button-panel">
-              <button className="btn submit-button" onClick={this.sendQuestionnaireResponseToPayer.bind(this)}>
-                Send to Payer
-              </button>
               <button className="btn submit-button" onClick={this.outputResponse.bind(this, "completed")}>
-                Proceed To Prior Auth
+                Submit REMS Bundle
               </button>
             </div>
           )
