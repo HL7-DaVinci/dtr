@@ -1,6 +1,5 @@
 import cql from "cql-execution";
 import cqlfhir from "cql-exec-fhir";
-// import fhirhelpersElm from "./FHIRHelpers.json";
 import extractFhirResourcesThatNeedFetching from "./extractFhirResourcesThatNeedFetching";
 import buildPopulatedResourceBundle from "./buildPopulatedResourceBundle";
 
@@ -56,8 +55,18 @@ function findDifference(array1, array2) {
 
 function executeElmAgainstPatientSource(executionInputs, patientSource) {
   // executionInputs.elmDependencies = [ fhirhelpersElm ]
-  const repository = new cql.Repository(executionInputs.elmDependencies);
-  const lib = new cql.Library(executionInputs.elm, repository);
+  let repository = undefined;
+  if(executionInputs.elmDependencies) {
+    repository = new cql.Repository(executionInputs.elmDependencies);
+  } 
+
+  let lib = undefined;
+  if(repository) {
+    lib = new cql.Library(executionInputs.elm, repository);
+  } else {
+    lib = new cql.Library(executionInputs.elm);
+  }
+  
   const codeService = new cql.CodeService(executionInputs.valueSetDB);
   const executor = new cql.Executor(lib, codeService, executionInputs.parameters);
   const results = executor.exec(patientSource);
