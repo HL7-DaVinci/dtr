@@ -14,7 +14,7 @@ export default class RemsInterface extends Component {
     };
 
     this.getAxiosOptions = this.getAxiosOptions.bind(this);
-    this.sendMessage = this.sendMessage.bind(this);
+    this.sendRemsMessage = this.sendRemsMessage.bind(this);
     this.renderBundle= this.renderBundle.bind(this);
   }
   getAxiosOptions() {
@@ -27,9 +27,11 @@ export default class RemsInterface extends Component {
     return options;
   }
 
-  sendMessage(destination) {
-      console.log(this.props.specialtyRxBundle);
-    axios.post(destination, this.props.specialtyRxBundle, this.getAxiosOptions());
+  async sendRemsMessage() {
+    console.log(this.props.specialtyRxBundle);
+    const remsAdminResponse = await axios.post("http://localhost:8090/api/rems", this.props.specialtyRxBundle, this.getAxiosOptions());
+    console.log(remsAdminResponse);
+    axios.post("http://localhost:3010/api/doctorOrder/FHIR", remsAdminResponse.data, this.getAxiosOptions());
   }
 
   renderBundle() {
@@ -48,7 +50,7 @@ export default class RemsInterface extends Component {
         <div>
             <div className="container left-form">
                 {this.renderBundle()}
-                <button className="submit-btn" onClick={()=>{this.sendMessage("http://localhost:3010/api/doctorOrder/FHIR")}}>Submit</button>
+                <button className="submit-btn" onClick={()=>{this.sendRemsMessage()}}>Submit</button>
 
             </div>
             <div className="right-form">
