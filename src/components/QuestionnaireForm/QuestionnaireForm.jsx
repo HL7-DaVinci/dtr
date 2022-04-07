@@ -451,7 +451,7 @@ export default class QuestionnaireForm extends Component {
   getLibraryPrepopulationResult(item, cqlResults) {
     let prepopulationResult;
     item.extension.forEach(e => {
-      let value;
+      let value, valueExpression;
       if (
         e.url ===
         "http://hl7.org/fhir/StructureDefinition/cqif-calculatedValue"
@@ -464,26 +464,34 @@ export default class QuestionnaireForm extends Component {
       ) {
         // r4
         value = findValueByPrefix(e, "value");
-        value = value.expression;
+        valueExpression = value.expression;
       } else {
         // not a cql statement reference
         return;
       }
 
-      // split library designator from statement
-      const valueComponents = value.split(".");
       let libraryName;
       let statementName;
-      if (valueComponents.length > 1) {
-        libraryName = valueComponents[0].substring(
-          1,
-          valueComponents[0].length - 1
-        );
-        statementName = valueComponents[1];
-      } else {
-        // if there is not library name grab the first library name
-        statementName = value;
-        libraryName = Object.keys(cqlResults)[0];
+      // this is embedded CQL in Questionnaire
+      if(value.language === "application/elm+json") {
+        libraryName = "LibraryLinkId" + item.linkId;
+        statementName = "LinkId." + item.linkId;
+      }
+      else {
+        // split library designator from statement
+        const valueComponents = valueExpression.split(".");
+      
+        if (valueComponents.length > 1) {
+          libraryName = valueComponents[0].substring(
+            1,
+            valueComponents[0].length - 1
+          );
+          statementName = valueComponents[1];
+        } else {
+          // if there is not library name grab the first library name
+          statementName = valueExpression;
+          libraryName = Object.keys(cqlResults)[0];
+        }
       }
 
       if (cqlResults[libraryName] != null) {

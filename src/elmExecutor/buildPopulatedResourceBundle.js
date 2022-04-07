@@ -192,6 +192,11 @@ function buildPopulatedResourceBundle(
           }
         };
 
+        // at least grab patient
+        if(!neededResources) {
+          neededResources = [];
+          neededResources.push("Patient");
+        }
         readResources(neededResources.slice(), () => {
           const bundle = {
             resourceType: "Bundle",

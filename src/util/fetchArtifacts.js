@@ -33,6 +33,35 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
       else reject("Failed to fetch all artifacts.");
     }
 
+    function findQuestionnaireEmbeddedCql(inputItems) {
+      if(!inputItems) {
+        return;
+      }
+      inputItems.forEach(item => {
+        const itemExtensions = item.extension;
+        if(item.extension) {
+          let findEmbeddedCql = item.extension.find(ext => 
+            ext.url === "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression" 
+            && ext.valueExpression && ext.valueExpression.language === "application/elm+json");
+    
+          if(findEmbeddedCql) {
+            const itemLibrary = JSON.parse(findEmbeddedCql.valueExpression.expression);
+            itemLibrary.library.identifier= {
+              id: "LibraryLinkId" + item.linkId,
+              version: "0.0.1"
+            };
+            elmLibraryMaps[itemLibrary.library.identifier.id] = itemLibrary;
+            retVal.mainLibraryMaps = elmLibraryMaps;
+            retVal.mainLibraryElms.push(itemLibrary);
+          }
+        } 
+        
+        if(item.item !== undefined && item.item.length > 0) {
+          findQuestionnaireEmbeddedCql(item.item);
+        }
+      });
+    }
+
     pendingFetches += 1;
     consoleLog("fetching questionnaire and elms", "infoClass");
     consoleLog(questionnaireReference, "infoClass");
@@ -45,6 +74,8 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
           retVal.isAdaptiveFormWithoutExtension = questionnaire.extension && questionnaire.extension.length > 0;
 
           fetchedUrls.add(questionnaireReference);
+
+          findQuestionnaireEmbeddedCql(questionnaire.item);
 
           if (questionnaire.extension !== undefined) {
             // grab all main elm urls
@@ -81,6 +112,8 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
 
         //fetchedUrls.add(questionnaireReference);
 
+        findQuestionnaireEmbeddedCql(questionnaire.item);
+        
         if (questionnaire.extension !== undefined) {
           // grab all main elm urls
           // R4 resources use cqf library. 
