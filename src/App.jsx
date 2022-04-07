@@ -101,6 +101,12 @@ export default class App extends Component {
   }
 
   ehrLaunch(isContainedQuestionnaire, questionnaire) {
+    // Temporary indication before full supports for relaunch is implemented
+    if(!this.appContext.request) {
+      alert("Supports for relaunch will be added in the near future!");
+      this.consoleLog("Supports for relaunch will be added in the near future!", "errorClass");
+      return;
+    }
     const deviceRequest = JSON.parse(this.appContext.request.replace(/\\/g,""));
     this.consoleLog("fetching artifacts", "infoClass");
     this.setState({
