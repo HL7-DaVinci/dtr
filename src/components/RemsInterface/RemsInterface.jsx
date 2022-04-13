@@ -28,9 +28,7 @@ export default class RemsInterface extends Component {
   }
 
   async sendRemsMessage() {
-    console.log(this.props.specialtyRxBundle);
     const remsAdminResponse = await axios.post("http://localhost:8090/api/rems", this.props.specialtyRxBundle, this.getAxiosOptions());
-    console.log(remsAdminResponse);
     axios.post("http://localhost:3010/api/doctorOrder/fhir/rems", remsAdminResponse.data, this.getAxiosOptions());
   }
 
