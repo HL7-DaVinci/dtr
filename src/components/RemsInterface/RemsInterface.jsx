@@ -119,7 +119,7 @@ export default class RemsInterface extends Component {
     return (
       <div>
         <div className="container left-form">
-
+          <h1>REMS Admin Status</h1>
           <Paper style={{paddingBottom: "5px"}}>
             <div className="status-icon" style={{ backgroundColor: color }}></div>
             <div className="bundle-entry">
@@ -151,6 +151,7 @@ export default class RemsInterface extends Component {
         </div>
 
         <div className="right-form">
+          <h1>Pharmacy Status</h1>
           <Paper style={{paddingBottom: "5px"}}>
               <div className="status-icon" style={{ backgroundColor: colorPis }}></div>
               <div className="bundle-entry">
