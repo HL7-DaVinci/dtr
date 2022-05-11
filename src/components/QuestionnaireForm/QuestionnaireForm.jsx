@@ -914,9 +914,33 @@ export default class QuestionnaireForm extends Component {
     };
     this.addAuthorToResponse(qr, this.getPractitioner());
 
-    qr.questionnaire = this.props.qform.id;
+    qr.questionnaire = `${this.FHIR_PREFIX}${this.fhirVersion}/Questionnaire/${this.props.qform.id}`;
     console.log("GetQuestionnaireResponse final QuestionnaireResponse: ", qr);
 
+    const request = this.props.deviceRequest;
+    // add context extension
+    qr.extension = [];
+    if(request !== undefined) {
+      const contextExtensionUrl = "http://hl7.org/fhir/us/davinci-dtr/StructureDefinition/context";
+      qr.extension.push({
+        url: contextExtensionUrl,
+        valueReference: {
+          reference: `${request.resourceType}/${request.id}`,
+          type: `${request.resourceType}`
+        }
+      })
+
+      if(request.insurance !== null && request.insurance.length > 0) {
+        const coverage = request.insurance[0];
+        qr.extension.push({
+          url: contextExtensionUrl,
+          valueReference: {
+            reference: `${coverage.reference}`,
+            type: "Coverage"
+          }
+        })
+      }
+   }
     console.log(this.props.attested);
     const aa = searchQuestionnaire(qr, this.props.attested);
     console.log(aa);
@@ -1291,14 +1315,16 @@ export default class QuestionnaireForm extends Component {
       if (newItem.item == undefined) {
         //find the corresponding linkId in savedItem and replace it
         const findSavedParentItem = (parentLinkId, savedItem) => {
-          if (savedItem.linkId == parentLinkId) {
+          if (savedItem.linkId === parentLinkId) {
             return savedItem;
           } else {
-            const parentIndex = savedItem.item.findIndex(item => item.linkId == parentLinkId);
-            if (parentIndex != -1) {
-              return savedItem.item[parentIndex];
-            } else {
-              findSavedParentItem(parentLinkId, savedItem.item);
+            if (savedItem.item) {
+              const parentIndex = savedItem.item.findIndex(item => item.linkId == parentLinkId);
+              if (parentIndex != -1) {
+                return savedItem.item[parentIndex];
+              } else {
+                findSavedParentItem(parentLinkId, savedItem.item);
+              }
             }
           }
         };
