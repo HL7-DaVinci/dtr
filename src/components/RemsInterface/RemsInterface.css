@@ -77,6 +77,29 @@ body {
   animation-timing-function: ease-in-out; 
 }
 
+.requestBody{
+  overflow-y: scroll;
+  height:500px;
+}
+.jsonData{
+  line-height:16px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+
+  border-left: 2px solid #dddddd;
+  border-top:0px;
+  padding-left:6px;
+
+  display:block;
+}
+
+.elementBody{
+  color:#adadad;
+}
+.elementKey{
+  color:#343434
+}
+
 @keyframes spin {
   from {
       transform:rotate(0deg);
