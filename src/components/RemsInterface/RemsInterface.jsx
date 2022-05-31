@@ -119,7 +119,7 @@ export default class RemsInterface extends Component {
   }
   refreshBundle() {
     this.setState({ spin: true });
-    axios.get(`http://localhost:8090/api/rems/${this.state.remsAdminResponse.data.case_number}`).then((response) => {
+    axios.get(`http://localhost:8090/rems/${this.state.remsAdminResponse.data.case_number}`).then((response) => {
       this.setState({ remsAdminResponse: response });
     })
   }
