@@ -50,22 +50,22 @@ export default class RemsInterface extends Component {
     return options;
   }
 
-  unfurlJson(jsonData, level){
+  unfurlJson(jsonData, level) {
     var divStyle = {
-        marginLeft:20
-      };
-    if(jsonData){
-        return Object.keys(jsonData).map(element=>{
-            var elementKey = `${element}-${level}`;
-            return (
-            <div id = {elementKey} className="jsonData" key={element} style={divStyle}>
-                <span className="elementKey">{element}</span>: <span className="elementBody">{jsonData[element]===null?"null":typeof jsonData[element] === "object"?this.unfurlJson(jsonData[element], level + 1):jsonData[element]}</span>
-            </div>
-            )
-        });
+      marginLeft: 20
+    };
+    if (jsonData) {
+      return Object.keys(jsonData).map(element => {
+        var elementKey = `${element}-${level}`;
+        return (
+          <div id={elementKey} className="jsonData" key={element} style={divStyle}>
+            <span className="elementKey">{element}</span>: <span className="elementBody">{jsonData[element] === null ? "null" : typeof jsonData[element] === "object" ? this.unfurlJson(jsonData[element], level + 1) : jsonData[element]}</span>
+          </div>
+        )
+      });
     }
 
-}
+  }
 
   async sendRemsMessage() {
     const remsAdminResponse = await axios.post("http://localhost:8090/api/rems", this.props.specialtyRxBundle, this.getAxiosOptions());
@@ -81,21 +81,21 @@ export default class RemsInterface extends Component {
   }
 
   toggleBundle() {
-    this.setState((prevState)=>{
-      return {...prevState, viewBundle: !prevState.viewBundle}
+    this.setState((prevState) => {
+      return { ...prevState, viewBundle: !prevState.viewBundle }
     })
   }
 
   toggleResponse() {
     console.log(this.state.viewResponse);
-    this.setState((prevState)=>{
-      return {...prevState, viewResponse: !prevState.viewResponse}
+    this.setState((prevState) => {
+      return { ...prevState, viewResponse: !prevState.viewResponse }
     })
   }
 
   togglePisBundle() {
-    this.setState((prevState)=>{
-      return {...prevState, viewPisBundle: !prevState.viewPisBundle}
+    this.setState((prevState) => {
+      return { ...prevState, viewPisBundle: !prevState.viewPisBundle }
     })
   }
 
@@ -112,15 +112,15 @@ export default class RemsInterface extends Component {
   }
 
   refreshPisBundle() {
-    this.setState({spinPis: true});
-    axios.get(`http://localhost:3010/api/doctorOrder/${this.state.response.data.doctorOrder._id}`).then((response)=>{
-      this.setState({response: response});
+    this.setState({ spinPis: true });
+    axios.get(`http://localhost:3010/api/doctorOrder/${this.state.response.data.doctorOrder._id}`).then((response) => {
+      this.setState({ response: response });
     })
   }
   refreshBundle() {
-    this.setState({spin: true});
-    axios.get(`http://localhost:8090/api/rems/${this.state.remsAdminResponse.data.case_number}`).then((response)=>{
-      this.setState({remsAdminResponse: response});
+    this.setState({ spin: true });
+    axios.get(`http://localhost:8090/api/rems/${this.state.remsAdminResponse.data.case_number}`).then((response) => {
+      this.setState({ remsAdminResponse: response });
     })
   }
   render() {
@@ -132,7 +132,7 @@ export default class RemsInterface extends Component {
       color = "#f0ad4e"
     }
 
-    let colorPis  = "#f7f7f7"
+    let colorPis = "#f7f7f7"
     const statusPis = this.state.response?.data?.doctorOrder?.dispenseStatus;
 
     if (statusPis === "Approved") {
@@ -147,7 +147,7 @@ export default class RemsInterface extends Component {
       <div>
         <div className="container left-form">
           <h1>REMS Admin Status</h1>
-          <Paper style={{paddingBottom: "5px"}}>
+          <Paper style={{ paddingBottom: "5px" }}>
             <div className="status-icon" style={{ backgroundColor: color }}></div>
             <div className="bundle-entry">
               Case Number : {this.state.remsAdminResponse?.data?.case_number || "N/A"}
@@ -159,27 +159,27 @@ export default class RemsInterface extends Component {
               <Button variant="contained" onClick={this.toggleBundle}>View Bundle</Button>
               <Button variant="contained" onClick={this.toggleResponse}>View Response</Button>
 
-              {this.state.remsAdminResponse?.data?.case_number ? 
-                            <AutorenewIcon
-                            className={this.state.spin === true ? "refresh" : "renew-icon"}
-                            onClick={this.refreshBundle}
-                            onAnimationEnd={() => this.setState({spin: false})}
-                        />
-                      :""
-                }
+              {this.state.remsAdminResponse?.data?.case_number ?
+                <AutorenewIcon
+                  className={this.state.spin === true ? "refresh" : "renew-icon"}
+                  onClick={this.refreshBundle}
+                  onAnimationEnd={() => this.setState({ spin: false })}
+                />
+                : ""
+              }
 
             </div>
 
           </Paper>
-          {this.state.viewResponse?
-                 <div className="requestBody">
-                 { this.unfurlJson(this.state.remsAdminResponse, 0) }
-                 </div>
-                 :
-                 ""}
+          {this.state.viewResponse ?
+            <div className="requestBody">
+              {this.unfurlJson(this.state.remsAdminResponse, 0)}
+            </div>
+            :
+            ""}
           {this.state.viewBundle ? <div className="bundle-view">
             {this.renderBundle(this.props.specialtyRxBundle)}
-          </div>: ""}
+          </div> : ""}
 
 
 
@@ -187,31 +187,31 @@ export default class RemsInterface extends Component {
 
         <div className="right-form">
           <h1>Pharmacy Status</h1>
-          <Paper style={{paddingBottom: "5px"}}>
-              <div className="status-icon" style={{ backgroundColor: colorPis }}></div>
-              <div className="bundle-entry">
-                ID : {this.state.response?.data?.doctorOrder?._id || "N/A"}
-              </div>
-              <div className="bundle-entry">
-                Status: {this.state.response?.data?.doctorOrder?.dispenseStatus}
-              </div>
-              <div className="bundle-entry">
-                <Button variant="contained" onClick={this.togglePisBundle}>View Bundle</Button>
-                {this.state.response?.data?.doctorOrder?._id ? 
-                              <AutorenewIcon
-                              className={this.state.spinPis === true ? "refresh" : "renew-icon"}
-                              onClick={this.refreshPisBundle}
-                              onAnimationEnd={() => this.setState({spinPis: false})}
-                          />
-                        :""
-                  }
+          <Paper style={{ paddingBottom: "5px" }}>
+            <div className="status-icon" style={{ backgroundColor: colorPis }}></div>
+            <div className="bundle-entry">
+              ID : {this.state.response?.data?.doctorOrder?._id || "N/A"}
+            </div>
+            <div className="bundle-entry">
+              Status: {this.state.response?.data?.doctorOrder?.dispenseStatus}
+            </div>
+            <div className="bundle-entry">
+              <Button variant="contained" onClick={this.togglePisBundle}>View Bundle</Button>
+              {this.state.response?.data?.doctorOrder?._id ?
+                <AutorenewIcon
+                  className={this.state.spinPis === true ? "refresh" : "renew-icon"}
+                  onClick={this.refreshPisBundle}
+                  onAnimationEnd={() => this.setState({ spinPis: false })}
+                />
+                : ""
+              }
 
-              </div>
+            </div>
 
-            </Paper>
-            {this.state.viewPisBundle ? <div className="bundle-view">
+          </Paper>
+          {this.state.viewPisBundle ? <div className="bundle-view">
             {this.renderBundle(this.props.specialtyRxBundle)}
-          </div>: ""}
+          </div> : ""}
         </div>
         {/* <button className="submit-btn" onClick={() => { this.sendRemsMessage() }}>Submit</button> */}
 
