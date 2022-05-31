@@ -68,7 +68,7 @@ export default class RemsInterface extends Component {
   }
 
   async sendRemsMessage() {
-    const remsAdminResponse = await axios.post("http://localhost:8090/api/rems", this.props.specialtyRxBundle, this.getAxiosOptions());
+    const remsAdminResponse = await axios.post("http://localhost:8090/rems", this.props.specialtyRxBundle, this.getAxiosOptions());
     this.setState({ remsAdminResponse });
     console.log(remsAdminResponse)
     axios.post("http://localhost:3010/api/doctorOrder/fhir/rems", remsAdminResponse.data, this.getAxiosOptions()).then((response) => {
@@ -173,7 +173,7 @@ export default class RemsInterface extends Component {
           </Paper>
           {this.state.viewResponse ?
             <div className="requestBody">
-              {this.unfurlJson(this.state.remsAdminResponse, 0)}
+              {this.unfurlJson(this.state.remsAdminResponse?.data, 0)}
             </div>
             :
             ""}
