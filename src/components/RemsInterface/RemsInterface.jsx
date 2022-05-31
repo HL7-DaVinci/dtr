@@ -21,6 +21,7 @@ export default class RemsInterface extends Component {
       response: null,
       spin: false,
       spinPis: false,
+      viewResponse: false,
       viewBundle: false,
       viewPisBundle: false,
     };
@@ -31,6 +32,8 @@ export default class RemsInterface extends Component {
     this.refreshBundle = this.refreshBundle.bind(this);
     this.refreshPisBundle = this.refreshPisBundle.bind(this);
     this.toggleBundle = this.toggleBundle.bind(this);
+    this.toggleResponse = this.toggleResponse.bind(this);
+
     this.togglePisBundle = this.togglePisBundle.bind(this);
   }
 
@@ -46,6 +49,23 @@ export default class RemsInterface extends Component {
     };
     return options;
   }
+
+  unfurlJson(jsonData, level){
+    var divStyle = {
+        marginLeft:20
+      };
+    if(jsonData){
+        return Object.keys(jsonData).map(element=>{
+            var elementKey = `${element}-${level}`;
+            return (
+            <div id = {elementKey} className="jsonData" key={element} style={divStyle}>
+                <span className="elementKey">{element}</span>: <span className="elementBody">{jsonData[element]===null?"null":typeof jsonData[element] === "object"?this.unfurlJson(jsonData[element], level + 1):jsonData[element]}</span>
+            </div>
+            )
+        });
+    }
+
+}
 
   async sendRemsMessage() {
     const remsAdminResponse = await axios.post("http://localhost:8090/api/rems", this.props.specialtyRxBundle, this.getAxiosOptions());
@@ -63,6 +83,13 @@ export default class RemsInterface extends Component {
   toggleBundle() {
     this.setState((prevState)=>{
       return {...prevState, viewBundle: !prevState.viewBundle}
+    })
+  }
+
+  toggleResponse() {
+    console.log(this.state.viewResponse);
+    this.setState((prevState)=>{
+      return {...prevState, viewResponse: !prevState.viewResponse}
     })
   }
 
@@ -130,6 +157,8 @@ export default class RemsInterface extends Component {
             </div>
             <div className="bundle-entry">
               <Button variant="contained" onClick={this.toggleBundle}>View Bundle</Button>
+              <Button variant="contained" onClick={this.toggleResponse}>View Response</Button>
+
               {this.state.remsAdminResponse?.data?.case_number ? 
                             <AutorenewIcon
                             className={this.state.spin === true ? "refresh" : "renew-icon"}
@@ -142,6 +171,12 @@ export default class RemsInterface extends Component {
             </div>
 
           </Paper>
+          {this.state.viewResponse?
+                 <div className="requestBody">
+                 { this.unfurlJson(this.state.remsAdminResponse, 0) }
+                 </div>
+                 :
+                 ""}
           {this.state.viewBundle ? <div className="bundle-view">
             {this.renderBundle(this.props.specialtyRxBundle)}
           </div>: ""}
