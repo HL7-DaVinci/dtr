@@ -71,7 +71,7 @@ export default class RemsInterface extends Component {
     const remsAdminResponse = await axios.post("http://localhost:8090/rems", this.props.specialtyRxBundle, this.getAxiosOptions());
     this.setState({ remsAdminResponse });
     console.log(remsAdminResponse)
-    axios.post("http://localhost:3010/api/doctorOrder/fhir/rems", remsAdminResponse.data, this.getAxiosOptions()).then((response) => {
+    axios.post("http://localhost:3010/api/doctorOrder/$process-message", remsAdminResponse.data, this.getAxiosOptions()).then((response) => {
       this.setState({ response });
       console.log(response);
       console.log(response.data);
