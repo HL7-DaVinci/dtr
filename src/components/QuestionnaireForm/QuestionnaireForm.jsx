@@ -195,7 +195,7 @@ export default class QuestionnaireForm extends Component {
 
   // retrieve next sets of questions
   loadNextQuestions() {
-    const url = this.props.FILE_PATH + "Questionnaire/$next-question";
+    const url = this.props.FILE_PATH + "fhir" + "/" + this.fhirVersion + "/" + "Questionnaire/$next-question";
 
     const currentQuestionnaireResponse = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', this.fhirVersion, "#formContainer");;
     //const mergedResponse = this.mergeResponseForSameLinkId(currentQuestionnaireResponse);
