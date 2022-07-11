@@ -5,6 +5,7 @@ function doSearch(smart, type, fhirVersion, request, callback) {
   // setup the query for Practitioner and Coverage
   // TODO - handle other resource not associated with Patient? 
   switch (type) {
+    case "PractitionerRole":
     case "Practitioner":
       let performer;
       if (request.resourceType === "DeviceRequest") {
@@ -18,18 +19,35 @@ function doSearch(smart, type, fhirVersion, request, callback) {
       }
 
       q._id = performer;
-      if( performer.includes("PractitionerRole")){
-          q._id = null;
-      } else if( performer.includes("Practitioner")) {
-        q._id = performer.split("/")[1];
-      }
-      smart.request(performer,{resolveReferences:"practitioner",flat:true}).then((result)=>{
-          if(result && result.practitioner) {
-              request.performer = {"reference": "Practitioner/" + result.practitioner.id};
-            callback([result.practitioner]);
-          }
+      if (type === "PractitionerRole") {
+        smart.request(`PractitionerRole?practitioner=${performer}`, {resolveReferences: ["location", "organization"], flat: true, graph:false}).then((result) => {
+          console.log(result);
+          let finalResult = []
+          if(result && result.data){
+            finalResult.push(result.data[0])
+            if(result.references) {
+              Object.keys(result.references).forEach((e)=>{
+                finalResult.push(result.references[e])
+              })
+              }
+            callback(finalResult);
+            }
+        })
+      } else {
+        if( performer.includes("PractitionerRole")){
+          q._id = null; // Not implemented 
+        } else if( performer.includes("Practitioner")) {
+          q._id = performer.split("/")[1];
+        }
+        smart.request(performer,{resolveReferences:"practitioner",flat:true}).then((result)=>{
+            if(result && result.practitioner) {
+                request.performer = {"reference": "Practitioner/" + result.practitioner.id};
+              callback([result.practitioner]);
+            }
 
-      });
+        });
+      }
+
       usePatient = false;
       console.log(q._id);
       break;
