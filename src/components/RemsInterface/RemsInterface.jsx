@@ -50,22 +50,52 @@ export default class RemsInterface extends Component {
     return options;
   }
 
-  unfurlJson(jsonData, level) {
-    var divStyle = {
-      marginLeft: 20
-    };
-    if (jsonData) {
-      return Object.keys(jsonData).map(element => {
-        var elementKey = `${element}-${level}`;
-        return (
-          <div id={elementKey} className="jsonData" key={element} style={divStyle}>
-            <span className="elementKey">{element}</span>: <span className="elementBody">{jsonData[element] === null ? "null" : typeof jsonData[element] === "object" ? this.unfurlJson(jsonData[element], level + 1) : jsonData[element]}</span>
+  unfurlJson(jsonData) {
+    console.log(jsonData);
+    return jsonData.metRequirements.map(metReq => {
+      console.log(metReq);
+      return (
+        <div>
+          <div className={"resource-entry"}>
+            <div className={"etasu-container"}>
+              <div className={"resource-entry-text"}  >{metReq.requirement.name}</div>
+              <div className={"resource-entry-icon"}>{metReq.completed ? "✅"  : "❌"}</div>
+              <div className={"resource-entry-hover"}>{metReq.requirement.description}</div>
+            </div>
           </div>
-        )
-      });
+          {
+            metReq.childMetRequirements.map(subMetReq =>    
+              <div className={"resource-entry resource-child"}>
+                <div className={"etasu-container"}>
+                  <div className={"resource-entry-text"}>{subMetReq.requirement.name}</div>
+                  <div className={"resource-entry-icon"}>{subMetReq.completed ? "✅" : "❌"}</div>
+                  <div className={"resource-entry-hover"}>{subMetReq.requirement.description}</div>
+                </div>
+              </div>
+            )
+          }
+        </div>
+      )
+    });
+      
     }
+    // if (jsonData) {
+    //   return Object.keys(jsonData).map(element => {
+    //     console.log(element);
+    //     return (
+    //       // <div id={elementKey} className="jsonData" key={element} style={divStyle}>
+    //       //   <span className="elementKey">{element}</span>: <span className="elementBody">{jsonData[element] === null ? "null" : typeof jsonData[element] === "object" ? this.unfurlJson(jsonData[element], level + 1) : jsonData[element]}</span>
+    //       // </div>
+    //       <div>
+    //         <div className={"resource-entry"}>
+    //             <div>TEST</div>
+    //         </div>
+    //       </div>
+    //     )
+    //   });
+    // }
 
-  }
+  // }
 
   async sendRemsMessage() {
     const remsAdminResponse = await axios.post("http://localhost:8090/rems", this.props.specialtyRxBundle, this.getAxiosOptions());
@@ -157,7 +187,7 @@ export default class RemsInterface extends Component {
             </div>
             <div className="bundle-entry">
               <Button variant="contained" onClick={this.toggleBundle}>View Bundle</Button>
-              <Button variant="contained" onClick={this.toggleResponse}>View Response</Button>
+              <Button variant="contained" onClick={this.toggleResponse}>View ETASU</Button>
 
               {this.state.remsAdminResponse?.data?.case_number ?
                 <AutorenewIcon
@@ -172,7 +202,7 @@ export default class RemsInterface extends Component {
 
           </Paper>
           {this.state.viewResponse ?
-            <div className="requestBody">
+            <div className="bundle-view">
               {this.unfurlJson(this.state.remsAdminResponse?.data, 0)}
             </div>
             :
