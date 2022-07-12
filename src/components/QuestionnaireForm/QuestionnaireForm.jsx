@@ -184,7 +184,6 @@ export default class QuestionnaireForm extends Component {
     // search for any QuestionnaireResponses
     this.smart.request(this.getRetrieveSaveQuestionnaireUrl() +
       "&subject=" + this.getPatient()).then((result) => {
-
         this.popupClear("Would you like to load a previous form?", "Cancel", false);
         this.processSavedQuestionnaireResponses(result, true);
       }, ((result) => {
@@ -236,7 +235,7 @@ export default class QuestionnaireForm extends Component {
       let count = 0;
 
       partialResponses.entry.forEach(r => {
-        if (this.props.qform.id == r.resource.questionnaire) {
+        if (r.resource.questionnaire.includes(this.props.qform.id)) {
           count = count + 1;
           // add the option to the popupOptions
           let date = new Date(r.resource.authored);
@@ -1453,12 +1452,15 @@ export default class QuestionnaireForm extends Component {
 
         const savedParentItem = findSavedParentItem(parentLinkId, savedItem);
         const replaceOrInsertItem = (newResponseItem, savedParentItem) => {
-          const replaceIndex = savedParentItem.item.findIndex(item => item.linkId == newResponseItem.linkId);
-          if (replaceIndex != -1) {
-            savedParentItem.item[replaceIndex] = newResponseItem;
-          } else {
-            savedParentItem.item.push(newResponseItem);
+          if(savedParentItem.item) {
+            const replaceIndex = savedParentItem.item.findIndex(item => item.linkId == newResponseItem.linkId);
+            if (replaceIndex != -1) {
+              savedParentItem.item[replaceIndex] = newResponseItem;
+            } else {
+              savedParentItem.item.push(newResponseItem);
+            }
           }
+
         };
         if (savedParentItem != undefined) {
           replaceOrInsertItem(newItem, savedParentItem);
