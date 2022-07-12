@@ -50,7 +50,7 @@ export default class RemsInterface extends Component {
     return options;
   }
 
-  unfurlJson(jsonData, level) {
+  unfurlJson(jsonData) {
     console.log(jsonData);
     return jsonData.metRequirements.map(metReq => {
       console.log(metReq);
