@@ -1452,12 +1452,15 @@ export default class QuestionnaireForm extends Component {
 
         const savedParentItem = findSavedParentItem(parentLinkId, savedItem);
         const replaceOrInsertItem = (newResponseItem, savedParentItem) => {
-          const replaceIndex = savedParentItem.item.findIndex(item => item.linkId == newResponseItem.linkId);
-          if (replaceIndex != -1) {
-            savedParentItem.item[replaceIndex] = newResponseItem;
-          } else {
-            savedParentItem.item.push(newResponseItem);
+          if(savedParentItem.item) {
+            const replaceIndex = savedParentItem.item.findIndex(item => item.linkId == newResponseItem.linkId);
+            if (replaceIndex != -1) {
+              savedParentItem.item[replaceIndex] = newResponseItem;
+            } else {
+              savedParentItem.item.push(newResponseItem);
+            }
           }
+
         };
         if (savedParentItem != undefined) {
           replaceOrInsertItem(newItem, savedParentItem);
