@@ -21,13 +21,16 @@ body {
   }
 
   .resource-entry{
+    clear: both;
     border-left: 4px solid #ffcccb;
     padding: 5px;
     border-bottom: 1px solid grey;
     background-color: #ededed;
+    padding-top: 20px;
+    padding-bottom:20px;
   }
 
-  .resource-entry:hover{
+  .resource-entry:hover {
       border-left: 4px solid #ff6663;
       background-color: #fdfdfd;
   }
@@ -107,4 +110,39 @@ body {
   to {
       transform:rotate(360deg);
   }
+}
+
+
+/*  ETASU styling */
+.resource-entry-hover{
+  padding-top:25px;
+  padding-left:25px;;
+}
+
+.etasu-container{
+  padding-bottom:10px;
+  padding-left: 10px;
+  padding-right:10px;
+}
+
+.etasu-container{
+  padding-bottom:10px;
+  padding-left: 10px;
+  padding-right:10px;
+}
+
+.resource-entry-text{
+  font-weight: bold;
+  float:left;
+  width:75%;
+}
+
+.resource-entry-icon{
+  width:25%;
+  float:right;
+  text-align:right;
+} 
+
+.resource-child{
+  margin-left:35px;
 }

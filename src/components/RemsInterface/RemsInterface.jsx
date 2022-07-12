@@ -57,14 +57,20 @@ export default class RemsInterface extends Component {
       return (
         <div>
           <div className={"resource-entry"}>
-              <div>{metReq.requirement.name}</div>
-              <div>{metReq.completed ? "✅" : "❌"}</div>
+            <div className={"etasu-container"}>
+              <div className={"resource-entry-text"}  >{metReq.requirement.name}</div>
+              <div className={"resource-entry-icon"}>{metReq.completed ? "✅"  : "❌"}</div>
+              <div className={"resource-entry-hover"}>{metReq.requirement.description}</div>
+            </div>
           </div>
           {
             metReq.childMetRequirements.map(subMetReq =>    
-              <div className={"resource-entry"}>
-                <div>{subMetReq.requirement.name}</div>
-                <div>{subMetReq.completed ? "✅" : "❌"}</div>
+              <div className={"resource-entry resource-child"}>
+                <div className={"etasu-container"}>
+                  <div className={"resource-entry-text"}>{subMetReq.requirement.name}</div>
+                  <div className={"resource-entry-icon"}>{subMetReq.completed ? "✅" : "❌"}</div>
+                  <div className={"resource-entry-hover"}>{subMetReq.requirement.description}</div>
+                </div>
               </div>
             )
           }
