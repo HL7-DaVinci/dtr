@@ -184,7 +184,8 @@ export default class QuestionnaireForm extends Component {
     // search for any QuestionnaireResponses
     this.smart.request(this.getRetrieveSaveQuestionnaireUrl() +
       "&subject=" + this.getPatient()).then((result) => {
-
+        console.log("hello")
+        console.log(result);
         this.popupClear("Would you like to load a previous form?", "Cancel", false);
         this.processSavedQuestionnaireResponses(result, true);
       }, ((result) => {
@@ -236,7 +237,7 @@ export default class QuestionnaireForm extends Component {
       let count = 0;
 
       partialResponses.entry.forEach(r => {
-        if (this.props.qform.id == r.resource.questionnaire) {
+        if (r.resource.questionnaire.includes(this.props.qform.id)) {
           count = count + 1;
           // add the option to the popupOptions
           let date = new Date(r.resource.authored);
