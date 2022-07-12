@@ -115,14 +115,9 @@ body {
 
 /*  ETASU styling */
 .resource-entry-hover{
+  display:none;
   padding-top:25px;
   padding-left:25px;;
-}
-
-.etasu-container{
-  padding-bottom:10px;
-  padding-left: 10px;
-  padding-right:10px;
 }
 
 .etasu-container{
@@ -136,6 +131,12 @@ body {
   float:left;
   width:75%;
 }
+
+.etasu-container:hover > .resource-entry-hover{
+  clear: both;
+  display: block !important;
+}
+
 
 .resource-entry-icon{
   width:25%;
