@@ -184,8 +184,6 @@ export default class QuestionnaireForm extends Component {
     // search for any QuestionnaireResponses
     this.smart.request(this.getRetrieveSaveQuestionnaireUrl() +
       "&subject=" + this.getPatient()).then((result) => {
-        console.log("hello")
-        console.log(result);
         this.popupClear("Would you like to load a previous form?", "Cancel", false);
         this.processSavedQuestionnaireResponses(result, true);
       }, ((result) => {
