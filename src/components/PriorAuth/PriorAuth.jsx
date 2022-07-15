@@ -20,7 +20,7 @@ export default class PriorAuth extends Component {
       subscribeMsg: "",
       showRestHookForm: false,
       showLink: false,
-      priorAuthBase: "https://davinci-prior-auth.logicahealth.org/fhir",
+      priorAuthBase: PASConfig.priorAuthBase,
       isSubmitted: false,
       priorAuthId: null,
       patientId: null,
@@ -40,6 +40,8 @@ export default class PriorAuth extends Component {
       WS_SUBSCRIBE: "/private/notification",
       WS_BIND: "/subscribe"
     };
+
+    this.submitClaim = this.submitClaim.bind(this);
   }
 
   /**
@@ -549,7 +551,8 @@ export default class PriorAuth extends Component {
   /**
    * Submit the claim (this.props.claimBundle) to the correct PAS endpoint
    */
-  async submitClaim() {
+  async submitClaim(e) {
+    e.preventDefault();
     const options = await this.getAxiosOptions();
     const priorAuthUrl = `${this.state.priorAuthBase}/Claim/$submit`;
     axios
@@ -851,7 +854,7 @@ export default class PriorAuth extends Component {
         ) : (
           <div className="right col col-md-6">
             <h2>Submit Prior Auth</h2>
-            <form>
+            <form onSubmit = {this.submitClaim}>
               <div className="row">
                 <div className="col">
                   <label>Select PriorAuth Endpoint:</label>
@@ -859,10 +862,11 @@ export default class PriorAuth extends Component {
                     type="text"
                     className="form-control"
                     id="priorauthEndpoint"
-                    defaultValue="https://davinci-prior-auth.logicahealth.org/fhir"
-                    onChange={(e) =>
+                    value={this.state.priorAuthBase}
+                    onChange={(e) =>{
+                      console.log(e.target.value)
                       this.setState({ priorAuthBase: e.target.value })
-                    }
+                    }}
                   />
                   <br />
                   <input
@@ -877,9 +881,9 @@ export default class PriorAuth extends Component {
               <div className="row">
                 <div className="col">
                   <button
-                    type="button"
+                    type="submit"
                     className="btn btn-primary"
-                    onClick={this.submitClaim.bind(this)}
+                    onClick={this.submitClaim}
                   >
                     Submit
                   </button>
