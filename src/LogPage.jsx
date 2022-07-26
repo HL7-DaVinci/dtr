@@ -12,7 +12,7 @@ class LogPage extends Component {
 
   componentDidMount(){
     const logRequest = new XMLHttpRequest();
-    logRequest.open("GET", "../logs");
+    logRequest.open("GET", "../api/logs");
     logRequest.setRequestHeader("Content-Type", "application/json");
     logRequest.onload = (e) => {
         this.setState({logs: JSON.parse(logRequest.responseText).sort((a,b)=>{return b.createdAt - a.createdAt})});

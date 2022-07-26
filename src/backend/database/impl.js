@@ -31,18 +31,23 @@ function getCountAndIncrement() {
 }
 
 function postLog(log) {
+    log.createdAt = Date.now();
     db.get("logs").push(log).write();
 }
 
 function getLog(id) {
     return db.get("logs").find({id: id}).value();
 }
+function getLogs() {
+    return db.get("logs").value();
+}
 
 function putLog(id, log) {
+    console.log(db.get("logs").find({id:id}).value())
     db.get("logs")
-  .find({ id: id })
-  .assign(log)
-  .write();
+        .find({ id: id })
+        .assign(log).write();
+    
 }
 
 function deleteClient(id) {
@@ -56,6 +61,7 @@ module.exports = {
     deleteClient,
     postLog,
     getLog,
+    getLogs,
     putLog,
     getCountAndIncrement
 };

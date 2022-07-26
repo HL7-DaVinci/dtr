@@ -70,7 +70,7 @@ router.post("/logs", (req, res) => {
 
 router.put("/logs/:id", (req, res) => {
     const newLog = req.body;
-    db.putLog(req.params.id, newLog);
+    db.putLog(parseInt(req.params.id), newLog);
     res.sendStatus(200);
 });
 
@@ -83,5 +83,14 @@ router.get("/logs/:id", (req, res) => {
         res.sendStatus(404);
     }
 });
+
+router.get("/api/logs", (req, res) => {
+    const result = db.getLogs();
+    if(result) {
+        res.send(result);
+    } else {
+        res.sendStatus(404)
+    }
+})
 
 module.exports = router;
