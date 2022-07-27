@@ -43,7 +43,6 @@ function getLogs() {
 }
 
 function putLog(id, log) {
-    console.log(db.get("logs").find({id:id}).value())
     db.get("logs")
         .find({ id: id })
         .assign(log).write();
