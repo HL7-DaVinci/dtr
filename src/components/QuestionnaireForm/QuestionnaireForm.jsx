@@ -233,7 +233,7 @@ export default class QuestionnaireForm extends Component {
         const questionnaireId = bundleEntry.resource.contained[0].id;
         const questionaireIdUrl = bundleEntry.resource.questionnaire;
 
-        if (this.props.qform.id == questionnaireId || this.props.qform.id.contains(questionaireIdUrl)) {
+        if (this.props.qform.id === questionnaireId || this.props.qform.id.contains(questionaireIdUrl)) {
           count = count + 1;
           // add the option to the popupOptions
           let date = new Date(bundleEntry.resource.authored);
