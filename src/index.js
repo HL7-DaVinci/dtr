@@ -99,8 +99,6 @@ tokenPost.onload = function() {
         // too badly.
         ReactDOM.render(
         <App
-          FHIR_PREFIX={appContext.fhirpath}
-          FILE_PREFIX={appContext.filepath}
           appContext={appContext}
           standalone={standalone}
           smart={smart}

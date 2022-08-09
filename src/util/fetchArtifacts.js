@@ -1,7 +1,153 @@
 import "isomorphic-fetch";
-import { buildFhirUrl } from "./util";
+import { buildFhirUrl, isRequestReference } from "./util";
+function fetchArtifactsOperation(order, coverage, questionnaire, smart, consoleLog) {
+  // fetch from operation
+  // parse return parameters similar to function below
+  return new Promise(function(resolve, reject) {
 
-function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVersion, smart, consoleLog, isContainedQuestionnaire) {
+    const elmLibraryMaps = new Map();
+    const retVal = {
+      questionnaire: null,
+      order: null,
+      mainLibraryElms: [],
+      dependentElms: [],
+      valueSets: [],
+      mainLibraryMaps: null,
+      isAdaptiveFormWithoutExtension: false
+    };
+
+    // handles errors from api calls
+    function handleFetchErrors(response) {
+      if (!response.ok) {
+        let msg = "Failure when fetching resource";
+        let details = `${msg}: ${response.url}: the server responded with a status of ${response.status} (${response.statusText})`;
+        consoleLog(msg, "errorClass", details);
+        reject(msg);
+      }
+      return response;
+    }
+
+    function completeOperation(orderResource) {
+      const parameters = {
+        "resourceType": "Parameters",
+        "parameter": []
+      }
+      retVal.order = orderResource;
+      parameters.parameter.push({"name": "order", "resource": orderResource})
+      smart.request(coverage).then((coverage) => {
+        parameters.parameter.push({"name": "coverage", "resource": coverage});
+        const requestOptions = {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/fhir+json' },
+          body: JSON.stringify(parameters)
+        };
+        fetch(`${questionnaire}/$questionnaire-package`, requestOptions)
+          .then(handleFetchErrors)
+          .then((e)=> {return e.json()}).then((result) => {
+            // TODO: Handle multiple questionnaires
+            const bundle = result.parameter[0].resource.entry;
+            const questionnaire = bundle.find((e) => e.resource.resourceType === "Questionnaire")?.resource;
+  
+            retVal.questionnaire = questionnaire;
+            retVal.isAdaptiveFormWithoutExtension = questionnaire.extension && questionnaire.extension.length > 0;
+  
+            findQuestionnaireEmbeddedCql(questionnaire.item);
+            searchBundle(questionnaire, bundle);
+            console.log(retVal);
+            resolve(retVal);
+          })
+      })
+    }
+
+    function searchBundle(questionnaire, bundle) {
+      if (questionnaire.extension !== undefined) {
+        // grab all main elm urls
+        // R4 resources use cqf library. 
+        var mainElmReferences = questionnaire.extension.filter(ext => ext.url == "http://hl7.org/fhir/StructureDefinition/cqf-library")
+          .map(lib => lib.valueCanonical);
+        bundle.forEach((entry) => {
+          var resource = entry.resource;
+          if(resource.resourceType === "Library") {
+            const base64elmData = resource.content.filter(c => c.contentType == "application/elm+json")[0].data;
+            // parse the json string
+            let elm = JSON.parse(Buffer.from(base64elmData, 'base64'));
+            if (mainElmReferences.find((mainElmReference) => {
+              return resource.url === mainElmReference
+            })){
+              // set the elm where it needs to be
+              retVal.mainLibraryElms.push(elm);
+              elmLibraryMaps[elm.library.identifier.id] = resource;
+              retVal.mainLibraryMaps = elmLibraryMaps;
+            } else {
+              retVal.dependentElms.push(elm);
+            }
+          } else if(resource.resourceType === "ValueSet") {
+            retVal.valueSets.push(resource);
+          }
+        })
+        // mainElmReferences.forEach((mainElmReference) => {
+        //   console.log(mainElmReference);
+        //   var libraryResource = bundle.find((e)=>{return e.resource.url === mainElmReference})?.resource;
+        //   if(libraryResource) {
+        //     const base64elmData = libraryResource.content.filter(c => c.contentType == "application/elm+json")[0].data;
+        //     Buffer.from(base64elmData, 'base64');
+
+        //     // parse the json string
+        //     let elm = JSON.parse(elmString);
+
+        //     // set the elm where it needs to be
+        //     retVal.mainLibraryElms.push(elm);
+        //     elmLibraryMaps[elm.library.identifier.id] = libraryResource;
+        //     retVal.mainLibraryMaps = elmLibraryMaps;
+        //   }
+
+        // });
+      }
+    }
+    // recursively searches questionnaire for 
+    // embedded cql and puts it in the main 
+    // elm library list
+    function findQuestionnaireEmbeddedCql(inputItems) {
+      if(!inputItems) {
+        return;
+      }
+      inputItems.forEach(item => {
+        const itemExtensions = item.extension;
+        if(item.extension) {
+          let findEmbeddedCql = item.extension.find(ext => 
+            ext.url === "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression" 
+            && ext.valueExpression && ext.valueExpression.language === "application/elm+json");
+    
+          if(findEmbeddedCql) {
+            const itemLibrary = JSON.parse(findEmbeddedCql.valueExpression.expression);
+            itemLibrary.library.identifier= {
+              id: "LibraryLinkId" + item.linkId,
+              version: "0.0.1"
+            };
+            elmLibraryMaps[itemLibrary.library.identifier.id] = itemLibrary;
+            retVal.mainLibraryMaps = elmLibraryMaps;
+            retVal.mainLibraryElms.push(itemLibrary);
+          }
+        } 
+        
+        if(item.item !== undefined && item.item.length > 0) {
+          findQuestionnaireEmbeddedCql(item.item);
+        }
+      });
+    }
+
+    if(isRequestReference(order)) {
+      smart.request(order).then((orderResource) => {
+        completeOperation(orderResource);
+      })
+    } else {
+      const orderResource = JSON.parse(order.replace(/\\/g,""));
+      completeOperation(orderResource)
+    }
+
+  })
+}
+function fetchArtifacts(questionnaireReference, fhirVersion, smart, consoleLog, isContainedQuestionnaire) {
 
   return new Promise(function(resolve, reject) {
     function handleFetchErrors(response) {
@@ -273,4 +419,37 @@ function fetchArtifacts(fhirPrefix, filePrefix, questionnaireReference, fhirVers
   });
 }
 
-export default fetchArtifacts;
+function fetchFromQuestionnaireResponse(response, smart) {
+  const relaunchContext = {
+    questionnaire: null,
+    order: null,
+    coverage: null,
+    response: null,
+  }
+
+  return new Promise(function(resolve, reject) {
+    smart.request(response).then((res) => {
+      console.log(res);
+      relaunchContext.questionnaire = res.questionnaire;
+      relaunchContext.response = res;
+      if(res.extension) {
+        const extensions = res.extension.filter((ext) => ext.url === "http://hl7.org/fhir/us/davinci-dtr/StructureDefinition/context")
+        extensions.forEach((ext) => {
+          if(ext.valueReference.type === "Coverage") {
+            relaunchContext.coverage = ext.valueReference.reference;
+          } else {
+            relaunchContext.order = ext.valueReference.reference;
+          }
+        })
+      }
+      resolve(relaunchContext);
+    })
+  })
+
+}
+
+export {
+  fetchArtifacts,
+  fetchArtifactsOperation,
+  fetchFromQuestionnaireResponse
+};

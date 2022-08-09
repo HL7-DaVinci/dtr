@@ -40,6 +40,7 @@ export default class QuestionnaireForm extends Component {
     this.patientId = props.patientId;
     this.fhirVersion = props.fhirVersion;
     this.FHIR_PREFIX = props.FHIR_PREFIX;
+    this.appContext = props.appContext;
     this.partialForms = {};
     this.handleGtable = this.handleGtable.bind(this);
     this.getLibraryPrepopulationResult = this.getLibraryPrepopulationResult.bind(this);
@@ -61,7 +62,7 @@ export default class QuestionnaireForm extends Component {
 
   componentWillMount() {
     // search for any partially completed QuestionnaireResponses
-    if (this.props.standalone) {
+    if (this.props.response) {
       const response = this.props.response;
       const items = this.props.qform.item;
       const parentItems = [];
@@ -911,7 +912,7 @@ export default class QuestionnaireForm extends Component {
     };
     this.addAuthorToResponse(qr, this.getPractitioner());
 
-    qr.questionnaire = `${this.FHIR_PREFIX}${this.fhirVersion}/Questionnaire/${this.props.qform.id}`;
+    qr.questionnaire = this.appContext.questionnaire;
     console.log("GetQuestionnaireResponse final QuestionnaireResponse: ", qr);
 
     const request = this.props.deviceRequest;

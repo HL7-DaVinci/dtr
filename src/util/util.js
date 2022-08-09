@@ -8,6 +8,11 @@ function findValueByPrefix(object, prefix) {
     }
 }
 
+function isRequestReference(reference) {
+    const re = /^(?:DeviceRequest|MedicationRequest|ServiceRequest)\/\w+$/
+    return re.exec(reference)?true:false;
+}
+
 function buildFhirUrl(reference, fhirPrefix, fhirVersion) {
     if (reference.startsWith("http")) {
       var endIndex = reference.lastIndexOf("/");
@@ -155,6 +160,7 @@ function searchQuestionnaire(questionnaire, attestation) {
 }
 
 export {
+    isRequestReference,
     findValueByPrefix,
     getListOfChoices,
     postToLogs,
