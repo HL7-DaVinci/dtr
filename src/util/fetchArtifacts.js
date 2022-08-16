@@ -147,6 +147,7 @@ function fetchArtifactsOperation(order, coverage, questionnaire, smart, consoleL
 
   })
 }
+
 function fetchArtifacts(questionnaireReference, fhirVersion, smart, consoleLog, isContainedQuestionnaire) {
 
   return new Promise(function(resolve, reject) {
@@ -448,8 +449,26 @@ function fetchFromQuestionnaireResponse(response, smart) {
 
 }
 
+function searchByOrder(order, smart) {
+  let requestId;
+  if(isRequestReference(order)){
+    requestId = order;
+  } else {
+    const orderResource = JSON.parse(order.replace(/\\/g,""));
+    requestId = `${orderResource.resourceType}/${orderResource.id}`
+  }
+  return new Promise(function(resolve, reject) {
+    smart.request(`QuestionnaireResponse?context=${requestId}`).then((res) => {
+      if(res.entry) {
+        resolve(res.entry)
+      }
+    })
+  })
+}
+
 export {
   fetchArtifacts,
   fetchArtifactsOperation,
-  fetchFromQuestionnaireResponse
+  fetchFromQuestionnaireResponse,
+  searchByOrder
 };

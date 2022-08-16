@@ -912,7 +912,7 @@ export default class QuestionnaireForm extends Component {
     };
     this.addAuthorToResponse(qr, this.getPractitioner());
 
-    qr.questionnaire = this.appContext.questionnaire;
+    qr.questionnaire = this.appContext.questionnaire?this.appContext.questionnaire:this.props.response.questionnaire;
     console.log("GetQuestionnaireResponse final QuestionnaireResponse: ", qr);
 
     const request = this.props.deviceRequest;

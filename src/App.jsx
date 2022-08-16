@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom'
 import "./App.css";
 import cqlfhir from "cql-exec-fhir";
 import executeElm from "./elmExecutor/executeElm";
-import {fetchArtifacts, fetchArtifactsOperation, fetchFromQuestionnaireResponse} from "./util/fetchArtifacts";
+import {fetchArtifacts, fetchArtifactsOperation, fetchFromQuestionnaireResponse, searchByOrder} from "./util/fetchArtifacts";
 import fetchFhirVersion from "./util/fetchFhirVersion";
 import { buildFhirUrl } from "./util/util";
 import PriorAuth from "./components/PriorAuth/PriorAuth";
@@ -102,27 +102,46 @@ export default class App extends Component {
     })
   }
 
+
   ehrLaunch(isContainedQuestionnaire, questionnaire) {
-    // Temporary indication before full supports for relaunch is implemented
-    if(this.appContext.response) {
+    let acOrder = this.appContext.order;
+    let acCoverage = this.appContext.coverage;
+    let acQuestionnaire = this.appContext.questionnaire;
+    let acResponse = this.appContext.response;
+    if(acOrder && acCoverage && !acQuestionnaire && !acResponse) {
+      // TODO: There's an additional case where you could launch
+      // with just the order/coverage by invoking the operation
+      // but I think the endpoint extension on coverage which
+      // would facilitate that is going away in ballot.
+      searchByOrder(acOrder, this.smart).then((res) => {
+        // TODO: Don't know how to deal with multiple QRs
+        // Let user pick with a UI?  Force orders to 
+        // uniquely identify QRs?  
+        // for now just pick the first one
+        acResponse = res[0].resource;
+        acQuestionnaire = acResponse.questionnaire;
+        this.setState({response: acResponse});
+        this.fetchResourcesAndExecuteCql(acOrder, acCoverage, acQuestionnaire);
+      });
+    } else if(acResponse) {
       // start relaunch
-      fetchFromQuestionnaireResponse(this.appContext.response, this.smart).then((relaunchContext) => {
+      // TODO: could potentially pass order to this function and avoid 
+      // needing to search the QR context extension for it
+      // which would also support QRs without the extension.
+      fetchFromQuestionnaireResponse(acResponse, this.smart).then((relaunchContext) => {
         this.setState({response: relaunchContext.response})
         this.fetchResourcesAndExecuteCql(relaunchContext.order, relaunchContext.coverage, relaunchContext.questionnaire);
       });
-    } else {
-      if(!this.appContext.order) {
-        alert("Supports for relaunch will be added in the near future!");
-        this.consoleLog("Supports for relaunch will be added in the near future!", "errorClass");
-        return;
-      }
+    } else if(acQuestionnaire && acOrder && acCoverage){
       this.consoleLog("fetching artifacts", "infoClass");
       this.setState({
         isFetchingArtifacts: true
       })
       const reloadQuestionnaire = questionnaire !== undefined;
       this.setState({reloadQuestionnaire});
-      this.fetchResourcesAndExecuteCql(this.appContext.order, this.appContext.coverage, this.appContext.questionnaire);
+      this.fetchResourcesAndExecuteCql(acOrder, acCoverage, acQuestionnaire);
+    } else {
+      alert("invalid app context")
     }
   }
 
