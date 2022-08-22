@@ -12,7 +12,6 @@ import Testing from "./components/ConsoleBox/Testing";
 import UserMessage from "./components/UserMessage/UserMessage";
 import TaskPopup from "./components/Popup/TaskPopup";
 import PatientSelect from "./components/PatientSelect/PatientSelect";
-import RemsInterface from "./components/RemsInterface/RemsInterface";
 
 // uncomment for testing UserMessage
 // let sampleError = {
@@ -37,7 +36,6 @@ export default class App extends Component {
       questionnaire: null,
       response: null,
       priorAuthClaim: null,
-      specialtyRxBundle: null,
       cqlPrepopulationResults: null,
       deviceRequest: null,
       bundle: null,
@@ -360,10 +358,6 @@ export default class App extends Component {
     this.setState({ priorAuthClaim: claimBundle });
   }
 
-  setSpecialtyRxBundle(specialtyRxBundleParam) {
-    this.setState({ specialtyRxBundle: specialtyRxBundleParam });
-  }
-
   getQuestionByName(question) {
       //question should be the HTML node
       const temp = question.getElementsByClassName("lf-item-code ng-hide")[0].innerText.trim();
@@ -610,8 +604,8 @@ export default class App extends Component {
           >
 
           </div>
-          {this.state.specialtyRxBundle ? (
-            <RemsInterface specialtyRxBundle={this.state.specialtyRxBundle} />
+          {this.state.priorAuthClaim ? (
+            <PriorAuth claimBundle={this.state.priorAuthClaim} />
           ) : (
             <QuestionnaireForm
               qform={this.state.questionnaire}
@@ -624,7 +618,6 @@ export default class App extends Component {
               attested={this.state.attested}
               priorAuthReq={this.props.priorAuthReq === "true" ? true : false}
               setPriorAuthClaim={this.setPriorAuthClaim.bind(this)}
-              setSpecialtyRxBundle={this.setSpecialtyRxBundle.bind(this)}
               fhirVersion={this.fhirVersion.toUpperCase()}
               smart={this.smart}
               FHIR_PREFIX={this.props.FHIR_PREFIX}

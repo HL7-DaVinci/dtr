@@ -174,9 +174,12 @@ export default class QuestionnaireForm extends Component {
 
   loadPreviousForm() {
     // search for any QuestionnaireResponses
-    this.smart.request(this.getRetrieveSaveQuestionnaireUrl() +
-      "&subject=" + this.getPatient()).then((result) => {
-        this.popupClear("Would you like to load a previous form?", "Cancel", false);
+    let questionnaireResponseUrl = this.getRetrieveSaveQuestionnaireUrl();
+    questionnaireResponseUrl = questionnaireResponseUrl + "&subject=" + this.getPatient();
+    console.log("Using URL " + questionnaireResponseUrl);
+
+    this.smart.request(questionnaireResponseUrl).then((result) => {
+        this.popupClear("Would you like to load a previously in-progress form?", "Cancel", false);
         this.processSavedQuestionnaireResponses(result, true);
       }, ((result) => {
         this.popupClear("Error: failed to load previous in-progress forms", "OK", true);
@@ -226,8 +229,11 @@ export default class QuestionnaireForm extends Component {
 
       let count = 0;
 
-      partialResponses.entry.forEach(r => {
-        if (r.resource.questionnaire.includes(this.props.qform.id)) {
+      partialResponses.entry.forEach(bundleEntry => {
+        const questionnaireId = bundleEntry.resource.contained[0].id;
+        const questionaireIdUrl = bundleEntry.resource.questionnaire;
+
+        if (this.props.qform.id === questionnaireId || this.props.qform.id.contains(questionaireIdUrl)) {
           count = count + 1;
           // add the option to the popupOptions
           let date = new Date(bundleEntry.resource.authored);
@@ -1033,6 +1039,17 @@ export default class QuestionnaireForm extends Component {
     }
 
     // For HIMSS Demo with Mettle always use GCS as payor info
+    const insurer = {
+      resourceType: "Organization",
+      id: "org1234",
+      name: "GCS",
+      identifier: [
+        {
+          system: "urn:ietf:rfc:3986",
+          value: "2.16.840.1.113883.13.34.110.1.150.2"
+        }
+      ]
+    };
     const managingOrg = {
       resourceType: "Organization",
       id: "org1111",
@@ -1076,6 +1093,7 @@ export default class QuestionnaireForm extends Component {
     if (priorAuthBundle && this.isPriorAuthBundleValid(priorAuthBundle)) {
       priorAuthBundle.entry.unshift({ resource: managingOrg });
       priorAuthBundle.entry.unshift({ resource: facility });
+      priorAuthBundle.entry.unshift({ resource: insurer });
       priorAuthBundle.entry.unshift({ resource: this.props.deviceRequest });
       priorAuthBundle.entry.unshift({ resource: qr });
 
@@ -1106,6 +1124,9 @@ export default class QuestionnaireForm extends Component {
         provider: {
           // TODO: make this organization
           reference: this.makeReference(priorAuthBundle, "Practitioner")
+        },
+        insurer: {
+          reference: this.makeReference(priorAuthBundle, "Organization")
         },
         facility: {
           reference: this.makeReference(priorAuthBundle, "Location")
@@ -1185,19 +1206,6 @@ export default class QuestionnaireForm extends Component {
           }
         ]
       };
-
-      const signature = {
-        resourceType: "Signature",
-        type: [
-          {
-            system: "urn:iso-astm:E1762-95:2013",
-            code: "1.2.840.10065.1.12.1.14",
-            display: "Source Signature"
-          }
-        ],
-        when:  new Date(Date.now()).toISOString(),
-        who:  this.makeReference(priorAuthBundle, "Practitioner")
-      }
       var sequence = 1;
       priorAuthBundle.entry.forEach(function (entry, index) {
         if (entry.resource.resourceType == "Condition") {
@@ -1207,135 +1215,11 @@ export default class QuestionnaireForm extends Component {
           });
         }
       });
-      priorAuthBundle.timestamp = new Date(Date.now()).toISOString()
-      priorAuthBundle.language = "en";
-      priorAuthBundle.id = shortid.generate();
-      priorAuthBundle.meta = {
-        lastUpdated: Date.now()
-      }
-      priorAuthBundle.implicitRules = "http://build.fhir.org/ig/HL7/davinci-pas/StructureDefinition-profile-pas-request-bundle"
-      priorAuthBundle.identifier = {
-        use: "official",
-        system: "urn:uuid:mitre-drls",
-        value: shortid.generate()
-      }
-      priorAuthBundle.signature = signature;
+      console.log(priorAuthClaim);
+
       priorAuthBundle.entry.unshift({ resource: priorAuthClaim });
 
-      const specialtyRxBundle = JSON.parse(JSON.stringify(priorAuthBundle));
-      specialtyRxBundle.type = "message";
-      if (this.makeReference(priorAuthBundle, "MedicationRequest")) {
-        const pharmacy = {
-          resourceType: "Organization",
-          id: "pharm0111",
-          identifier: [
-            {
-              system: "http://hl7.org/fhir/sid/us-npi",
-              value: "1837247346"
-            },
-            {
-              system: "http://terminology.hl7.org/CodeSystem/NCPDPProviderIdentificationNumber",
-              value: "838283882"
-            }
-          ],
-          telecom: [
-            {
-              system : "phone", 
-              value : "919-234-5174",
-              use : "work", 
-              rank : "1", 
-            }
-          ],
-          address: [
-            {
-              use: "work",
-              state: "IL",
-              postalCode: "62864",
-              city: "Mount Vernon",
-              line: ["1500 Main St"]
-            }
-          ]
-        }
-
-        const specialtyRxSearchResult = {
-          resourceType: "Bundle",
-          type: "searchset",
-          id: "bundle02",
-          total: 0,
-          link: [
-            {
-              relation: "self",
-              url: "",
-            }
-          ],
-          entry: []
-        }
-
-        const specialtyRxParameters = {
-          resourceType: "Parameters",
-          id: "param0111",
-          parameter: [
-            {
-              name: "source-patient",
-              reference: this.makeReference(priorAuthBundle, "Patient")
-            },
-            {
-              name: "prescription",
-              reference: this.makeReference(priorAuthBundle, "MedicationRequest")
-            },
-            {
-              name: "pharmacy",
-              reference: "Organization/pharm0111"
-            },
-            {
-              name: "prescriber",
-              reference: this.makeReference(priorAuthBundle, "Practitioner")
-            },
-            {
-              name: "search-result",
-              reference: "Bundle/bundle02"
-            },
-  
-          ]
-        }
-  
-        const specialtyRxMessageHeader = {
-          resourceType: "MessageHeader",
-          id: "msghdr0111",
-          event: [
-            {
-              eventCoding: {
-                system: "http://hl7.org/fhir/us/specialty-rx/CodeSystem/specialty-rx-event-type",
-                code: "query-response-unsolicited",
-              }
-            }
-          ],
-          focus: {
-            parameters: {
-              reference: "Parameters/param0111"
-            }
-          },
-          source: {
-            // TODO: url should be dynamically created
-            // also if DTR expects to recieve a response it 
-            // will need an endpoint to recieve it at
-            endpoint: "http://localhost:3005"
-          }
-  
-        }       
-        
-        specialtyRxBundle.entry.unshift({ resource: specialtyRxSearchResult });
-        specialtyRxBundle.entry.unshift({ resource: pharmacy });
-        specialtyRxBundle.entry.unshift({ resource: specialtyRxParameters });
-        specialtyRxBundle.entry.unshift({ resource: specialtyRxMessageHeader });
-
-      }
-
-      console.log("specialtyRx", specialtyRxBundle);
-
-
       this.props.setPriorAuthClaim(priorAuthBundle);
-      this.props.setSpecialtyRxBundle(specialtyRxBundle);
     } else {
       alert("Prior Auth Bundle is not available or does not contain enough resources for Prior Auth. Can't submit to prior auth.")
     }
@@ -1444,15 +1328,12 @@ export default class QuestionnaireForm extends Component {
 
         const savedParentItem = findSavedParentItem(parentLinkId, savedItem);
         const replaceOrInsertItem = (newResponseItem, savedParentItem) => {
-          if(savedParentItem.item) {
-            const replaceIndex = savedParentItem.item.findIndex(item => item.linkId == newResponseItem.linkId);
-            if (replaceIndex != -1) {
-              savedParentItem.item[replaceIndex] = newResponseItem;
-            } else {
-              savedParentItem.item.push(newResponseItem);
-            }
+          const replaceIndex = savedParentItem.item.findIndex(item => item.linkId == newResponseItem.linkId);
+          if (replaceIndex != -1) {
+            savedParentItem.item[replaceIndex] = newResponseItem;
+          } else {
+            savedParentItem.item.push(newResponseItem);
           }
-
         };
         if (savedParentItem != undefined) {
           replaceOrInsertItem(newItem, savedParentItem);
@@ -1482,11 +1363,14 @@ export default class QuestionnaireForm extends Component {
           <button className="btn submit-button" onClick={this.loadPreviousForm.bind(this)}>
             Load Previous Form
           </button>
+          <button className="btn submit-button" onClick={this.sendQuestionnaireResponseToPayer.bind(this)}>
+            Send to Payer
+          </button>
           <button className="btn submit-button" onClick={this.outputResponse.bind(this, "in-progress")}>
             Save to EHR
           </button>
           <button className="btn submit-button" onClick={this.outputResponse.bind(this, "completed")}>
-            Submit REMS Bundle
+            Proceed To Prior Auth
           </button>
         </div>)
       }
@@ -1494,8 +1378,11 @@ export default class QuestionnaireForm extends Component {
         if (this.props.adFormCompleted) {
           return (
             <div className="submit-button-panel">
+              <button className="btn submit-button" onClick={this.sendQuestionnaireResponseToPayer.bind(this)}>
+                Send to Payer
+              </button>
               <button className="btn submit-button" onClick={this.outputResponse.bind(this, "completed")}>
-                Submit REMS Bundle
+                Proceed To Prior Auth
               </button>
             </div>
           )
