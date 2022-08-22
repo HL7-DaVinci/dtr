@@ -77,20 +77,19 @@ export default class App extends Component {
   componentDidMount() {
       if(!this.props.standalone) {
         this.ehrLaunch(false);
-        // fetchArtifactsOperation(this.appContext, this.smart, this.consoleLog);
       }
   }
 
   standaloneLaunch(patient, response) {
-      const template = `Questionnaire/${response.questionnaire}`;
       fetchFhirVersion(this.props.smart.state.serverUrl)
       .then(fhirVersion => {
         this.fhirVersion = fhirVersion;
-        const questionnaireUrl = buildFhirUrl(template, this.props.FHIR_PREFIX, this.fhirVersion);
+        const questionnaireUrl = response.questionnaire;
         fetch(questionnaireUrl).then(r => r.json())
         .then(questionnaire => {
             this.setState({ questionnaire: questionnaire });
             this.setState({ response: response});
+            this.setState({ isFetchingArtifacts: false});
         });
       });
   }
@@ -109,10 +108,6 @@ export default class App extends Component {
     let acQuestionnaire = this.appContext.questionnaire;
     let acResponse = this.appContext.response;
     if(acOrder && acCoverage && !acQuestionnaire && !acResponse) {
-      // TODO: There's an additional case where you could launch
-      // with just the order/coverage by invoking the operation
-      // but I think the endpoint extension on coverage which
-      // would facilitate that is going away in ballot.
       searchByOrder(acOrder, this.smart).then((res) => {
         // TODO: Don't know how to deal with multiple QRs
         // Let user pick with a UI?  Force orders to 
