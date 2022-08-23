@@ -9,7 +9,7 @@ function findValueByPrefix(object, prefix) {
 }
 
 function isRequestReference(reference) {
-    const re = /^(?:DeviceRequest|MedicationRequest|ServiceRequest)\/\w+$/
+    const re = /^(?:DeviceRequest|MedicationRequest|ServiceRequest)\/.+$/
     return re.exec(reference)?true:false;
 }
 
