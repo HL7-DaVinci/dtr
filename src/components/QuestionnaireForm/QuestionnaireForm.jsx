@@ -371,7 +371,7 @@ export default class QuestionnaireForm extends Component {
           e.url == "http://hl7.org/fhir/StructureDefinition/cqf-expression" || e.url == "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression"
         );
 
-        if (isGtable && containsValueExpression) {
+        if (isGtable && containsValueExpression && !this.props.standalone) {
           // check if the prepopulationResult contains any value
           // if yes, then need to add corresponding sub-items then provide the answer
           // need to figure out which value is provided from the prepopulationResult though
