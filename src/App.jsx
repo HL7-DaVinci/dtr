@@ -107,7 +107,20 @@ export default class App extends Component {
     let acCoverage = this.appContext.coverage;
     let acQuestionnaire = this.appContext.questionnaire;
     let acResponse = this.appContext.response;
-    if(acOrder && acCoverage && !acQuestionnaire && !acResponse) {
+    if(isContainedQuestionnaire && questionnaire) {
+      // TODO: This is a workaround for getting adaptive forms to work
+      // in its current form, adaptive forms do not operate with the 
+      // package operation
+      this.setState({ isAdaptiveFormWithoutExtension: true});
+      const reloadQuestionnaire = questionnaire !== undefined;
+      this.setState({
+        reloadQuestionnaire,
+        isFetchingArtifacts: false,
+        questionnaire,
+        cqlPrepopulationResults: {}
+      })
+
+    } else if(acOrder && acCoverage && !acQuestionnaire && !acResponse) {
       searchByOrder(acOrder, this.smart).then((res) => {
         // TODO: Don't know how to deal with multiple QRs
         // Let user pick with a UI?  Force orders to 
