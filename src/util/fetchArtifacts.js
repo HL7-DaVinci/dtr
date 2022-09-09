@@ -1,6 +1,6 @@
 import "isomorphic-fetch";
 import { buildFhirUrl, isRequestReference } from "./util";
-function fetchArtifactsOperation(order, coverage, questionnaire, smart, consoleLog) {
+function fetchArtifactsOperation(order, coverage, questionnaire, smart, consoleLog, containedQuestionnaire) {
   // fetch from operation
   // parse return parameters similar to function below
   return new Promise(function(resolve, reject) {
@@ -46,9 +46,16 @@ function fetchArtifactsOperation(order, coverage, questionnaire, smart, consoleL
           .then((e)=> {return e.json()}).then((result) => {
             // TODO: Handle multiple questionnaires
             const bundle = result.parameter[0].resource.entry;
-            const questionnaire = bundle.find((e) => e.resource.resourceType === "Questionnaire")?.resource;
+            let questionnaire;
   
-            retVal.questionnaire = questionnaire;
+            if (containedQuestionnaire) {
+              retVal.questionnaire = containedQuestionnaire;
+              questionnaire = containedQuestionnaire;
+            } else {            
+              questionnaire = bundle.find((e) => e.resource.resourceType === "Questionnaire")?.resource;
+              retVal.questionnaire = questionnaire;
+            }
+
             retVal.isAdaptiveFormWithoutExtension = questionnaire.extension && questionnaire.extension.length > 0;
   
             findQuestionnaireEmbeddedCql(questionnaire.item);

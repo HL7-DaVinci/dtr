@@ -39,7 +39,6 @@ export default class QuestionnaireForm extends Component {
     this.smart = props.smart;
     this.patientId = props.patientId;
     this.fhirVersion = props.fhirVersion;
-    this.FHIR_PREFIX = props.FHIR_PREFIX;
     this.appContext = props.appContext;
     this.partialForms = {};
     this.handleGtable = this.handleGtable.bind(this);
@@ -990,7 +989,14 @@ export default class QuestionnaireForm extends Component {
     }
 
     console.log(requestOptions);
-    let url = this.FHIR_PREFIX + this.fhirVersion + "/QuestionnaireResponse";
+    let url = this.props.appContext.questionnaire;
+    if(url) {
+      const urlArray = url.split('/');
+      url = urlArray.slice(0, -2).join('/');
+    } else {
+      url = 'http://localhost:8090/fhir/r4'
+    }
+    url = url + "/QuestionnaireResponse";
     console.log(url);
     fetch(url, requestOptions).then(handleFetchErrors).then(r => {
       let msg = "QuestionnaireResponse sent to Payer";

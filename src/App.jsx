@@ -111,14 +111,12 @@ export default class App extends Component {
       // TODO: This is a workaround for getting adaptive forms to work
       // in its current form, adaptive forms do not operate with the 
       // package operation
-      this.setState({ isAdaptiveFormWithoutExtension: true});
       const reloadQuestionnaire = questionnaire !== undefined;
       this.setState({
-        reloadQuestionnaire,
-        isFetchingArtifacts: false,
-        questionnaire,
-        cqlPrepopulationResults: {}
+        isFetchingArtifacts: true,
+        reloadQuestionnaire
       })
+      this.fetchResourcesAndExecuteCql(acOrder, acCoverage, acQuestionnaire, questionnaire);
 
     } else if(acOrder && acCoverage && !acQuestionnaire && !acResponse) {
       searchByOrder(acOrder, this.smart).then((res) => {
@@ -153,12 +151,12 @@ export default class App extends Component {
     }
   }
 
-  fetchResourcesAndExecuteCql(order, coverage, questionnaire) {
+  fetchResourcesAndExecuteCql(order, coverage, questionnaire, containedQuestionnaire) {
     fetchFhirVersion(this.props.smart.state.serverUrl)
     .then(fhirVersion => {
       this.fhirVersion = fhirVersion;
 
-      fetchArtifactsOperation(order, coverage, questionnaire, this.smart, this.consoleLog)
+      fetchArtifactsOperation(order, coverage, questionnaire, this.smart, this.consoleLog, containedQuestionnaire)
         .then(artifacts => {
           console.log("fetched needed artifacts:", artifacts);
           const orderResource = artifacts.order;
