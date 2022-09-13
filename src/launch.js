@@ -138,6 +138,7 @@ function callback(log) {
             "launch=" +
             encodeURIComponent(log.launchContextId);
     }
+    updateLog(log);
     window.location.href = authRedirect;
 
     }

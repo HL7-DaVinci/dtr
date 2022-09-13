@@ -75,7 +75,9 @@ function postToLogs(log, callback) {
     logRequest.open("POST", "../logs");
     logRequest.setRequestHeader("Content-Type", "application/json");
     logRequest.onload = function() {
-        callback(JSON.parse(logRequest.responseText));
+        if(callback) {
+            callback(JSON.parse(logRequest.responseText));
+        }
     };
     logRequest.send(JSON.stringify(log));
 }
