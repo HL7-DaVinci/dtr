@@ -14,6 +14,8 @@ function logCallback(c) {
     postToLogs(log, callback);
 }
 
+window.alert("Successfully accessed the launch.html, DTR is running.");
+
 function callback(log) {
     log.status = "fetch clients";
     // Change this to the ID of the client that you registered with the SMART on FHIR authorization server.

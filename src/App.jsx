@@ -10,7 +10,6 @@ import PriorAuth from "./components/PriorAuth/PriorAuth";
 import QuestionnaireForm from "./components/QuestionnaireForm/QuestionnaireForm";
 import Testing from "./components/ConsoleBox/Testing";
 import UserMessage from "./components/UserMessage/UserMessage";
-import TaskPopup from "./components/Popup/TaskPopup";
 import PatientSelect from "./components/PatientSelect/PatientSelect";
 
 // uncomment for testing UserMessage
@@ -579,14 +578,6 @@ export default class App extends Component {
   };
   
   renderButtons(ref) {
-    const element = (<div><div><TaskPopup smart = {this.smart} />
-    <div className="task-button">
-        <label>Attestation</label>  <input type="checkbox" onChange={()=>{this.setTasks()}} id="attestationCheckbox"></input>
-    </div>
-    <div className="task-button">
-        <label>Only Show Unfilled Fields</label>  <input type="checkbox" onChange={()=>{this.filter(false)}} id="filterCheckbox" ref={this.onFilterCheckboxRefChange}></input>
-    </div></div></div>)
-    ReactDOM.render(element, ref);
   }
 
   renderErrors() {
