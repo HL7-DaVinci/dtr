@@ -488,19 +488,22 @@ export default class QuestionnaireForm extends Component {
         statementName = "LinkId." + item.linkId;
       }
       else {
-        // split library designator from statement
-        const valueComponents = valueExpression.split(".");
-      
-        if (valueComponents.length > 1) {
-          libraryName = valueComponents[0].substring(
-            1,
-            valueComponents[0].length - 1
-          );
-          statementName = valueComponents[1];
-        } else {
-          // if there is not library name grab the first library name
-          statementName = valueExpression;
-          libraryName = Object.keys(cqlResults)[0];
+        //TODO: Check why this is sometimes undefined
+        if (valueExpression !== undefined) {
+          // split library designator from statement
+          const valueComponents = valueExpression.split(".");
+
+          if (valueComponents.length > 1) {
+            libraryName = valueComponents[0].substring(
+                1,
+                valueComponents[0].length - 1
+            );
+            statementName = valueComponents[1];
+          } else {
+            // if there is not library name grab the first library name
+            statementName = valueExpression;
+            libraryName = Object.keys(cqlResults)[0];
+          }
         }
       }
 
