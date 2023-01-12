@@ -20,7 +20,7 @@ export default class PriorAuth extends Component {
       subscribeMsg: "",
       showRestHookForm: false,
       showLink: false,
-      priorAuthBase: "https://davinci-prior-auth.logicahealth.org/fhir",
+      priorAuthBase: "https://prior-auth.davinci.hl7.org/fhir",
       isSubmitted: false,
       priorAuthId: null,
       patientId: null,
@@ -859,7 +859,7 @@ export default class PriorAuth extends Component {
                     type="text"
                     className="form-control"
                     id="priorauthEndpoint"
-                    defaultValue="https://davinci-prior-auth.logicahealth.org/fhir"
+                    defaultValue="https://prior-auth.davinci.hl7.org/fhir"
                     onChange={(e) =>
                       this.setState({ priorAuthBase: e.target.value })
                     }
