@@ -6,6 +6,7 @@ import shortid from "shortid";
 import _ from "lodash";
 import ConfigData from "../../config.json";
 import ReactDOM from 'react-dom'
+import {createTask} from "../../util/taskCreation";
 
 import retrieveQuestions, { buildNextQuestionRequest } from "../../util/retrieveQuestions";
 
@@ -1052,6 +1053,7 @@ export default class QuestionnaireForm extends Component {
     if (status == "in-progress") {
       const showPopup = !this.isAdaptiveForm() || this.isAdaptiveFormWithoutItem();
       this.storeQuestionnaireResponseToEhr(qr, showPopup);
+      createTask(JSON.parse(this.appContext.task), this.props.smart);
       this.popupClear("Partially completed form (QuestionnaireResponse) saved to EHR", "OK", true);
       if(showPopup) {
         this.popupLaunch();
@@ -1122,6 +1124,10 @@ export default class QuestionnaireForm extends Component {
 
       this.generateAndStoreDocumentReference(qr, priorAuthBundle);
       this.storeQuestionnaireResponseToEhr(qr, false);
+
+      //If the app context contains a Task, save it
+      //TODO: Handle when a task updates or is already saved
+      createTask(JSON.parse(this.appContext.task), this.props.smart);
 
       const priorAuthClaim = {
         resourceType: "Claim",
