@@ -23,6 +23,14 @@ function startApp() {
         res.sendFile("logs.html", {root: "./public"});
     });
 
+    // CDex questionnaire task-related
+    app.get("/cdex", function(req, res){
+        res.sendFile("cdex.html", {root: "./public"});
+    });
+    app.get("/launch-cdex", function(req, res){
+        res.sendFile("launch-cdex.html", {root: "./public"});
+    });
+
     app.use("/", dbRouter);
     app.use("/.well-known", wellKnownRouter);
     app.use("/metadata", metadataRouter);

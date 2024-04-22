@@ -66,5 +66,5 @@ typings/
 
 ## webpacked bundle files
 *.bundle.js
-db.json
+databaseData/db.json
 .DS_Store

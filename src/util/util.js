@@ -140,6 +140,17 @@ function getClients(callback) {
     clientRequest.send();
 }
 
+function getExample(fileName, callback) {
+    const clientRequest = new XMLHttpRequest();
+    clientRequest.open("GET", "../examples/" + encodeURIComponent(fileName));
+    clientRequest.setRequestHeader("Content-Type", "application/json");
+    clientRequest.onload = function() {
+        callback(JSON.parse(clientRequest.responseText));
+    };
+    clientRequest.send();
+
+}
+
 function searchQuestionnaire(questionnaire, attestation) {
     var result = questionnaire;
     if(questionnaire.item) {
@@ -170,6 +181,7 @@ export {
     postToClients,
     deleteClient,
     getClients,
+    getExample,
     searchQuestionnaire,
     buildFhirUrl
 };

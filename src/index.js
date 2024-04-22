@@ -1,5 +1,3 @@
-import "@babel/polyfill";
-import "react-app-polyfill/ie11";
 import {client} from "fhirclient";
 import urlUtils from "./util/url";
 import {updateLog} from "./util/util";
@@ -12,6 +10,7 @@ const state = urlUtils.getUrlParameter("state"); // session key
 const code = urlUtils.getUrlParameter("code"); // authorization code
 // load the app parameters stored in the session
 const params = JSON.parse(sessionStorage[state]); // load app session
+console.log('params:', params);
 const log = params.log;
 const tokenUri = params.tokenUri;
 const clientId = params.clientId;
@@ -86,8 +85,10 @@ tokenPost.onload = function() {
             patient: log.patient,
         }
         });
-        console.log("the app context");
-        console.log(appContext);
+        console.log("appContext", appContext);
+        console.log('standalone', standalone);
+        console.log('smart', smart);
+        console.log('patientId', patientId);
         log.status = "Rendering app";
         updateLog(log);
         const patientId = log.patient;

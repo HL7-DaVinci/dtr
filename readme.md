@@ -68,6 +68,11 @@ Steps to prepare local EHR server, Keycloak server, and Request Generator:
 
 >Assuming you have completed the above. You should be able to send a request from the CRD Request Generator in order for the SMART app to launch by clicking the `Patient Select:` button to pre-populate the inputs. Choose a `Device, Service, or Medication Request` from the drop-down for one of the patients, then click anywhere in the row corresponding to the patient for whom you selected a `Device, Service, or Medication Request`. The data will be prefetched and you can send the request by pressing the `Submit` button. You should get a CDS Hooks Card back. Click the SMART link button for `Order Form` and you should see a login screen. Login with whatever user you've registered, and the SMART App should proceed to launch.
 
+## CDex Task-Based Launch
+An implementation of the [CDex task-based launch](https://hl7.org/fhir/us/davinci-cdex/task-based-approach.html#using-da-vinci-dtr-to-complete-the-questionnaire) is available.  This launch is available at `/launch-cdex?iss=<FHIR server>&launch=<launch id>`.  
+
+A launch helper form is available at `/cdex`. If running locally, this is available at http://localhost:3005/cdex
+
 ## Building Releases
 
 Official releases are built automatically, but you may test the process or roll your own similar to the following:

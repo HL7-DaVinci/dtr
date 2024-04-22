@@ -6,7 +6,9 @@ module.exports = {
         launch: path.resolve(__dirname, "src/launch.js"),
         index: path.resolve(__dirname, "src/index.js"),
         register: path.resolve(__dirname, "src/register.js"),
-        log: path.resolve(__dirname, "src/logs.js")
+        log: path.resolve(__dirname, "src/logs.js"),
+        cdex: path.resolve(__dirname, "src/cdex.js"),
+        launchCdex: path.resolve(__dirname, "src/launch-cdex.js")
       },
       output: {
         filename: "[name].bundle.js",
@@ -30,10 +32,8 @@ module.exports = {
 				use: {
 					loader: "babel-loader",
 					options: {
-						presets: [
-							["@babel/preset-env"],
-							["@babel/preset-react"]
-						]
+                        presets: ['@babel/preset-env', '@babel/preset-react'],
+                        plugins: ['@babel/plugin-transform-runtime']
 					}
 				}
 			},

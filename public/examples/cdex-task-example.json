@@ -1,0 +1,84 @@
+{
+  "resourceType" : "Task",
+  "id" : "cdex-task-example",
+  "meta" : {
+    "profile" : ["http://hl7.org/fhir/us/davinci-cdex/StructureDefinition/cdex-task-data-request"],
+    "tag" : [{
+      "system" : "http://hl7.org/fhir/us/davinci-cdex/CodeSystem/cdex-temp",
+      "code" : "claims-processing"
+    }]
+  },
+  "status" : "requested",
+  "intent" : "order",
+  "code" : {
+    "coding" : [{
+      "system" : "http://hl7.org/fhir/us/davinci-cdex/CodeSystem/cdex-temp",
+      "code" : "data-request-questionnaire"
+    }]
+  },
+  "for" : {
+    "identifier" : {
+      "type" : {
+        "coding" : [{
+          "system" : "http://hl7.org/fhir/us/davinci-hrex/CodeSystem/hrex-temp",
+          "code" : "UMB",
+          "display" : "Member Number"
+        }],
+        "text" : "Member Number"
+      },
+      "system" : "http://example.org/cdex/payer/member-ids",
+      "value" : "Member123"
+    }
+  },
+  "authoredOn" : "2022-06-17T16:16:06Z",
+  "lastModified" : "2022-06-17T16:16:06Z",
+  "requester" : {
+    "identifier" : {
+      "system" : "http://example.org/cdex/payer/payer-ids",
+      "value" : "Payer123"
+    }
+  },
+  "owner" : {
+    "identifier" : {
+      "system" : "http://hl7.org/fhir/sid/us-npi",
+      "value" : "9941339108"
+    }
+  },
+  "reasonReference" : {
+    "identifier" : {
+      "type" : {
+        "coding" : [{
+          "system" : "http://terminology.hl7.org/CodeSystem/v2-0203",
+          "code" : "FILL",
+          "display" : "Filler Identifier"
+        }],
+        "text" : "Payer Claim ID"
+      },
+      "system" : "http://example.org/cdex/payer/claim-ids",
+      "value" : "Claim123"
+    }
+  },
+  "input" : [{
+    "type" : {
+      "coding" : [{
+        "system" : "http://hl7.org/fhir/uv/sdc/CodeSystem/temp",
+        "code" : "questionnaire"
+      }]
+    },
+    "valueCanonical" : "http://localhost:8080/test-ehr/r4/Questionnaire/cdex-questionnaire-example1"
+  },
+  {
+    "type" : {
+      "coding" : [{
+        "system" : "http://hl7.org/fhir/us/davinci-cdex/CodeSystem/cdex-temp",
+        "code" : "purpose-of-use"
+      }]
+    },
+    "valueCodeableConcept" : {
+      "coding" : [{
+        "system" : "http://terminology.hl7.org/CodeSystem/v3-ActReason",
+        "code" : "COVERAGE"
+      }]
+    }
+  }]
+}
