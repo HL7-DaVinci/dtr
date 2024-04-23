@@ -16,8 +16,13 @@ export default class CdexLaunchPage extends Component {
       fetchLaunchIdResult: "",
       taskResource: "",
       taskId: "",
+      taskResourceError: "",
       saveTaskError: "",
-      clients: []
+      clients: [],
+      prereqChecks: [
+        {id: "questionnaire", label: "Questionnaire", status: "Not Checked"},
+        {id: "task", label: "Task", status: "Not Checked"}
+      ]
     }
     
     // set FHIR URL to last accessed or first in client list
@@ -39,10 +44,12 @@ export default class CdexLaunchPage extends Component {
     this.launchIdChanged = this.launchIdChanged.bind(this);
     this.launchIdUrlChanged = this.launchIdUrlChanged.bind(this);
     
+    this.fetchTask = this.fetchTask.bind(this);
     this.fetchExampleTask = this.fetchExampleTask.bind(this);
     this.fetchLaunchId = this.fetchLaunchId.bind(this);
 
     this.saveTask = this.saveTask.bind(this);
+    this.checkPrereqs = this.checkPrereqs.bind(this);
     
     this.launch = this.launch.bind(this);
   }
@@ -61,12 +68,27 @@ export default class CdexLaunchPage extends Component {
 
   setQuestionnaireUrl(newUrl) {
     this.setState({questionnaireUrl: newUrl});
+
+    try {
+      if (!!this.state.taskResource && this.state.taskResource.length > 0) {
+        const task = JSON.parse(this.state.taskResource);
+        const input = (task.input || []).find((i) => { return i.type.coding.find((c) => { return c.code === "questionnaire" && c.system === "http://hl7.org/fhir/uv/sdc/CodeSystem/temp" }) });
+        input.valueCanonical = newUrl;
+        this.setState({taskResource: JSON.stringify(task, null, 2)});
+      }
+    } catch (error) {
+    }
   }
 
   setTaskResource(newText) {
     try {
       const task = JSON.parse(newText);
       this.setState({taskId: task.id});
+      
+      const input = (task.input || []).find((i) => { return i.type.coding.find((c) => { return c.code === "questionnaire" && c.system === "http://hl7.org/fhir/uv/sdc/CodeSystem/temp" }) });
+      if (!!input?.valueCanonical) {
+        this.setQuestionnaireUrl(input.valueCanonical);
+      }
     } catch (error) {
     }
     this.setState({taskResource: newText});
@@ -98,6 +120,32 @@ export default class CdexLaunchPage extends Component {
     this.setState({launchIdUrl: event.target.value});
   }
 
+  fetchTask() {
+    this.setState({taskResourceError: ""});
+
+    if (!this.state.taskId || this.state.taskId.length < 1) {
+      this.setState({taskResourceError: {error: 'No Task ID specified'}});
+      return;
+    }
+
+    fetch(`${this.state.fhirUrl}/Task/${this.state.taskId}`).then(async (response) => {
+      if (response.ok) {
+        const task = await response.json();
+        if (task.resourceType !== "Task") {
+          this.setState({taskResourceError: {error: 'resourceType is not Task'}});
+        } else {
+          this.setTaskResource(JSON.stringify(task, null, 2));
+        }
+      }
+      else {
+        console.error('Failed to fetch task:', response);
+        this.setState({taskResourceError: {status: response.status, response: await response.json()}});
+      }
+    }).catch((error) => {
+      console.error('Failed to fetch task:', error);
+      this.setState({taskResourceError: {error: error?.toString()}});
+    });
+  }
 
   fetchExampleTask() {
     getExample("cdex-task-example.json", (example) => {
@@ -170,7 +218,54 @@ export default class CdexLaunchPage extends Component {
     });
   }
 
-  launch(){
+
+  checkPrereqs() {
+    const checks = this.state.prereqChecks;
+    checks.forEach((check) => {
+      check.status = "Pending";
+    });
+    this.setState({prereqChecks: checks});
+
+    const checkQuestionnaire = (this.state.questionnaireUrl?.length > 0) ? fetch(this.state.questionnaireUrl).then(async (response) => {
+      if (response.ok) {
+        const questionnaire = await response.json();
+        if (questionnaire.resourceType === "Questionnaire") {
+          checks.find((c) => { return c.id === "questionnaire" }).status = "Found";
+        } else {
+          checks.find((c) => { return c.id === "questionnaire" }).status = "Error: resourceType is not Questionnaire";
+        }
+      } else {
+        checks.find((c) => { return c.id === "questionnaire" }).status = "Not Found";
+      }
+    }).catch((error) => {
+      console.error('Failed to check questionnaire:', error);
+      checks.find((c) => { return c.id === "questionnaire" }).status = "Error: " + error;
+    }) : checks.find((c) => { return c.id === "questionnaire" }).status = "Error: no Questionnaire URL specified";
+    
+    const checkTask = (this.state.taskId?.length > 0) ? fetch(`${this.state.fhirUrl}/Task/${this.state.taskId}`).then(async (response) => {
+      if (response.ok) {
+      const task = await response.json();
+        if (task.resourceType === "Task") {
+          checks.find((c) => { return c.id === "task" }).status = "Found";
+        } else {
+          checks.find((c) => { return c.id === "task" }).status = "Error: resourceType is not Task";
+        }
+      }
+      else {
+        checks.find((c) => { return c.id === "task" }).status = "Not Found";
+      }
+    }).catch((error) => {
+      console.error('Failed to check task:', error);
+      checks.find((c) => { return c.id === "task" }).status = "Error: " + error;
+    }) : checks.find((c) => { return c.id === "task" }).status = "Error: no Task ID specified";
+
+    Promise.all([checkQuestionnaire, checkTask]).then(() => {
+      this.setState({prereqChecks: checks});
+    });
+
+  }
+
+  launch() {
     const launchUrl = `${this.state.launchUrl}?iss=${this.state.fhirUrl}&launch=${this.state.launchId}`;
     console.log('launching:', launchUrl);
 
@@ -182,28 +277,36 @@ export default class CdexLaunchPage extends Component {
     return(
       <div>
 
+        <p>
+          This form will guide you in the process of initiating a DTR launch following 
+          the <a href="https://build.fhir.org/ig/HL7/davinci-ecdx/task-based-approach.html#using-da-vinci-dtr-to-complete-the-questionnaire" target="_blank">
+          CDex Questionnaire as Task Input</a> flow.
+        </p>
+
         <h2>FHIR Server</h2>
-        <p>This is the server that will store the Task and QuestionnaireResponse resources.</p>
+        <p>This is the FHIR server that will store the Task and QuestionnaireResponse resources.</p>
         <div className="mb-3">
-          <label htmlFor="fhirUrl" className="form-label">Data Source FHIR URL</label>
+          <label htmlFor="fhirUrl" className="form-label">Data Source Base FHIR URL</label>
           <input type="text" id="fhirUrl" className="form-control" value={this.state.fhirUrl} onChange={(e) => {this.setFhirUrl(e.target.value)}} />
         </div>
 
         <h2>Questionnaire</h2>
-        <p>Full URL for the Questionnaire to use as the Task input.</p>
+        <p>Full URL for the Questionnaire to use as the Task input. (<em>Task.input.type.coding.valueCanonical</em> property)</p>
         <div className="mb-3">
           <label htmlFor="questionnaireUrl" className="form-label">Questionnaire URL</label>
           <input type="text" id="questionnaireUrl" className="form-control" value={this.state.questionnaireUrl} onChange={(e) => {this.setQuestionnaireUrl(e.target.value)}} />
         </div>
 
         <h2>Task</h2>
-        <p>Existing task ID or create a new task and use that</p>
+        <p>Use an existing task ID on the FHIR server or create a new Task, save it to the server, and use that as the task ID for the launch.</p>
         <div className="mb-3">
           <label htmlFor="taskId" className="form-label">Task ID</label>
           <div className="input-group">
             <span className="input-group-text">{this.state.fhirUrl}/Task/</span>
             <input type="text" id="taskId" className="form-control" value={this.state.taskId} onChange={this.taskIdChanged} />
+            <button className="btn btn-primary" onClick={this.fetchTask}>Load Task</button>
           </div>
+          <pre hidden={ !this.state.taskResourceError || this.state.taskResourceError.length < 1 } className="bg-body-tertiary border rounded-3">{ JSON.stringify(this.state.taskResourceError, null, 2) }</pre>
         </div>
 
         <div className="mb-3">
@@ -216,7 +319,29 @@ export default class CdexLaunchPage extends Component {
           <pre hidden={ !this.state.saveTaskError || this.state.saveTaskError.length < 1 } className="bg-body-tertiary border rounded-3">{ JSON.stringify(this.state.saveTaskError, null, 2) }</pre>
         </div>
 
-        <hr className="border border-primary" />
+        <hr className="border border-5 border-primary" />
+
+        <h2>Check Launch Prerequisites</h2>
+        <p>Check that the resources exist before retrieving a launch ID.</p>
+        <div className="mb-3 row">
+          <div className="col-2">
+            <button className="btn btn-primary" onClick={this.checkPrereqs}>Check Prerequisites</button>
+          </div>
+          <div className="col-10">
+            <ul class="list-group">
+              {this.state.prereqChecks.map((check) => {
+                return <li className={
+                  "list-group-item list-group-item-" + (check.status === 'Not Found' || check.status.startsWith('Error:') ? 'danger' : check.status === 'Found' ? 'success' : check.status === 'Pending' ? 'info' : 'warning')
+                } key={check.id}>
+                    <h5>{check.label}</h5>
+                    <small>{check.status}</small>
+                  </li>
+              })}
+            </ul>
+          </div>
+        </div>
+
+        <hr className="border border-5 border-primary" />
 
         <h2>DTR Launch</h2>
 
@@ -244,7 +369,7 @@ export default class CdexLaunchPage extends Component {
         <div>
           <pre>Launch URL: {`${this.state.launchUrl}?iss=${this.state.fhirUrl}&launch=${this.state.launchId}` }</pre>
         </div>
-        <button className="btn btn-primary" onClick={this.launch}>Launch</button>
+        <button className="btn btn-primary my-3" onClick={this.launch}>Launch DTR</button>
 
       </div>
     )

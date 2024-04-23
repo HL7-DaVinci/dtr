@@ -1,5 +1,3 @@
-databaseData
-
 # Logs
 logs
 *.log
@@ -66,5 +64,6 @@ typings/
 
 ## webpacked bundle files
 *.bundle.js
+
 databaseData/db.json
 .DS_Store
