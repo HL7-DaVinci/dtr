@@ -5,8 +5,6 @@ import { oauth2 } from "fhirclient";
 const launch = urlUtils.getUrlParameter("launch");
 const iss = urlUtils.getUrlParameter("iss");
 
-console.log("launch:", launch);
-console.log("iss:", iss);
 
 getClients((c) => {
   const clients = c.reduce((obj, item) => (obj[item.name] = item.client, obj) ,{});

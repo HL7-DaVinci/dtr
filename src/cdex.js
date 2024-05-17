@@ -25,7 +25,6 @@ else {
 
 
 async function showQuestionnaire(client) {
-  console.log('showQuestionnaire client:', client);
   let params = {};
 
   // check that we have a valid state and the expected fhirContext property in the tokenResponse with a task to fetch
@@ -93,7 +92,7 @@ async function showQuestionnaire(client) {
 
   // parse the Questionnaire from the task
   let questionnaireIndex = (task.input || []).findIndex((i) => (i.type.coding || []).findIndex((c) => c.code === "questionnaire") >= 0);
-  console.log('questionnaireIndex:', questionnaireIndex);
+  
   if (questionnaireIndex < 0) {
     const message = `Task does not have a Questionnaire input`;
     console.error(message);
@@ -114,7 +113,6 @@ async function showQuestionnaire(client) {
   let questionnaire = {};
   try {
     questionnaire = await client.request(input.valueCanonical);
-    console.log('received questionnaire:', input.valueCanonical, questionnaire);
   } catch (error) {
     const message = `Failed to fetch questionnaire: ${error}`;
     console.error(message);
