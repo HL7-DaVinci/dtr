@@ -1,0 +1,8 @@
+version: '3'
+services:
+  app:
+    build: .
+    image: dtr
+    restart: on-failure
+    ports:
+      - 3005:3005
