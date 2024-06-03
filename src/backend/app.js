@@ -9,6 +9,7 @@ function startApp() {
 
     app.use(express.json());
     app.use(bodyParser.json({ type: ["application/json", "application/fhir+json"] }));
+    console.log("dirname: ", __dirname);
     app.use(express.static(`${__dirname}/../../public/`));
     app.get("/register", function(req, res){
         res.sendFile("register.html", {root: "./public"});

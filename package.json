@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "npm-run-all --parallel startBackendDev buildFrontendDev",
-    "startProd": "npm-run-all --parallel startBackendProd buildFrontendProd",
+    "startProd": "npm-run-all buildFrontendProd startBackendProd",
     "buildFrontendProd": "webpack --config ./webpack.config.prod.js",
     "buildFrontendTemplate": "webpack --config ./webpack.config.prod.js",
     "buildFrontendDev": "webpack --config ./webpack.config.js",
