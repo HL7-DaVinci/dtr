@@ -45,34 +45,39 @@ function fetchArtifactsOperation(order, coverage, questionnaire, smart, consoleL
           .then(handleFetchErrors)
           .then((e)=> {return e.json()}).then((result) => {
             // TODO: Handle multiple questionnaires
-            const bundle = result.parameter[0].resource.entry;
+            let bundleEntries = (result.parameter || []).find(p => p.name === "PackageBundle" || p.name === "return")?.resource?.entry;
+
+            if (!bundleEntries) {
+              throw new Exception("No package bundle found in response.");
+            }
+
             let questionnaire;
   
             if (containedQuestionnaire) {
               retVal.questionnaire = containedQuestionnaire;
               questionnaire = containedQuestionnaire;
             } else {            
-              questionnaire = bundle.find((e) => e.resource.resourceType === "Questionnaire")?.resource;
+              questionnaire = bundleEntries.find((e) => e.resource.resourceType === "Questionnaire")?.resource;
               retVal.questionnaire = questionnaire;
             }
 
             retVal.isAdaptiveFormWithoutExtension = questionnaire.extension && questionnaire.extension.length > 0;
   
             findQuestionnaireEmbeddedCql(questionnaire.item);
-            searchBundle(questionnaire, bundle);
+            searchBundle(questionnaire, bundleEntries);
             console.log(retVal);
             resolve(retVal);
           })
       })
     }
 
-    function searchBundle(questionnaire, bundle) {
+    function searchBundle(questionnaire, bundleEntries) {
       if (questionnaire.extension !== undefined) {
         // grab all main elm urls
         // R4 resources use cqf library. 
         var mainElmReferences = questionnaire.extension.filter(ext => ext.url == "http://hl7.org/fhir/StructureDefinition/cqf-library")
           .map(lib => lib.valueCanonical);
-        bundle.forEach((entry) => {
+        bundleEntries.forEach((entry) => {
           var resource = entry.resource;
           if(resource.resourceType === "Library") {
             const base64elmData = resource.content.filter(c => c.contentType == "application/elm+json")[0].data;
