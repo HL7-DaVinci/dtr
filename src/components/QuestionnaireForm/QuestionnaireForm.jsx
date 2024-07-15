@@ -684,13 +684,49 @@ export default class QuestionnaireForm extends Component {
     }
   }
 
+  getDisplayString(v) {
+    if (!v) {
+      return null;
+    }
+
+    if (v.valueCoding) {
+      const selectedCode = this.getCodeDisplay(v.valueCoding);
+      if (selectedCode) {
+        return selectedCode;
+      } else {
+        return v.valueCoding.display || v.valueCoding.code;
+      }
+    } else if (v.valueCodeableConcept) {
+      const selectedCode = this.getCodeDisplay(v.valueCodeableConcept);
+      if (selectedCode) {
+        return selectedCode;
+      } else {
+        return v.valueCodeableConcept.display || v.valueCodeableConcept.text || v.valueCodeableConcept.coding[0].display || v.valueCodeableConcept.coding[0].code;
+      }
+    } else if (v.valueString) {
+      return v.valueString;
+    } else if (v.valueInteger) {
+      return v.valueInteger.toString();
+    } else if (v.valueBoolean) {
+      return v.valueBoolean.toString();
+    } else if (v.valueDateTime) {
+      return v.valueDateTime;
+    } else if (v.valueQuantity) {
+      return `${v.valueQuantity.value} ${v.valueQuantity.unit}`;
+    } else {
+      return null;
+    }
+  }
+
   populateMissingDisplay(codingList) {
     if (codingList) {
       codingList.forEach(v => {
         if (v.valueCoding && !v.valueCoding.display) {
-          v.valueCoding.display = v.valueCoding.code
+          v.valueCoding.display = v.valueCoding.code;
+        } else if (v.valueCodeableConcept && !v.valueCodeableConcept.text) {
+          v.valueCodeableConcept.text = v.valueCodeableConcept.coding[0].display || v.valueCodeableConcept.coding[0].code;
         }
-      })
+      });
     }
   }
 
@@ -917,24 +953,18 @@ export default class QuestionnaireForm extends Component {
     var qr = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', this.fhirVersion, "#formContainer");
     //console.log(qr);
     qr.status = status;
-    qr.author = {
-      reference:
-        this.getPractitioner()
-    };
+    qr.author = { reference: this.getPractitioner() };
     this.getPatient();
-    qr.subject = {
-      reference:
-        this.getPatient()
-    };
+    qr.subject = { reference: this.getPatient() };
     this.addAuthorToResponse(qr, this.getPractitioner());
 
-    qr.questionnaire = this.appContext.questionnaire?this.appContext.questionnaire:this.props.response.questionnaire;
+    qr.questionnaire = this.appContext.questionnaire ? this.appContext.questionnaire : this.props.response.questionnaire;
     console.log("GetQuestionnaireResponse final QuestionnaireResponse: ", qr);
 
     const request = this.props.deviceRequest;
     // add context extension
     qr.extension = [];
-    if(request !== undefined) {
+    if (request !== undefined) {
       const contextExtensionUrl = "http://hl7.org/fhir/us/davinci-dtr/StructureDefinition/context";
       qr.extension.push({
         url: contextExtensionUrl,
@@ -942,9 +972,9 @@ export default class QuestionnaireForm extends Component {
           reference: `${request.resourceType}/${request.id}`,
           type: `${request.resourceType}`
         }
-      })
+      });
 
-      if(request.insurance !== null && request.insurance.length > 0) {
+      if (request.insurance !== null && request.insurance.length > 0) {
         const coverage = request.insurance[0];
         qr.extension.push({
           url: contextExtensionUrl,
@@ -952,12 +982,19 @@ export default class QuestionnaireForm extends Component {
             reference: `${coverage.reference}`,
             type: "Coverage"
           }
-        })
+        });
       }
-   }
+    }
     console.log(this.props.attested);
     const aa = searchQuestionnaire(qr, this.props.attested);
     console.log(aa);
+
+    qr.item.forEach(item => {
+      item.answer.forEach(answer => {
+        answer.displayString = this.getDisplayString(answer);
+      });
+    });
+
     return qr;
   }
 
