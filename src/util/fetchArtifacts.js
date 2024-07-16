@@ -45,7 +45,14 @@ function fetchArtifactsOperation(order, coverage, questionnaire, smart, consoleL
           .then(handleFetchErrors)
           .then((e)=> {return e.json()}).then((result) => {
             // TODO: Handle multiple questionnaires
-            let bundleEntries = (result.parameter || []).find(p => p.name === "PackageBundle" || p.name === "return")?.resource?.entry;
+            let bundleEntries = [];
+            if (result?.resourceType == "Bundle") {
+              bundleEntries = result.entry;
+            } else if (result?.resourceType == "Parameters") {
+              bundleEntries = (result.parameter || []).find(p => p.name === "PackageBundle" || p.name === "return")?.resource?.entry;
+            } else {
+              throw new Exception("Unexpected response from $questionnaire-package operation.");
+            }
 
             if (!bundleEntries) {
               throw new Exception("No package bundle found in response.");
