@@ -148,7 +148,7 @@ export default class QuestionnaireForm extends Component {
     } else {
       mergedResponse = this.mergeResponses(this.mergeResponseForSameLinkId(newResponse), JSON.parse(localStorage.getItem("lastSavedResponse")));
     }
-    
+
     this.loadAndMergeForms(mergedResponse);
     this.props.updateReloadQuestionnaire(false);
   }
@@ -179,12 +179,12 @@ export default class QuestionnaireForm extends Component {
     console.log("Using URL " + questionnaireResponseUrl);
 
     this.smart.request(questionnaireResponseUrl).then((result) => {
-        this.popupClear("Would you like to load a previously in-progress form?", "Cancel", false);
-        this.processSavedQuestionnaireResponses(result, showError);
-      }, ((result) => {
-        this.popupClear("Error: failed to load previous in-progress forms", "OK", true);
-        this.popupLaunch();
-      })).catch(console.error);
+      this.popupClear("Would you like to load a previously in-progress form?", "Cancel", false);
+      this.processSavedQuestionnaireResponses(result, showError);
+    }, ((result) => {
+      this.popupClear("Error: failed to load previous in-progress forms", "OK", true);
+      this.popupLaunch();
+    })).catch(console.error);
   }
 
   // retrieve next sets of questions
@@ -204,23 +204,23 @@ export default class QuestionnaireForm extends Component {
     const currentQuestionnaireResponse = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', this.fhirVersion, "#formContainer");;
     //const mergedResponse = this.mergeResponseForSameLinkId(currentQuestionnaireResponse);
     retrieveQuestions(url, buildNextQuestionRequest(this.props.qform, currentQuestionnaireResponse))
-      .then(result => result.json())
-      .then(result => {
-        console.log("-- loadNextQuestions response returned from payer server questionnaireResponse ", result);
-        if(result.error === undefined) {
-          let newResponse = {
-            resourceType: 'QuestionnaireResponse',
-            status: 'draft',
-            item: []
+        .then(result => result.json())
+        .then(result => {
+          console.log("-- loadNextQuestions response returned from payer server questionnaireResponse ", result);
+          if(result.error === undefined) {
+            let newResponse = {
+              resourceType: 'QuestionnaireResponse',
+              status: 'draft',
+              item: []
+            }
+            this.prepopulate(result.contained[0].item, newResponse.item, true);
+            this.props.updateAdFormResponseFromServer(result);
+            this.props.updateAdFormCompleted(result.status === "completed");
+            this.props.ehrLaunch(true, result.contained[0]);
+          } else {
+            alert("Failed to load next questions. Error: " + result.error);
           }
-          this.prepopulate(result.contained[0].item, newResponse.item, true);
-          this.props.updateAdFormResponseFromServer(result);
-          this.props.updateAdFormCompleted(result.status === "completed");
-          this.props.ehrLaunch(true, result.contained[0]);
-        } else {
-          alert("Failed to load next questions. Error: " + result.error);
-        }
-      });
+        });
   }
 
   processSavedQuestionnaireResponses(partialResponses, displayErrorOnNoneFound) {
@@ -293,7 +293,7 @@ export default class QuestionnaireForm extends Component {
 
     if (newResponse) {
       newResponse = this.mergeResponseForSameLinkId(newResponse);
-      lform = LForms.Util.mergeFHIRDataIntoLForms("QuestionnaireResponse", newResponse, lform, this.props.fhirVersion)
+      lform = LForms.Util.mergeFHIRDataIntoLForms("QuestionnaireResponse", newResponse, lform, this.props.fhirVersion);
     }
 
     console.log(lform);
@@ -305,6 +305,7 @@ export default class QuestionnaireForm extends Component {
     header.appendChild(el);
     this.props.renderButtons(el);
 
+    // Create and append patient info
     const patientInfoEl = document.createElement('div');
     patientInfoEl.setAttribute("id", "patientInfo-container");
     header.appendChild(patientInfoEl);
@@ -316,6 +317,34 @@ export default class QuestionnaireForm extends Component {
       console.log("Failed to retrieve the patient information. Error is ", error);
       ReactDOM.render(patientInfoElement("Unknown"), patientInfoEl);
     });
+
+    // Extract properties
+    let authored = newResponse.authored || "Unknown";
+    let authorName = newResponse.author?.resolve()?.name || "Unknown";
+    let sourceName = newResponse.source?.resolve()?.name || "Unknown";
+
+    // Create a container for the header info
+    const headerInfoEl = document.createElement('div');
+    headerInfoEl.setAttribute("id", "headerInfo-container");
+    header.appendChild(headerInfoEl);
+
+    const HeaderInfo = ({ questionnaireDisplay, title, authored, authorName, sourceName }) => (
+        <div className="header-info-panel">
+          <div>Authored: {authored}</div>
+          <div>Author Name: {authorName}</div>
+          <div>Source Name: {sourceName}</div>
+        </div>
+    );
+
+    // Render the HeaderInfo component
+    ReactDOM.render(
+        <HeaderInfo
+            authored={authored}
+            authorName={authorName}
+            sourceName={sourceName}
+        />,
+        headerInfoEl
+    );
 
     this.props.filterFieldsFn(true);
   }
@@ -378,10 +407,10 @@ export default class QuestionnaireForm extends Component {
       if (item.type == "group" && item.extension) {
 
         let isGtable = item.extension.some(e =>
-          e.url == "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl" && e.valueCodeableConcept.coding[0].code == "gtable"
+            e.url == "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl" && e.valueCodeableConcept.coding[0].code == "gtable"
         );
         let containsValueExpression = item.extension.some(e =>
-          e.url == "http://hl7.org/fhir/StructureDefinition/cqf-expression" || e.url == "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression"
+            e.url == "http://hl7.org/fhir/StructureDefinition/cqf-expression" || e.url == "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression"
         );
 
         if (isGtable && containsValueExpression && !this.props.standalone) {
@@ -423,7 +452,7 @@ export default class QuestionnaireForm extends Component {
   buildGTableItems(item, prepopulationResult) {
     //remove expression extension
     let expressionExtensionIndex = item.extension.findIndex(e =>
-      e.url == "http://hl7.org/fhir/StructureDefinition/cqf-expression" || e.url == "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression"
+        e.url == "http://hl7.org/fhir/StructureDefinition/cqf-expression" || e.url == "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression"
     );
     item.extension.splice(expressionExtensionIndex, 1);
     //add item answer to the subitem
@@ -464,14 +493,14 @@ export default class QuestionnaireForm extends Component {
     item.extension.forEach(e => {
       let value, valueExpression;
       if (
-        e.url ===
-        "http://hl7.org/fhir/StructureDefinition/cqif-calculatedValue"
+          e.url ===
+          "http://hl7.org/fhir/StructureDefinition/cqif-calculatedValue"
       ) {
         // stu3
         value = findValueByPrefix(e, "value");
       } else if (
-        e.url === "http://hl7.org/fhir/StructureDefinition/cqf-expression" ||
-        e.url === "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression"
+          e.url === "http://hl7.org/fhir/StructureDefinition/cqf-expression" ||
+          e.url === "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression"
       ) {
         // r4
         value = findValueByPrefix(e, "value");
@@ -510,8 +539,8 @@ export default class QuestionnaireForm extends Component {
 
       if (cqlResults[libraryName] != null) {
         prepopulationResult = cqlResults[
-          libraryName
-        ][statementName];
+            libraryName
+            ][statementName];
         console.log(`Found library "${libraryName}"`);
       } else {
         prepopulationResult = null;
@@ -684,49 +713,13 @@ export default class QuestionnaireForm extends Component {
     }
   }
 
-  getDisplayString(v) {
-    if (!v) {
-      return null;
-    }
-
-    if (v.valueCoding) {
-      const selectedCode = this.getCodeDisplay(v.valueCoding);
-      if (selectedCode) {
-        return selectedCode;
-      } else {
-        return v.valueCoding.display || v.valueCoding.code;
-      }
-    } else if (v.valueCodeableConcept) {
-      const selectedCode = this.getCodeDisplay(v.valueCodeableConcept);
-      if (selectedCode) {
-        return selectedCode;
-      } else {
-        return v.valueCodeableConcept.display || v.valueCodeableConcept.text || v.valueCodeableConcept.coding[0].display || v.valueCodeableConcept.coding[0].code;
-      }
-    } else if (v.valueString) {
-      return v.valueString;
-    } else if (v.valueInteger) {
-      return v.valueInteger.toString();
-    } else if (v.valueBoolean) {
-      return v.valueBoolean.toString();
-    } else if (v.valueDateTime) {
-      return v.valueDateTime;
-    } else if (v.valueQuantity) {
-      return `${v.valueQuantity.value} ${v.valueQuantity.unit}`;
-    } else {
-      return null;
-    }
-  }
-
   populateMissingDisplay(codingList) {
     if (codingList) {
       codingList.forEach(v => {
         if (v.valueCoding && !v.valueCoding.display) {
-          v.valueCoding.display = v.valueCoding.code;
-        } else if (v.valueCodeableConcept && !v.valueCodeableConcept.text) {
-          v.valueCodeableConcept.text = v.valueCodeableConcept.coding[0].display || v.valueCodeableConcept.coding[0].code;
+          v.valueCoding.display = v.valueCoding.code
         }
-      });
+      })
     }
   }
 
@@ -762,11 +755,11 @@ export default class QuestionnaireForm extends Component {
       content: [
         {
           text:
-            "QuestionnaireResponse: " +
-            questionnaireResponse.id +
-            " (" +
-            questionnaireResponse.authored +
-            ")\n",
+              "QuestionnaireResponse: " +
+              questionnaireResponse.id +
+              " (" +
+              questionnaireResponse.authored +
+              ")\n",
           style: "header"
         },
         {
@@ -830,12 +823,12 @@ export default class QuestionnaireForm extends Component {
         if (this.readyState === XMLHttpRequest.DONE) {
           if (this.status == 201) {
             console.log(
-              "Successfully stored DocumentReference ID: " +
-              JSON.parse(this.response).id
+                "Successfully stored DocumentReference ID: " +
+                JSON.parse(this.response).id
             );
           } else {
             console.log(
-              "WARNING: something may be wrong with the DocumentReference storage response:"
+                "WARNING: something may be wrong with the DocumentReference storage response:"
             );
             console.log(this.response);
           }
@@ -913,13 +906,13 @@ export default class QuestionnaireForm extends Component {
     function addAuthor(item, practitionerRef) {
       var url = "http://hl7.org/fhir/StructureDefinition/questionnaireresponse-author"
       const urlValRef =
-      {
-        "url": url,
-        "valueReference":
-        {
-          "reference": practitionerRef
-        }
-      }
+          {
+            "url": url,
+            "valueReference":
+                {
+                  "reference": practitionerRef
+                }
+          }
       if (item.extension) {
         // if there is already an extension with author-extension url
         const completelyFound = item.extension.find(element => element.url === url && element.valueReference.reference === practitionerRef)
@@ -929,9 +922,9 @@ export default class QuestionnaireForm extends Component {
           if (urlFound) {
             var urlFoundIndex = item.extension.findIndex(element => element.url === url)
             item.extension[urlFoundIndex].valueReference =
-            {
-              "reference": practitionerRef
-            }
+                {
+                  "reference": practitionerRef
+                }
           }
           else {
             item.extension.push(urlValRef)
@@ -953,18 +946,24 @@ export default class QuestionnaireForm extends Component {
     var qr = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', this.fhirVersion, "#formContainer");
     //console.log(qr);
     qr.status = status;
-    qr.author = { reference: this.getPractitioner() };
+    qr.author = {
+      reference:
+          this.getPractitioner()
+    };
     this.getPatient();
-    qr.subject = { reference: this.getPatient() };
+    qr.subject = {
+      reference:
+          this.getPatient()
+    };
     this.addAuthorToResponse(qr, this.getPractitioner());
 
-    qr.questionnaire = this.appContext.questionnaire ? this.appContext.questionnaire : this.props.response.questionnaire;
+    qr.questionnaire = this.appContext.questionnaire?this.appContext.questionnaire:this.props.response.questionnaire;
     console.log("GetQuestionnaireResponse final QuestionnaireResponse: ", qr);
 
     const request = this.props.deviceRequest;
     // add context extension
     qr.extension = [];
-    if (request !== undefined) {
+    if(request !== undefined) {
       const contextExtensionUrl = "http://hl7.org/fhir/us/davinci-dtr/StructureDefinition/context";
       qr.extension.push({
         url: contextExtensionUrl,
@@ -972,9 +971,9 @@ export default class QuestionnaireForm extends Component {
           reference: `${request.resourceType}/${request.id}`,
           type: `${request.resourceType}`
         }
-      });
+      })
 
-      if (request.insurance !== null && request.insurance.length > 0) {
+      if(request.insurance !== null && request.insurance.length > 0) {
         const coverage = request.insurance[0];
         qr.extension.push({
           url: contextExtensionUrl,
@@ -982,19 +981,12 @@ export default class QuestionnaireForm extends Component {
             reference: `${coverage.reference}`,
             type: "Coverage"
           }
-        });
+        })
       }
     }
     console.log(this.props.attested);
     const aa = searchQuestionnaire(qr, this.props.attested);
     console.log(aa);
-
-    qr.item.forEach(item => {
-      item.answer.forEach(answer => {
-        answer.displayString = this.getDisplayString(answer);
-      });
-    });
-
     return qr;
   }
 
@@ -1044,9 +1036,9 @@ export default class QuestionnaireForm extends Component {
       console.log(msg);
       alert(msg);
     })
-      .catch(err => {
-        console.log("error sending new QuestionnaireResponse to the Payer: ", err);
-      });
+        .catch(err => {
+          console.log("error sending new QuestionnaireResponse to the Payer: ", err);
+        });
 
     return;
   }
@@ -1219,7 +1211,7 @@ export default class QuestionnaireForm extends Component {
               coding: [
                 {
                   system:
-                    "http://hl7.org/us/davinci-pas/CodeSystem/PASSupportingInfoType",
+                      "http://hl7.org/us/davinci-pas/CodeSystem/PASSupportingInfoType",
                   code: "patientEvent"
                 }
               ]
@@ -1235,7 +1227,7 @@ export default class QuestionnaireForm extends Component {
               coding: [
                 {
                   system:
-                    "http://terminology.hl7.org/CodeSystem/claiminformationcategory",
+                      "http://terminology.hl7.org/CodeSystem/claiminformationcategory",
                   code: "info",
                   display: "Information"
                 }
@@ -1243,8 +1235,8 @@ export default class QuestionnaireForm extends Component {
             },
             valueReference: {
               reference: this.makeReference(
-                priorAuthBundle,
-                "QuestionnaireResponse"
+                  priorAuthBundle,
+                  "QuestionnaireResponse"
               )
             }
           }
@@ -1293,20 +1285,20 @@ export default class QuestionnaireForm extends Component {
 
   isEmptyAnswer(answer) {
     return (
-      answer.length < 1 ||
-      JSON.stringify(answer[0]) == "{}" ||
-      (answer[0].hasOwnProperty("valueString") &&
-        (answer[0].valueString == null || answer[0].valueString == "")) ||
-      (answer[0].hasOwnProperty("valueDateTime") &&
-        (answer[0].valueDateTime == null || answer[0].valueDateTime == "")) ||
-      (answer[0].hasOwnProperty("valueDate") &&
-        (answer[0].valueDate == null || answer[0].valueDate == "")) ||
-      (answer[0].hasOwnProperty("valueBoolean") &&
-        answer[0].valueBoolean == null) ||
-      (answer[0].hasOwnProperty("valueQuantity") &&
-        (answer[0].valueQuantity == null ||
-          answer[0].valueQuantity.value == null ||
-          answer[0].valueQuantity.value == ""))
+        answer.length < 1 ||
+        JSON.stringify(answer[0]) == "{}" ||
+        (answer[0].hasOwnProperty("valueString") &&
+            (answer[0].valueString == null || answer[0].valueString == "")) ||
+        (answer[0].hasOwnProperty("valueDateTime") &&
+            (answer[0].valueDateTime == null || answer[0].valueDateTime == "")) ||
+        (answer[0].hasOwnProperty("valueDate") &&
+            (answer[0].valueDate == null || answer[0].valueDate == "")) ||
+        (answer[0].hasOwnProperty("valueBoolean") &&
+            answer[0].valueBoolean == null) ||
+        (answer[0].hasOwnProperty("valueQuantity") &&
+            (answer[0].valueQuantity == null ||
+                answer[0].valueQuantity.value == null ||
+                answer[0].valueQuantity.value == ""))
     );
   }
 
@@ -1423,26 +1415,26 @@ export default class QuestionnaireForm extends Component {
     });
   };
 
-    getDisplayButtons() {
-      if (!this.isAdaptiveForm()) {
-        return (<div className="submit-button-panel">
-          <button className="btn submit-button" onClick={this.loadPreviousForm.bind(this)}>
-            Load Previous Form
-          </button>
-          <button className="btn submit-button" onClick={this.sendQuestionnaireResponseToPayer.bind(this)}>
-            Send to Payer
-          </button>
-          <button className="btn submit-button" onClick={this.outputResponse.bind(this, "in-progress")}>
-            Save to EHR
-          </button>
-          <button className="btn submit-button" onClick={this.outputResponse.bind(this, "completed")}>
-            Proceed To Prior Auth
-          </button>
-        </div>)
-      }
-      else {
-        if (this.props.adFormCompleted) {
-          return (
+  getDisplayButtons() {
+    if (!this.isAdaptiveForm()) {
+      return (<div className="submit-button-panel">
+        <button className="btn submit-button" onClick={this.loadPreviousForm.bind(this)}>
+          Load Previous Form
+        </button>
+        <button className="btn submit-button" onClick={this.sendQuestionnaireResponseToPayer.bind(this)}>
+          Send to Payer
+        </button>
+        <button className="btn submit-button" onClick={this.outputResponse.bind(this, "in-progress")}>
+          Save to EHR
+        </button>
+        <button className="btn submit-button" onClick={this.outputResponse.bind(this, "completed")}>
+          Proceed To Prior Auth
+        </button>
+      </div>)
+    }
+    else {
+      if (this.props.adFormCompleted) {
+        return (
             <div className="submit-button-panel">
               <button className="btn submit-button" onClick={this.sendQuestionnaireResponseToPayer.bind(this)}>
                 Send to Payer
@@ -1451,53 +1443,53 @@ export default class QuestionnaireForm extends Component {
                 Proceed To Prior Auth
               </button>
             </div>
-          )
-        }
-        else {
-          return (
+        )
+      }
+      else {
+        return (
             <div className="submit-button-panel">
               {this.isAdaptiveFormWithoutItem() ? (
-                <button className="btn submit-button" onClick={this.loadPreviousForm.bind(this)}>
-                Load Previous Form
-                 </button>
+                  <button className="btn submit-button" onClick={this.loadPreviousForm.bind(this)}>
+                    Load Previous Form
+                  </button>
               ) : null}
               {this.isAdaptiveFormWithItem() ? (<button className="btn submit-button" onClick={this.outputResponse.bind(this, "in-progress")}>
                 Save To EHR
               </button>) : null}
             </div>
-          )
-        }
+        )
       }
     }
+  }
 
-    render() {
-      const isAdaptiveForm = this.isAdaptiveForm();
-      const showPopup = !isAdaptiveForm || this.isAdaptiveFormWithoutItem();
-      return (
+  render() {
+    const isAdaptiveForm = this.isAdaptiveForm();
+    const showPopup = !isAdaptiveForm || this.isAdaptiveFormWithoutItem();
+    return (
         <div>
           <div id="formContainer">
           </div>
           {!isAdaptiveForm && this.props.formFilled ? <div className="form-message-panel"><p>All fields have been filled. Continue or uncheck "Only Show Unfilled Fields" to review and modify the form.</p></div> : null}
           {
             showPopup ? (
-              <SelectPopup
-              title={this.state.popupTitle}
-              options={this.state.popupOptions}
-              finalOption={this.state.popupFinalOption}
-              selectedCallback={this.popupCallback.bind(this)}
-              setClick={click => this.clickChild = click}
-            />
+                <SelectPopup
+                    title={this.state.popupTitle}
+                    options={this.state.popupOptions}
+                    finalOption={this.state.popupFinalOption}
+                    selectedCallback={this.popupCallback.bind(this)}
+                    setClick={click => this.clickChild = click}
+                />
             ) : null
           }
           {
             isAdaptiveForm ? (
-              <div className="form-message-panel">
-                {this.isAdaptiveFormWithoutItem() && !this.props.adFormCompleted ? (<p>Click Next Question button to proceed.</p>) : null}
-                {!this.props.adFormCompleted ? (<div> <button className="btn submit-button" onClick={this.loadNextQuestions}>
-                  Next Question
-                </button>
-                </div>) : null}
-              </div>) : null
+                <div className="form-message-panel">
+                  {this.isAdaptiveFormWithoutItem() && !this.props.adFormCompleted ? (<p>Click Next Question button to proceed.</p>) : null}
+                  {!this.props.adFormCompleted ? (<div> <button className="btn submit-button" onClick={this.loadNextQuestions}>
+                    Next Question
+                  </button>
+                  </div>) : null}
+                </div>) : null
           }
           {
             !isAdaptiveForm ? (<div className="status-panel">
@@ -1507,6 +1499,6 @@ export default class QuestionnaireForm extends Component {
           {this.getDisplayButtons()}
         </div>)
         ;
-    }
   }
+}
 
