@@ -30,6 +30,11 @@ function fetchArtifactsOperation(order, coverage, questionnaire, smart, consoleL
     function completeOperation(orderResource) {
       const parameters = {
         "resourceType": "Parameters",
+        "meta": {
+          "profile": [
+            "http://hl7.org/fhir/us/davinci-dtr/StructureDefinition/dtr-qpackage-input-parameters"
+          ]
+        },
         "parameter": []
       }
       retVal.order = orderResource;

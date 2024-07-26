@@ -189,37 +189,78 @@ export default class QuestionnaireForm extends Component {
 
   // retrieve next sets of questions
   loadNextQuestions() {
-    // this is a temp fix for adaptive forms 
-    // TODO: figure out what to do about next-question standardization.
-    let qformUrl = this.props.appContext.questionnaire;
-    if(qformUrl) {
-      const urlArray = qformUrl.split('/');
-      urlArray.pop();
-      qformUrl = urlArray.join('/');
-    } else {
-      qformUrl = 'http://localhost:8090/fhir/r4/Questionnaire'
-    }
-    const url = `${qformUrl}/$next-question`;
+    const formQr = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', this.fhirVersion, "#formContainer");
+    const questionnaireResponse = buildNextQuestionRequest(this.props.qform, formQr, this.getPatient());
 
-    const currentQuestionnaireResponse = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', this.fhirVersion, "#formContainer");;
-    //const mergedResponse = this.mergeResponseForSameLinkId(currentQuestionnaireResponse);
-    retrieveQuestions(url, buildNextQuestionRequest(this.props.qform, currentQuestionnaireResponse))
-      .then(result => result.json())
+    let url = "";
+    try {
+
+      if (!questionnaireResponse.questionnaire) {
+        throw new Error("QuestionnaireResponse does not contain questionnaire reference");
+      }
+
+      const questionnaireId = questionnaireResponse.questionnaire.substr(1);
+      const questionnaire = (questionnaireResponse.contained || []).find(c => c.id === questionnaireId);
+      if (!questionnaire) {
+        throw new Error(`QuestionnaireResponse does not have a contained Questionnaire with id "${questionnaireId}"`);
+      }
+
+      // extract the URL for the $next-question operation
+      const adaptiveExtension = (questionnaire.extension || []).find(e => e.url === "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-questionnaireAdaptive");
+      if (!adaptiveExtension) {
+        throw new Error("Questionnaire does not have sdc-questionnaire-questionnaireAdaptive extension");
+      }
+      url = adaptiveExtension.valueUrl;
+      if (!url) {
+        throw new Error("Questionnaire does not have a valid sdc-questionnaire-questionnaireAdaptive extension valueUrl");
+      }
+      
+    } catch (error) {
+      console.log("Error: ", error);
+      alert("Failed to load next questions. Error: " + error.message);
+      return; 
+    }
+
+    //const mergedResponse = this.mergeResponseForSameLinkId(questionnaireResponse);
+    retrieveQuestions(url, questionnaireResponse)
       .then(result => {
-        console.log("-- loadNextQuestions response returned from payer server questionnaireResponse ", result);
-        if(result.error === undefined) {
+        if (!result.ok) {
+          console.log("Result: ", result);
+          throw new Error(`${result.status} - ${result.statusText}`);
+        }
+        return result.json();
+      })
+      .then(result => {
+        try {
+          if (!result) {
+            throw new Error("No response from server");
+          }
+          console.log("-- loadNextQuestions response returned from payer server questionnaireResponse ", result);
+
+          if (result.error !== undefined) {
+            throw new Error(result.error);
+          }
+
+          if (result.resourceType !== 'QuestionnaireResponse') {
+            throw new Error("Expected QuestionnaireResponse resource type in out parameter, but got " + result.resourceType);
+          }
+
           let newResponse = {
             resourceType: 'QuestionnaireResponse',
             status: 'draft',
             item: []
-          }
+          };
           this.prepopulate(result.contained[0].item, newResponse.item, true);
           this.props.updateAdFormResponseFromServer(result);
           this.props.updateAdFormCompleted(result.status === "completed");
-          this.props.ehrLaunch(true, result.contained[0]);
-        } else {
-          alert("Failed to load next questions. Error: " + result.error);
+          this.props.ehrLaunch(true, result.contained[0]); 
+        } catch (error) {
+          alert("Failed to load next questions. Error: " + error.message);
         }
+      })
+      .catch(error => {
+        console.log("retrieveQuestions Error: ", error);
+        alert("Failed to load next questions. Error: " + error.message);
       });
   }
 
@@ -1015,7 +1056,7 @@ export default class QuestionnaireForm extends Component {
   }
 
   isAdaptiveForm() {
-    return this.props.qform.meta && this.props.qform.meta.profile && this.props.qform.meta.profile.includes("http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-adapt");
+    return this.props.qform.extension && this.props.qform.extension.some(e => e.url === "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-questionnaireAdaptive");
   }
 
   isAdaptiveFormWithoutItem() {
@@ -1053,7 +1094,9 @@ export default class QuestionnaireForm extends Component {
     if (status == "in-progress") {
       const showPopup = !this.isAdaptiveForm() || this.isAdaptiveFormWithoutItem();
       this.storeQuestionnaireResponseToEhr(qr, showPopup);
-      createTask(JSON.parse(this.appContext.task), this.props.smart);
+      if (this.appContext.task) {
+        createTask(JSON.parse(this.appContext.task), this.props.smart);
+      }
       this.popupClear("Partially completed form (QuestionnaireResponse) saved to EHR", "OK", true);
       if(showPopup) {
         this.popupLaunch();
@@ -1127,7 +1170,9 @@ export default class QuestionnaireForm extends Component {
 
       //If the app context contains a Task, save it
       //TODO: Handle when a task updates or is already saved
-      createTask(JSON.parse(this.appContext.task), this.props.smart);
+      if (this.appContext.task) {
+        createTask(JSON.parse(this.appContext.task), this.props.smart);
+      }
 
       const priorAuthClaim = {
         resourceType: "Claim",
