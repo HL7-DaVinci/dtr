@@ -572,6 +572,15 @@ export default class QuestionnaireForm extends Component {
         this.populateChoices(item)
       }
 
+      // Handle itemMedia extension
+      if (item.extension) {
+        item.extension.forEach(ext => {
+          if (ext.url === "http://hl7.org/fhir/StructureDefinition/questionnaire-itemMedia") {
+            response_item.itemMedia = ext.itemMedia;
+          }
+        });
+      }
+
       // autofill fields
       if (item.extension && (!saved_response || item.type == 'open-choice') && !this.props.standalone) {
         response_item.answer = []
