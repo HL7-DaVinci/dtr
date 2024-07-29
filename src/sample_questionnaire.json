@@ -191,6 +191,13 @@
                 "language": "text/cql",
                 "expression": "PatientMedicareId"
               }
+            },
+            {
+              "url": "http://example.com/fhir/StructureDefinition/itemMedia",
+              "valueAttachment": {
+                "url": "https://example.com/media.jpg",
+                "title": "Sample Media"
+              }
             }
           ]
         },
