@@ -8,43 +8,36 @@ export default function retrieveQuestions(url, body) {
     return fetch(url, requestOptions);
 }
 
-export function buildNextQuestionRequest(questionnaire, questionnaireResponse) {
+export function buildNextQuestionRequest(questionnaire, questionnaireResponse, patientReference) {
     let requestBody = undefined;
     if (!questionnaireResponse) {
         requestBody = {
-            "resourceType": "QuestionnaireResponse",
-            "meta": {
-                "profile": [
-                    "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaireresponse-adapt"
-                ]
-            },
-            "contained": [
-            ],
-            "status": "in-progress"
+            "resourceType": "QuestionnaireResponse"
         };
     } else {
         requestBody = questionnaireResponse;
     }
 
+    requestBody.meta = {
+        profile: [
+            "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaireresponse-adapt"
+        ]
+    };
+    
     requestBody.status = "in-progress";
     requestBody.contained = [];
     requestBody.contained.push(questionnaire);
+    requestBody.questionnaire = `#${questionnaire.id}`;
 
-    requestBody.questionnaire = `#${questionnaire.id}`
-
-    const questionnaireReference = {
-        "url": "http://hl7.org/fhir/StructureDefinition/contained-id",
-        "valueReference": {
-            "reference": `#${questionnaire.id}`
+    if (!!patientReference) {
+        if (typeof(patientReference) === typeof("")) {
+            patientReference = {
+                reference: patientReference
+            };
         }
-    };
-    if (requestBody.extension) {
-        requestBody.extension.push(questionnaireReference)
-    } else {
-        requestBody.extension = [
-            questionnaireReference
-        ];
+        requestBody.subject = patientReference;
     }
+
 
     return requestBody;
 }
