@@ -298,6 +298,9 @@ export default class QuestionnaireForm extends Component {
 
     console.log(lform);
 
+    // Custom rendering for media fields
+    this.renderMediaFields(lform);
+
     LForms.Util.addFormToPage(lform, "formContainer");
     const header = document.getElementsByClassName("lf-form-title")[0];
     const el = document.createElement('div');
@@ -349,6 +352,56 @@ export default class QuestionnaireForm extends Component {
     this.props.filterFieldsFn(true);
   }
 
+  // Function to handle custom rendering of media fields
+  renderMediaFields(lform) {
+    const formContainer = document.getElementById('formContainer');
+
+    const processMediaField = (item) => {
+      if (item.extension) {
+        const mediaExtension = item.extension.find(ext => ext.url === 'http://hl7.org/fhir/StructureDefinition/questionnaire-itemMedia');
+        if (mediaExtension && mediaExtension.valueAttachment) {
+          const mediaContainer = document.createElement('div');
+          mediaContainer.className = 'media-field-container';
+
+          if (mediaExtension.valueAttachment.contentType.startsWith('image/')) {
+            const mediaElement = document.createElement('img');
+            mediaElement.src = mediaExtension.valueAttachment.url;
+            mediaElement.alt = item.text || 'Media';
+            mediaContainer.appendChild(mediaElement);
+          } else if (mediaExtension.valueAttachment.contentType.startsWith('video/')) {
+            const mediaElement = document.createElement('video');
+            mediaElement.src = mediaExtension.valueAttachment.url;
+            mediaElement.controls = true;
+            mediaContainer.appendChild(mediaElement);
+          } else if (mediaExtension.valueAttachment.contentType === 'application/pdf') {
+            const mediaElement = document.createElement('embed');
+            mediaElement.src = mediaExtension.valueAttachment.url;
+            mediaElement.type = 'application/pdf';
+            mediaContainer.appendChild(mediaElement);
+          } else {
+            // TODO: Handle other media types if needed
+          }
+
+          // Find the question container to append the media
+          const questionContainer = formContainer.querySelector(`[data-link-id="${item.linkId}"]`);
+          if (questionContainer) {
+            questionContainer.appendChild(mediaContainer);
+          }
+        }
+      }
+    };
+
+    const traverseItems = (items) => {
+      items.forEach(item => {
+        processMediaField(item);
+        if (item.item) {
+          traverseItems(item.item);
+        }
+      });
+    };
+
+    traverseItems(lform.items);
+  }
 
   // Merge the items for the same linkId to comply with the LHCForm
   mergeResponseForSameLinkId(response) {
