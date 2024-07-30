@@ -100,6 +100,15 @@ export default {
                           "display": "entered-in-error"
                         }
                     }
+                ],
+                "extension": [
+                    {
+                        "url": "http://example.com/fhir/StructureDefinition/itemMedia",
+                        "valueAttachment": {
+                            "url": "https://example.com/media.jpg",
+                            "title": "Sample Media"
+                        }
+                    }
                 ]
             },
             {
