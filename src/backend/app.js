@@ -33,8 +33,8 @@ function startApp() {
     });
 
     app.use("/", dbRouter);
-    app.use("/.well-known", wellKnownRouter);
-    app.use("/metadata", metadataRouter);
+    // app.use("/.well-known", wellKnownRouter);
+    // app.use("/metadata", metadataRouter);
     console.log("starting backend");
     return app;
 }
