@@ -4,10 +4,27 @@ import {updateLog} from "./util/util";
 import React from "react";
 import ReactDOM from "react-dom";
 import App from "./App.jsx";
+import UserMessage from "./components/UserMessage/UserMessage";
 console.log("completed imports");
 // get the URL parameters received from the authorization server
 const state = urlUtils.getUrlParameter("state"); // session key
 const code = urlUtils.getUrlParameter("code"); // authorization code
+
+// Check if state or code parameters are missing
+if (!state || !code) {
+  console.log('Missing state or code parameters, rendering launch help page');
+  ReactDOM.render(
+      <UserMessage
+          message={
+            `<p>No state parameter provided. This app needs to be launched from an EHR with the appropriate FHIR context.</p>
+            <p><a href="https://foundry-url/crd-request-generator">Click here to launch an example request in the CRD Request Generator</a>.</p>`
+          }
+          variant="danger" // Assuming UserMessage has a variant prop for styling
+      />,
+      document.getElementById("root")
+  );
+}
+
 // load the app parameters stored in the session
 const params = JSON.parse(sessionStorage[state]); // load app session
 console.log('params:', params);
@@ -46,7 +63,7 @@ tokenPost.onload = function() {
     updateLog(log);
     if (tokenPost.status === 200) {
       try {
-  
+
         auth_response = JSON.parse(tokenPost.responseText);
         log.status = "Parsing appContext";
       } catch (e) {
@@ -75,7 +92,7 @@ tokenPost.onload = function() {
 
         log.appContext = appContext;
         log.patient = auth_response.patient;
-      
+
         var smart = client({
         serverUrl: serviceUri,
         patientId: log.patient,
@@ -93,7 +110,7 @@ tokenPost.onload = function() {
         updateLog(log);
         const patientId = log.patient;
         console.log(patientId);
-        // log could be passed to app, but we can 
+        // log could be passed to app, but we can
         // TODO that because we've already got some
         // functionality in that portion of the app
         // and don't really need logs past this point
