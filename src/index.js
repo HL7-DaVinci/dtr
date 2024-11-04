@@ -5,6 +5,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import App from "./App.jsx";
 import UserMessage from "./components/UserMessage/UserMessage";
+import { Alert } from "react-bootstrap";
 console.log("completed imports");
 // get the URL parameters received from the authorization server
 const state = urlUtils.getUrlParameter("state"); // session key
@@ -14,13 +15,11 @@ const code = urlUtils.getUrlParameter("code"); // authorization code
 if (!state || !code) {
   console.log('Missing state or code parameters, rendering launch help page');
   ReactDOM.render(
-      <UserMessage
-          message={
-            `<p>No state parameter provided. This app needs to be launched from an EHR with the appropriate FHIR context.</p>
-            <p><a href="https://foundry-url/crd-request-generator">Click here to launch an example request in the CRD Request Generator</a>.</p>`
-          }
-          variant="danger" // Assuming UserMessage has a variant prop for styling
-      />,
+      <Alert variant="info" className="usermessage">
+        <Alert.Heading>Launch Parameters Missing</Alert.Heading>
+        <p>This is a <Alert.Link href="https://hl7.org/fhir/smart-app-launch/index.html">SMART on FHIR</Alert.Link> application that requires the appropriate launch parameters.</p>
+        <p>An example launch can be completed through the <Alert.Link href="https://crd-request-generator.davinci.hl7.org">CRD Request Generator</Alert.Link>.</p>
+      </Alert>,
       document.getElementById("root")
   );
 }
