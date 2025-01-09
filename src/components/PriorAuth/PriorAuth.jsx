@@ -20,7 +20,7 @@ export default class PriorAuth extends Component {
       subscribeMsg: "",
       showRestHookForm: false,
       showLink: false,
-      priorAuthBase: "https://prior-auth.davinci.hl7.org/fhir",
+      priorAuthBase: window.location.hostname === "localhost" ? "http://localhost:9015/fhir" : "https://prior-auth.davinci.hl7.org/fhir",
       isSubmitted: false,
       priorAuthId: null,
       patientId: null,
@@ -859,7 +859,7 @@ export default class PriorAuth extends Component {
                     type="text"
                     className="form-control"
                     id="priorauthEndpoint"
-                    defaultValue="https://prior-auth.davinci.hl7.org/fhir"
+                    defaultValue={this.state.priorAuthBase}
                     onChange={(e) =>
                       this.setState({ priorAuthBase: e.target.value })
                     }
