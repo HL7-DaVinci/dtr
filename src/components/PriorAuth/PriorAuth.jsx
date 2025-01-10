@@ -225,17 +225,7 @@ export default class PriorAuth extends Component {
       subscribeMsg: "Last updated " + new Date()
     });
 
-    const options = {
-      headers: {
-        Accept: "application/json"
-      }
-    };
-    if (this.state.useOauth) {
-      const accessToken = this.state.accessToken
-        ? this.state.accessToken
-        : await this.getNewAccessToken();
-      options.headers["Authorization"] = `Bearer ${accessToken}`;
-    }
+    const options = await this.getAxiosOptions();
     const inquiryBundle = this.createInquiryBundle();
     return axios
       .post(claimResponseUri, inquiryBundle, options)
@@ -683,23 +673,28 @@ export default class PriorAuth extends Component {
 
   renderResponseItems(claimResponse) {
     const children = [];
-    claimResponse.item.forEach((item) => {
+    (claimResponse.item || []).forEach((item) => {
       const claimItem = this.getClaimItem(item.itemSequence);
       const requestedItemCoding = claimItem.productOrService.coding[0];
       const requestedItemText = requestedItemCoding.display
         ? requestedItemCoding.display
         : `${requestedItemCoding.system}:${requestedItemCoding.code}`;
-      const reviewActionExtension = item.extension.find(
+      const reviewActionExtension = (item.extension || []).find(
         (ext) =>
           ext.url ===
           "http://hl7.org/fhir/us/davinci-pas/StructureDefinition/extension-reviewAction"
       );
-      const reviewActionCodeExtension = reviewActionExtension.extension.find(
+
+      if (!reviewActionExtension) {
+        return;
+      }
+
+      const reviewActionCodeExtension = (reviewActionExtension.extension || []).find(
         (ext) =>
           ext.url ===
           "http://hl7.org/fhir/us/davinci-pas/StructureDefinition/extension-reviewActionCode"
       );
-      const reviewActionNumberExtension = reviewActionExtension.extension.find(
+      const reviewActionNumberExtension = (reviewActionExtension.extension || []).find(
         (ext) => ext.url === "number"
       );
       children.push(
@@ -714,7 +709,7 @@ export default class PriorAuth extends Component {
           <h5 className="inline">Status: </h5>
           <p className="inline">
             {this.reviewActionCodeToString(
-              reviewActionCodeExtension.valueCodeableConcept.coding[0].code
+              reviewActionCodeExtension.valueCodeableConcept?.coding[0]?.code
             )}
           </p>
           <br />
@@ -764,29 +759,29 @@ export default class PriorAuth extends Component {
               <p className="inline">{claimResponse.disposition}</p>
             </div>
             <div>{this.renderResponseItems(claimResponse)}</div>
-            <button
+            {/* <button
               type="button"
               className="btn btn-secondary"
               onClick={() => this.getLatestResponse()}
             >
               Refresh
-            </button>
-            <button
+            </button> */}
+            {/* <button
               type="button"
               className="btn btn-success"
               onClick={() => this.handleGetLink()}
             >
               Get Link
-            </button>
-            <br />
+            </button> */}
+            {/* <br />
             <a
               className={this.state.showLink ? "" : "hidden"}
               href={window.location.href}
               target="_blank"
             >
               {window.location.href}
-            </a>
-            <hr />
+            </a> */}
+            {/* <hr />
             <h4>Subscribe to Updates</h4>
             <div className="dropdown">
               <button
@@ -846,7 +841,7 @@ export default class PriorAuth extends Component {
             >
               Subscribe
             </button>
-            <p>{this.state.subscribeMsg}</p>
+            <p>{this.state.subscribeMsg}</p> */}
           </div>
         ) : (
           <div className="right col col-md-6">
