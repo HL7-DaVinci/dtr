@@ -54,6 +54,7 @@ export default class App extends Component {
         //   infoClass: "error"
         // }
       ],
+      fatalError: null,
       allFieldsFilled: false,
       isAdaptiveFormWithoutExtension: false,
       isFetchingArtifacts: true,
@@ -276,6 +277,10 @@ export default class App extends Component {
             cqlPrepopulationResults: allLibrariesResults, 
             isFetchingArtifacts: false
           });
+        })
+        .catch((error) => {
+          this.setState({fatalError: error.message});
+          this.setState({isFetchingArtifacts: false});
         });
     });
   }
@@ -676,7 +681,20 @@ export default class App extends Component {
     } else {
       return (
         <div className="App">
-          <p>Loading...</p>
+          {
+            this.state.fatalError ? (
+              <UserMessage
+                variant={"danger"}
+                title={"Error!"}
+                message={
+                  "An error has occurred."
+                }
+                details={this.state.fatalError}
+              />
+            ) : (
+              <p>Loading...</p>
+            )
+          }
           <Testing logs={this.state.logs} />
         </div>
       );

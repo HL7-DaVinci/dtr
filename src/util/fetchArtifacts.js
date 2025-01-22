@@ -20,9 +20,9 @@ function fetchArtifactsOperation(order, coverage, questionnaire, smart, consoleL
     function handleFetchErrors(response) {
       if (!response.ok) {
         let msg = "Failure when fetching resource";
-        let details = `${msg}: ${response.url}: the server responded with a status of ${response.status} (${response.statusText})`;
-        consoleLog(msg, "errorClass", details);
-        reject(msg);
+        let details = `${msg}: ${response.url}: the server responded with a status of ${response.status}`;
+        consoleLog(details, "errorClass");
+        reject({message: msg, details: details, response: response});
       }
       return response;
     }
@@ -47,20 +47,23 @@ function fetchArtifactsOperation(order, coverage, questionnaire, smart, consoleL
           body: JSON.stringify(parameters)
         };
         fetch(`${questionnaire}/$questionnaire-package`, requestOptions)
-          .then(handleFetchErrors)
-          .then((e)=> {return e.json()}).then((result) => {
+          // .then(handleFetchErrors)
+          .then((e)=> {return e.json()})
+          .then((result) => {
             // TODO: Handle multiple questionnaires
             let bundleEntries = [];
-            if (result?.resourceType == "Bundle") {
+            if (result && result.resourceType === "Bundle") {
               bundleEntries = result.entry;
-            } else if (result?.resourceType == "Parameters") {
+            } else if (result && result.resourceType === "Parameters") {
               bundleEntries = (result.parameter || []).find(p => p.name === "PackageBundle" || p.name === "return")?.resource?.entry;
+            } else if (result && result.status === 500 && result.message) {
+              throw new Error(result.message);
             } else {
-              throw new Exception("Unexpected response from $questionnaire-package operation.");
+              throw new Error("Unexpected response from $questionnaire-package operation.");
             }
 
             if (!bundleEntries) {
-              throw new Exception("No package bundle found in response.");
+              throw new Error("No package bundle found in response.");
             }
 
             let questionnaire;
@@ -80,6 +83,11 @@ function fetchArtifactsOperation(order, coverage, questionnaire, smart, consoleL
             console.log(retVal);
             resolve(retVal);
           })
+          .catch((error) => {
+            console.error("Unexpected error during $questionnaire-package operation:", error);
+            consoleLog(error.message ? error.message : error, "errorClass", error);
+            reject(error);
+          });
       })
     }
 
