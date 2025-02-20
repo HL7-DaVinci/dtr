@@ -38,9 +38,9 @@ function fetchArtifactsOperation(order, coverage, questionnaire, smart, consoleL
         "parameter": []
       }
       retVal.order = orderResource;
-      parameters.parameter.push({"name": "order", "resource": orderResource})
       smart.request(coverage).then((coverage) => {
         parameters.parameter.push({"name": "coverage", "resource": coverage});
+        parameters.parameter.push({"name": "order", "resource": orderResource})
         const requestOptions = {
           method: 'POST',
           headers: { 'Content-Type': 'application/fhir+json' },
