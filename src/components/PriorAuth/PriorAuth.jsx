@@ -215,11 +215,11 @@ export default class PriorAuth extends Component {
   }
 
   /**
-   * Query the PriorAuth server for the most updated ClaimRespnose
+   * Query the PriorAuth server for the most updated ClaimResponse
    * Sets this.state.claimResponseBundle
    */
   async getLatestResponse() {
-    const claimResponseUri = this.state.priorAuthBase + "/Claim/$inquiry";
+    const claimResponseUri = this.state.priorAuthBase + "/Claim/$inquire";
     console.log("polling: " + claimResponseUri);
     this.setState({
       subscribeMsg: "Last updated " + new Date()
@@ -759,13 +759,13 @@ export default class PriorAuth extends Component {
               <p className="inline">{claimResponse.disposition}</p>
             </div>
             <div>{this.renderResponseItems(claimResponse)}</div>
-            {/* <button
+            <button
               type="button"
-              className="btn btn-secondary"
+              className="btn btn-primary"
               onClick={() => this.getLatestResponse()}
             >
-              Refresh
-            </button> */}
+              Check Claim Status ($inquire)
+            </button>
             {/* <button
               type="button"
               className="btn btn-success"
