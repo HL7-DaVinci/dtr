@@ -1,6 +1,6 @@
-FROM node:16-alpine
+FROM node:22-alpine
 WORKDIR /home/node/app/dtr
 COPY --chown=node:node . .
 RUN npm ci
 EXPOSE 3005
-CMD npm run startProd
+CMD ["npm", "run", "startProd"]

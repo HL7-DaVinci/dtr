@@ -1,5 +1,8 @@
-import '@babel/polyfill'
+import 'core-js/stable';
+import 'regenerator-runtime/runtime';
 import React from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import RegisterPage from './RegisterPage.jsx';
-ReactDOM.render( <RegisterPage/>, document.getElementById("reg") )
+const container = document.getElementById("reg");
+const root = createRoot(container);
+root.render(<RegisterPage/>);

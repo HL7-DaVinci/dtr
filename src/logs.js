@@ -1,5 +1,8 @@
-import '@babel/polyfill'
+import 'core-js/stable';
+import 'regenerator-runtime/runtime';
 import React from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import LogPage from './LogPage.jsx';
-ReactDOM.render( <LogPage/>, document.getElementById("log") )
+const container = document.getElementById("log");
+const root = createRoot(container);
+root.render(<LogPage/>);

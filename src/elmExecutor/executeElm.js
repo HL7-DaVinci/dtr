@@ -14,6 +14,13 @@ function executeElm(smart, fhirVersion, request, executionInputs, consoleLog) {
     buildPopulatedResourceBundle(smart, neededResourcesFromLibrary, fhirVersion, request, consoleLog)
     .then(function(resourceBundle) {
       console.log("Fetched resources are in this bundle:", resourceBundle);
+      
+      if (!resourceBundle || typeof resourceBundle !== 'object') {
+        console.error("Invalid resourceBundle received:", resourceBundle);
+        reject(new Error("Invalid resource bundle received"));
+        return;
+      }
+      
       patientSource.loadBundles([resourceBundle]);
       const elmResults = executeElmAgainstPatientSource(executionInputs, patientSource);
       const results = {
@@ -66,11 +73,27 @@ function executeElmAgainstPatientSource(executionInputs, patientSource) {
   } else {
     lib = new cql.Library(executionInputs.elm);
   }
-  
-  const codeService = new cql.CodeService(executionInputs.valueSetDB);
+    const codeService = new cql.CodeService(executionInputs.valueSetDB);
   const executor = new cql.Executor(lib, codeService, executionInputs.parameters);
   const results = executor.exec(patientSource);
-  return results.patientResults[Object.keys(results.patientResults)[0]];
+  
+  if (!results) {
+    console.error("CQL execution returned no results");
+    return null;
+  }
+  
+  if (!results.patientResults) {
+    console.error("CQL execution results missing patientResults:", results);
+    return null;
+  }
+  
+  const patientKeys = Object.keys(results.patientResults);
+  if (patientKeys.length === 0) {
+    console.error("No patient results found in CQL execution");
+    return null;
+  }
+  
+  return results.patientResults[patientKeys[0]];
 }
 
 function getPatientSource(fhirVersion) {

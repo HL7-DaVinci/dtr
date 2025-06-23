@@ -13,7 +13,7 @@ If you are running DRLS for the first time, we highly recommend you refer to our
 
 ## Prerequisites
 
-Install [Node.js 16](https://nodejs.org) (Node 18+ not currently supported)
+Install [Node.js](https://nodejs.org)
 
 ## Installation
 

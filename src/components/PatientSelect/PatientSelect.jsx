@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import PatientBox from './PatientBox';
-import Dialog from '@material-ui/core/Dialog';
-import InfoIcon from '@material-ui/icons/Info';
+import Dialog from '@mui/material/Dialog';
+import InfoIcon from '@mui/icons-material/Info';
 import './PatientStyles.css';
 export default class PatientSelect extends Component {
     constructor(props) {

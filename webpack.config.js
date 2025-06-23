@@ -1,4 +1,5 @@
 const path = require("path");
+const webpack = require("webpack");
 
 module.exports = {
 	mode: "production",
@@ -15,9 +16,27 @@ module.exports = {
         path: path.resolve(__dirname, "public/js"),
         publicPath: "./"
       },
-	watch: true,
-    devtool: "#eval-source-map",
-    resolve: { extensions: ["*", ".js", ".jsx"] },
+    watch: true,
+    devtool: "eval-source-map",
+    resolve: { 
+        extensions: ["*", ".js", ".jsx"],
+        fallback: {
+            "fs": false,
+            "crypto": require.resolve("crypto-browserify"),
+            "timers": require.resolve("timers-browserify"),
+            "vm": require.resolve("vm-browserify"),
+            "buffer": require.resolve("buffer"),
+            "process": require.resolve("process/browser"),
+            "util": require.resolve("util"),
+            "events": require.resolve("events"),
+            "stream": require.resolve("stream-browserify"),
+            "assert": require.resolve("assert"),
+            "os": require.resolve("os-browserify/browser"),
+            "path": require.resolve("path-browserify"),
+            "url": require.resolve("url"),
+            "constants": require.resolve("constants-browserify")
+        }
+    },
 	module: {
 		rules: [
             {
@@ -27,24 +46,44 @@ module.exports = {
                 use: { loader: "ignore-loader" }
             },
 			{
-				test: /\.jsx$/,
-				exclude: /node_modules/,
+				test: /\.jsx$/,				exclude: /node_modules\/(?!@lhncbc\/ucum-lhc)/,
 				use: {
 					loader: "babel-loader",
 					options: {
-                        presets: ['@babel/preset-env', '@babel/preset-react'],
+                        presets: [
+                            ['@babel/preset-env', {
+                                "corejs": "3",
+                                "useBuiltIns": "entry",
+                                "targets": {
+                                    "esmodules": true,
+                                    "ie": "11"
+                                }
+                            }], 
+                            ['@babel/preset-react', {
+                                "runtime": "automatic"
+                            }]
+                        ],
                         plugins: ['@babel/plugin-transform-runtime']
 					}
 				}
 			},
-            { test: /\.js$/, loader: "babel-loader", exclude: /node_modules/ },
-            {
+            { 
+                test: /\.js$/, 
+                loader: "babel-loader", 
+                exclude: /node_modules\/(?!@lhncbc\/ucum-lhc)/
+            },            {
                 test: /\.css$/i,
                 use: ["style-loader", "css-loader"],
               }
 		]
 	},
-    node: {
-        fs: "empty"
-      }
+    experiments: {
+        topLevelAwait: true
+    },
+    plugins: [
+        new webpack.ProvidePlugin({
+            Buffer: ['buffer', 'Buffer'],
+            process: 'process/browser.js'
+        })
+    ]
 };

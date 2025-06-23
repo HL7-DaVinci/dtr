@@ -849,11 +849,10 @@ export default class QuestionnaireForm extends Component {
       this.popupLaunch();
     })).catch(console.error);
   }
-
   generateAndStoreDocumentReference(questionnaireResponse, dataBundle) {
     var pdfMake = require("pdfmake/build/pdfmake.js");
     var pdfFonts = require("pdfmake/build/vfs_fonts.js");
-    pdfMake.vfs = pdfFonts.pdfMake.vfs;
+    pdfMake.vfs = pdfFonts.pdfMake ? pdfFonts.pdfMake.vfs : pdfFonts.vfs;
 
     var docDefinition = {
       content: [

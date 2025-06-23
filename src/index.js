@@ -2,7 +2,7 @@ import {client} from "fhirclient";
 import urlUtils from "./util/url";
 import {updateLog} from "./util/util";
 import React from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import App from "./App.jsx";
 import UserMessage from "./components/UserMessage/UserMessage";
 import { Alert } from "react-bootstrap";
@@ -14,13 +14,14 @@ const code = urlUtils.getUrlParameter("code"); // authorization code
 // Check if state or code parameters are missing
 if (!state || !code) {
   console.log('Missing state or code parameters, rendering launch help page');
-  ReactDOM.render(
+  const container = document.getElementById("root");
+  const root = createRoot(container);
+  root.render(
       <Alert variant="info" className="usermessage">
         <Alert.Heading>Launch Parameters Missing</Alert.Heading>
         <p>This is a <Alert.Link href="https://hl7.org/fhir/smart-app-launch/index.html">SMART on FHIR</Alert.Link> application that requires the appropriate launch parameters.</p>
         <p>An example launch can be completed through the <Alert.Link href="https://crd-request-generator.davinci.hl7.org">CRD Request Generator</Alert.Link>.</p>
-      </Alert>,
-      document.getElementById("root")
+      </Alert>
   );
 }
 
@@ -105,8 +106,7 @@ tokenPost.onload = function() {
         console.log('standalone', standalone);
         console.log('smart', smart);
         console.log('patientId', patientId);
-        log.status = "Rendering app";
-        updateLog(log);
+        log.status = "Rendering app";        updateLog(log);
         const patientId = log.patient;
         console.log(patientId);
         // log could be passed to app, but we can
@@ -114,14 +114,14 @@ tokenPost.onload = function() {
         // functionality in that portion of the app
         // and don't really need logs past this point
         // too badly.
-        ReactDOM.render(
-        <App
+        const container = document.getElementById("root");
+        const root = createRoot(container);
+        root.render(        <App
           appContext={appContext}
           standalone={standalone}
           smart={smart}
           patientId = {patientId}
-        />,
-        document.getElementById("root")
+        />
         );
         console.log(auth_response);
         if (patientId == null && !standalone) {

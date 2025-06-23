@@ -3,13 +3,18 @@ module.exports = {
         [
             "@babel/preset-env",
             {
-
-                "corejs": "2.0.0",
+                "corejs": "3",
                 "useBuiltIns": "entry",
                 "targets": {
                     "esmodules": true,
                     "ie": "11"
                 }
+            }
+        ],
+        [
+            "@babel/preset-react",
+            {
+                "runtime": "automatic"
             }
         ]
     ]
