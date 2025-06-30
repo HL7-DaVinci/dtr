@@ -1540,13 +1540,13 @@ export default class QuestionnaireForm extends Component {
     if (!this.isAdaptiveForm()) {
       return (<div className="submit-button-panel">
         <button className="btn submit-button" onClick={this.loadPreviousForm.bind(this)}>
-          Load Previous Form
+          Load Previous Draft
         </button>
         <button className="btn submit-button" onClick={this.sendQuestionnaireResponseToPayer.bind(this)}>
           Send to Payer
         </button>
         <button className="btn submit-button" onClick={this.outputResponse.bind(this, "in-progress")}>
-          Save to EHR
+          Save Draft to EHR
         </button>
         <button className="btn submit-button" onClick={this.outputResponse.bind(this, "completed")}>
           Proceed To Prior Auth
