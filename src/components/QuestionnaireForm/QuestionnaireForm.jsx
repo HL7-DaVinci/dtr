@@ -7,7 +7,6 @@ import _ from "lodash";
 import ConfigData from "../../config.json";
 import ReactDOM from 'react-dom'
 import {createTask} from "../../util/taskCreation";
-
 import retrieveQuestions, { buildNextQuestionRequest } from "../../util/retrieveQuestions";
 
 // NOTE: need to append the right FHIR version to have valid profile URL
@@ -178,13 +177,16 @@ export default class QuestionnaireForm extends Component {
     questionnaireResponseUrl = questionnaireResponseUrl + "&subject=" + this.getPatient();
     console.log("Using URL " + questionnaireResponseUrl);
 
-    this.smart.request(questionnaireResponseUrl).then((result) => {
-      this.popupClear("Would you like to load a previously in-progress form?", "Cancel", false);
-      this.processSavedQuestionnaireResponses(result, showError);
-    }, ((result) => {
-      this.popupClear("Error: failed to load previous in-progress forms", "OK", true);
-      this.popupLaunch();
-    })).catch(console.error);
+    this.smart.request(questionnaireResponseUrl)
+      .then((result) => {
+        this.popupClear("Would you like to load a previously in-progress form?", "Cancel", false);
+        this.processSavedQuestionnaireResponses(result, showError);
+      })
+      .catch((error) => {
+        console.error("Error loading previous forms:", error);
+        this.popupClear("Error: failed to load previous in-progress forms", "OK", true);
+        this.popupLaunch();
+      });
   }
 
   // retrieve next sets of questions
@@ -223,7 +225,7 @@ export default class QuestionnaireForm extends Component {
 
     const currentQuestionnaireResponse = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', this.fhirVersion, "#formContainer");;
     //const mergedResponse = this.mergeResponseForSameLinkId(questionnaireResponse);
-    retrieveQuestions(url, questionnaireResponse)
+    retrieveQuestions(url, questionnaireResponse, this.smart)
       .then(result => {
         if (!result.ok) {
           console.log("Result: ", result);
@@ -356,12 +358,15 @@ export default class QuestionnaireForm extends Component {
     header.appendChild(patientInfoEl);
     let patientId = this.getPatient().replace("Patient/", "");
     let patientInfoElement = (display) => (<div className="patient-info-panel"><label>Patient: {display}</label></div>);
-    this.smart.request("Patient/" + patientId).then((result) => {
-      ReactDOM.render(patientInfoElement(`${result.name[0].given[0]} ${result.name[0].family}`), patientInfoEl);
-    }, (error) => {
-      console.log("Failed to retrieve the patient information. Error is ", error);
-      ReactDOM.render(patientInfoElement("Unknown"), patientInfoEl);
-    });
+    
+    this.smart.request(`Patient/${patientId}`)
+      .then((result) => {
+        ReactDOM.render(patientInfoElement(`${result.name[0].given[0]} ${result.name[0].family}`), patientInfoEl);
+      })
+      .catch((error) => {
+        console.log("Failed to retrieve the patient information. Error is ", error);
+        ReactDOM.render(patientInfoElement("Unknown"), patientInfoEl);
+      });
 
     // Extract properties
     let authored = newResponse.authored || "Unknown";
@@ -839,15 +844,24 @@ export default class QuestionnaireForm extends Component {
     // send the QuestionnaireResponse to the EHR FHIR server
     var questionnaireUrl = sessionStorage["serviceUri"] + "/QuestionnaireResponse";
     console.log("Storing QuestionnaireResponse to: " + questionnaireUrl);
-    this.smart.create(questionnaireReponse).then((result) => {
+    
+    this.smart.request({
+      url: questionnaireUrl,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/fhir+json"
+      },
+      body: JSON.stringify(questionnaireReponse)
+    }).then((result) => {
       if (showPopup) {
         this.popupClear("Partially completed form (QuestionnaireResponse) saved to EHR", "OK", true);
         this.popupLaunch();
       }
-    }, ((result) => {
+    }).catch((error) => {
+      console.error("Error saving QuestionnaireResponse:", error);
       this.popupClear("Error: Partially completed form (QuestionnaireResponse) Failed to save to EHR", "OK", true);
       this.popupLaunch();
-    })).catch(console.error);
+    });
   }
   generateAndStoreDocumentReference(questionnaireResponse, dataBundle) {
     var pdfMake = require("pdfmake/build/pdfmake.js");

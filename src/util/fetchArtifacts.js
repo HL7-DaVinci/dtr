@@ -1,6 +1,7 @@
 import "isomorphic-fetch";
 import { buildFhirUrl, isRequestReference } from "./util";
-function fetchArtifactsOperation(order, coverage, questionnaire, smart, consoleLog, containedQuestionnaire) {
+
+function fetchArtifactsOperation(order, coverage, questionnaire, smart, consoleLog, containedQuestionnaire, context) {
   // fetch from operation
   // parse return parameters similar to function below
   return new Promise(function(resolve, reject) {
@@ -16,17 +17,6 @@ function fetchArtifactsOperation(order, coverage, questionnaire, smart, consoleL
       isAdaptiveFormWithoutExtension: false
     };
 
-    // handles errors from api calls
-    function handleFetchErrors(response) {
-      if (!response.ok) {
-        let msg = "Failure when fetching resource";
-        let details = `${msg}: ${response.url}: the server responded with a status of ${response.status}`;
-        consoleLog(details, "errorClass");
-        reject({message: msg, details: details, response: response});
-      }
-      return response;
-    }
-
     function completeOperation(orderResource) {
       const parameters = {
         "resourceType": "Parameters",
@@ -38,57 +28,120 @@ function fetchArtifactsOperation(order, coverage, questionnaire, smart, consoleL
         "parameter": []
       }
       retVal.order = orderResource;
-      smart.request(coverage).then((coverage) => {
-        parameters.parameter.push({"name": "coverage", "resource": coverage});
-        parameters.parameter.push({"name": "order", "resource": orderResource})
-        const requestOptions = {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/fhir+json' },
+
+      console.log("Fetching coverage resource for $questionnaire-package operation:", smart);
+      
+      // Fetch coverage resource and execute the $questionnaire-package operation
+      smart.request(coverage).then((coverageResource) => {
+
+        let operationUrl;
+
+        parameters.parameter.push({"name": "coverage", "resource": coverageResource});
+
+        if (orderResource) {
+          parameters.parameter.push({"name": "order", "resource": orderResource});
+        }
+
+        // Add optional questionnaire parameter if questionnaire URL is provided
+        if (questionnaire && typeof questionnaire === "string") {
+          parameters.parameter.push({"name": "questionnaire", "valueCanonical": questionnaire});
+          try {
+            const canonicalUrl = new URL(questionnaire);
+            operationUrl = `${canonicalUrl.origin}${canonicalUrl.pathname.split("/").slice(0, -1).join("/")}/$questionnaire-package`;
+          } catch (e) {
+            console.error("Invalid questionnaire URL:", questionnaire, e);
+          }
+        }
+        
+        // Add optional context parameter for CRD/CDex integration
+        if (context) {
+          parameters.parameter.push({"name": "context", "valueString": context});
+        }
+        
+                
+        // Fallback to current server URL if operationUrl to the $questionnaire-package operation is not set yet
+        if (!operationUrl) {
+          operationUrl = `${smart.state.serverUrl}/Questionnaire/$questionnaire-package`;
+          console.log("Using current server URL for $questionnaire-package operation:", operationUrl);
+        }
+         
+        // Call the $questionnaire-package operation
+        smart.request({
+          url: operationUrl,
+          method: "POST",
+          headers: {
+            "Content-Type": "application/fhir+json",
+          },
           body: JSON.stringify(parameters)
-        };
-        fetch(`${questionnaire}/$questionnaire-package`, requestOptions)
-          // .then(handleFetchErrors)
-          .then((e)=> {return e.json()})
+        })
           .then((result) => {
-            // TODO: Handle multiple questionnaires
+            console.log("$questionnaire-package operation result:", result);
+            
+            // Handle the response according to DTR specification
             let bundleEntries = [];
+            let operationOutcome = null;
+            
             if (result && result.resourceType === "Bundle") {
-              bundleEntries = result.entry;
+              // Single bundle response
+              bundleEntries = result.entry || [];
             } else if (result && result.resourceType === "Parameters") {
-              bundleEntries = (result.parameter || []).find(p => p.name === "PackageBundle" || p.name === "return")?.resource?.entry;
-            } else if (result && result.status === 500 && result.message) {
-              throw new Error(result.message);
+              // Parameters response with potentially multiple bundles
+              const packageBundleParams = result.parameter?.filter(p => p.name === "PackageBundle") || [];
+              const outcomeParam = result.parameter?.find(p => p.name === "outcome");
+              
+              if (outcomeParam && outcomeParam.resource) {
+                operationOutcome = outcomeParam.resource;
+                console.log("Operation outcome:", operationOutcome);
+              }
+              
+              if (packageBundleParams.length > 0) {
+                // For now, take the first bundle (TODO: handle multiple questionnaires)
+                bundleEntries = packageBundleParams[0].resource?.entry || [];
+              }
+            } else if (result && result.resourceType === "OperationOutcome") {
+              throw new Error(`$questionnaire-package operation failed: ${result.issue?.[0]?.details?.text || 'Unknown error'}`);
             } else {
-              throw new Error("Unexpected response from $questionnaire-package operation.");
+              throw new Error("Unexpected response format from $questionnaire-package operation.");
             }
 
-            if (!bundleEntries) {
-              throw new Error("No package bundle found in response.");
+            if (!bundleEntries || bundleEntries.length === 0) {
+              throw new Error("No package bundle entries found in response from $questionnaire-package operation.");
             }
 
-            let questionnaire;
+            let questionnaireResource;
   
             if (containedQuestionnaire) {
               retVal.questionnaire = containedQuestionnaire;
-              questionnaire = containedQuestionnaire;
+              questionnaireResource = containedQuestionnaire;
             } else {            
-              questionnaire = bundleEntries.find((e) => e.resource.resourceType === "Questionnaire")?.resource;
-              retVal.questionnaire = questionnaire;
+              questionnaireResource = bundleEntries.find((e) => e.resource?.resourceType === "Questionnaire")?.resource;
+              if (!questionnaireResource) {
+                throw new Error("No Questionnaire found in the package bundle.");
+              }
+              retVal.questionnaire = questionnaireResource;
             }
 
-            retVal.isAdaptiveFormWithoutExtension = questionnaire.extension && questionnaire.extension.length > 0;
+            // Check if this is an adaptive form
+            retVal.isAdaptiveFormWithoutExtension = questionnaireResource.meta?.profile?.includes("http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-adapt") && 
+              (!questionnaireResource.extension || !questionnaireResource.extension.some(e => e.url === "http://hl7.org/fhir/StructureDefinition/cqf-library"));
   
-            findQuestionnaireEmbeddedCql(questionnaire.item);
-            searchBundle(questionnaire, bundleEntries);
-            console.log(retVal);
+            findQuestionnaireEmbeddedCql(questionnaireResource.item);
+            searchBundle(questionnaireResource, bundleEntries);
+            
+            console.log("Processed questionnaire package:", retVal);
             resolve(retVal);
           })
           .catch((error) => {
-            console.error("Unexpected error during $questionnaire-package operation:", error);
-            consoleLog(error.message ? error.message : error, "errorClass", error);
+            console.error("Error during $questionnaire-package operation:", error);
+            const errorMessage = error.message || error.toString();
+            consoleLog(`$questionnaire-package operation failed: ${errorMessage}`, "errorClass", error);
             reject(error);
           });
-      })
+      }).catch((error) => {
+        console.error("Error fetching coverage resource:", error);
+        consoleLog(`Failed to fetch coverage resource: ${error.message || error}`, "errorClass", error);
+        reject(error);
+      });
     }
 
     function searchBundle(questionnaire, bundleEntries) {
@@ -169,9 +222,16 @@ function fetchArtifactsOperation(order, coverage, questionnaire, smart, consoleL
     }
 
     if(isRequestReference(order)) {
-      smart.request(order).then((orderResource) => {
-        completeOperation(orderResource);
-      })
+      const orderUrl = order.startsWith("http") ? order : order;
+      smart.request(orderUrl)
+        .then((orderResource) => {
+          completeOperation(orderResource);
+        })
+        .catch((error) => {
+          console.error("Error fetching order resource:", error);
+          consoleLog(`Failed to fetch order resource: ${error.message || error}`, "errorClass", error);
+          reject(error);
+        });
     } else {
       const orderResource = JSON.parse(order.replace(/\\/g,""));
       completeOperation(orderResource)
@@ -245,8 +305,7 @@ function fetchArtifacts(questionnaireReference, fhirVersion, smart, consoleLog, 
     consoleLog("fetching questionnaire and elms", "infoClass");
     consoleLog(questionnaireReference, "infoClass");
     if (!isContainedQuestionnaire) {
-      fetch(questionnaireReference).then(handleFetchErrors).then(r => r.json())
-        .then(questionnaire => {
+      smart.request(questionnaireReference).then(questionnaire => {
           consoleLog("fetched questionnaire successfully", "infoClass");
           // consoleLog(JSON.stringify(questionnaire),"infoClass");
           retVal.questionnaire = questionnaire;
@@ -322,8 +381,7 @@ function fetchArtifacts(questionnaireReference, fhirVersion, smart, consoleLog, 
 
       pendingFetches += 1;
       consoleLog("about to fetchElm (Library): " + libraryUrl, libraryUrl);
-      fetch(libraryUrl).then(handleFetchErrors).then(r => r.json())
-      .then(libraryResource => {
+      smart.request(libraryUrl).then(libraryResource => {
         fetchedUrls.add(libraryUrl);
         fetchRelatedElms(libraryResource);
         fetchRequiredValueSets(libraryResource);
@@ -366,16 +424,7 @@ function fetchArtifacts(questionnaireReference, fhirVersion, smart, consoleLog, 
     function fetchValueSet(valueSetUrl) {
       pendingFetches += 1;
       consoleLog("about to fetchValueSet:", valueSetUrl);
-      fetch(valueSetUrl).then((response) => {
-        if (!response.ok) {
-          let msg = "Failure when fetching ValueSet " + valueSetUrl + " Make sure CRD has ValueSets Loaded.";
-          let details = `${msg}: ${response.url}: the server responded with a status of ${response.status} (${response.statusText})`;
-          consoleLog(msg, "errorClass", details);
-          reject(msg);
-        }
-        return response;
-      }).then(r => r.json())
-      .then(valueSet => {
+      smart.request(valueSetUrl).then(valueSet => {
         pendingFetches -= 1;
         fetchedUrls.add(valueSetUrl);
         retVal.valueSets.push(valueSet);
@@ -417,8 +466,7 @@ function fetchArtifacts(questionnaireReference, fhirVersion, smart, consoleLog, 
 
         pendingFetches += 1;
         consoleLog("about to fetchElmFile: " + elmUrl, elmUrl);
-        fetch(elmUrl).then(handleFetchErrors).then(r => r.json())
-        .then(elm => {
+        smart.request(elmUrl).then(elm => {
           if ( elm.library.annotation ) {
             let errors = elm.library.annotation.filter(a => a.type == "CqlToElmError" && a.errorSeverity != "warning");
             if (errors.length > 0) {
@@ -461,7 +509,9 @@ function fetchFromQuestionnaireResponse(response, smart) {
   }
 
   return new Promise(function(resolve, reject) {
-    smart.request(response).then((res) => {
+    const responseUrl = response.startsWith("http") ? response : response;
+    smart.request(responseUrl)
+      .then((res) => {
       console.log(res);
       relaunchContext.questionnaire = res.questionnaire;
       relaunchContext.response = res;
@@ -490,11 +540,16 @@ function searchByOrder(order, smart) {
     requestId = `${orderResource.resourceType}/${orderResource.id}`
   }
   return new Promise(function(resolve, reject) {
-    smart.request(`QuestionnaireResponse?context=${requestId}`).then((res) => {
-      if(res.entry) {
-        resolve(res.entry)
-      }
-    })
+    smart.request(`QuestionnaireResponse?context=${requestId}`)
+      .then((res) => {
+        if(res.entry) {
+          resolve(res.entry)
+        }
+      })
+      .catch((error) => {
+        console.error("Error searching QuestionnaireResponse:", error);
+        reject(error);
+      });
   })
 }
 

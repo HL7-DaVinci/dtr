@@ -1,11 +1,12 @@
-export default function retrieveQuestions(url, body) {
-    const requestOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/fhir+json' },
+export default function retrieveQuestions(url, body, smart) {
+    return smart.request({
+        url: url,
+        method: "POST",
+        headers: {
+            "Content-Type": "application/fhir+json"
+        },
         body: JSON.stringify(body)
-    };
-
-    return fetch(url, requestOptions);
+    });
 }
 
 export function buildNextQuestionRequest(questionnaire, questionnaireResponse, patientReference) {

@@ -88,6 +88,9 @@ function postToLogs(log, callback) {
 }
 
 function updateLog(log) {
+    if (!log.id) {
+        return;
+    }
     const logRequest = new XMLHttpRequest();
     logRequest.open("PUT", "../logs/"+log.id);
     logRequest.setRequestHeader("Content-Type", "application/json");

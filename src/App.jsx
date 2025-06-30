@@ -104,10 +104,59 @@ export default class App extends Component {
 
 
   ehrLaunch(isContainedQuestionnaire, questionnaire) {
+    // Extract context from SMART launch context, supporting both legacy and new formats
     let acOrder = this.appContext.order;
-    let acCoverage = this.appContext.coverage;
+    let acCoverage = this.appContext.coverage; 
     let acQuestionnaire = this.appContext.questionnaire;
     let acResponse = this.appContext.response;
+    console.log("App Context:", this.appContext);
+    
+    // Handle fhirContext-based references for DTR
+    // Look for order references from fhirContext if not found in legacy context
+    if (!acOrder && this.appContext.fhirContext) {
+      const orderContext = this.appContext.fhirContext.find(ctx => {
+        if (ctx.reference) {
+          const resourceType = ctx.reference.split('/')[0].toLowerCase();
+          return ['servicerequest', 'devicerequest', 'medicationrequest', 'nutritionorder'].includes(resourceType);
+        }
+        return false;
+      });
+      if (orderContext) {
+        acOrder = orderContext.reference;
+      }
+    }
+    
+    // Handle coverage references from fhirContext
+    if (!acCoverage && this.appContext.fhirContext) {
+      const coverageContext = this.appContext.fhirContext.find(ctx => {
+        if (ctx.reference) {
+          return ctx.reference.split('/')[0].toLowerCase() === 'coverage';
+        }
+        return false;
+      });
+      if (coverageContext) {
+        acCoverage = coverageContext.reference;
+      }
+    }
+    
+    // Handle questionnaire from fhirContext (canonical or reference)
+    if (!acQuestionnaire && this.appContext.fhirContext) {
+      const questionnaireContext = this.appContext.fhirContext.find(ctx => {
+        return ctx.canonical || (ctx.reference && ctx.reference.split('/')[0].toLowerCase() === 'questionnaire');
+      });
+      if (questionnaireContext) {
+        acQuestionnaire = questionnaireContext.canonical || questionnaireContext.reference;
+      }
+    }
+    
+    console.log("DTR Launch Context:", {
+      order: acOrder,
+      coverage: acCoverage, 
+      questionnaire: acQuestionnaire,
+      response: acResponse,
+      fullContext: this.appContext
+    });
+    
     if(isContainedQuestionnaire && questionnaire) {
       // TODO: This is a workaround for getting adaptive forms to work
       // in its current form, adaptive forms do not operate with the 
@@ -117,7 +166,7 @@ export default class App extends Component {
         isFetchingArtifacts: true,
         reloadQuestionnaire
       })
-      this.fetchResourcesAndExecuteCql(acOrder, acCoverage, acQuestionnaire, questionnaire);
+      this.fetchResourcesAndExecuteCql(acOrder, acCoverage, acQuestionnaire, questionnaire, this.appContext.context);
 
     } else if(acOrder && acCoverage && !acQuestionnaire && !acResponse) {
       searchByOrder(acOrder, this.smart).then((res) => {
@@ -128,7 +177,9 @@ export default class App extends Component {
         acResponse = res[0].resource;
         acQuestionnaire = acResponse.questionnaire;
         this.setState({response: acResponse});
-        this.fetchResourcesAndExecuteCql(acOrder, acCoverage, acQuestionnaire);
+        this.fetchResourcesAndExecuteCql(acOrder, acCoverage, acQuestionnaire, null, this.appContext.context);
+      }).catch((error) => {
+        console.error("Error searching by order:", error);
       });
     } else if(acResponse) {
       // start relaunch
@@ -137,7 +188,7 @@ export default class App extends Component {
       // which would also support QRs without the extension.
       fetchFromQuestionnaireResponse(acResponse, this.smart).then((relaunchContext) => {
         this.setState({response: relaunchContext.response})
-        this.fetchResourcesAndExecuteCql(relaunchContext.order, relaunchContext.coverage, relaunchContext.questionnaire);
+        this.fetchResourcesAndExecuteCql(relaunchContext.order, relaunchContext.coverage, relaunchContext.questionnaire, null, this.appContext.context);
       });
     } else if(acQuestionnaire && acOrder && acCoverage){
       this.consoleLog("fetching artifacts", "infoClass");
@@ -146,18 +197,18 @@ export default class App extends Component {
       })
       const reloadQuestionnaire = questionnaire !== undefined;
       this.setState({reloadQuestionnaire});
-      this.fetchResourcesAndExecuteCql(acOrder, acCoverage, acQuestionnaire);
+      this.fetchResourcesAndExecuteCql(acOrder, acCoverage, acQuestionnaire, null, this.appContext.context);
     } else {
       alert("invalid app context")
     }
   }
 
-  fetchResourcesAndExecuteCql(order, coverage, questionnaire, containedQuestionnaire) {
+  fetchResourcesAndExecuteCql(order, coverage, questionnaire, containedQuestionnaire, context) {
     fetchFhirVersion(this.props.smart.state.serverUrl)
     .then(fhirVersion => {
       this.fhirVersion = fhirVersion;
 
-      fetchArtifactsOperation(order, coverage, questionnaire, this.smart, this.consoleLog, containedQuestionnaire)
+      fetchArtifactsOperation(order, coverage, questionnaire, this.smart, this.consoleLog, containedQuestionnaire, context)
         .then(artifacts => {
           console.log("fetched needed artifacts:", artifacts);
           const orderResource = artifacts.order;
