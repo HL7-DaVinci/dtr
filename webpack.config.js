@@ -1,7 +1,14 @@
-const path = require("path");
-const webpack = require("webpack");
+import path from "path";
+import webpack from "webpack";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+import { createRequire } from "module";
 
-module.exports = {
+const require = createRequire(import.meta.url);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+export default {
 	mode: "production",
     entry: {
         launch: path.resolve(__dirname, "src/launch.js"),
@@ -19,7 +26,10 @@ module.exports = {
     watch: true,
     devtool: "eval-source-map",
     resolve: { 
-        extensions: ["*", ".js", ".jsx"],
+        extensions: [".js", ".jsx"],
+        extensionAlias: {
+            ".js": [".js", ".jsx"]
+        },
         fallback: {
             "fs": false,
             "crypto": require.resolve("crypto-browserify"),
@@ -39,6 +49,12 @@ module.exports = {
     },
 	module: {
 		rules: [
+            {
+                test: /\.m?js$/,
+                resolve: {
+                    fullySpecified: false
+                }
+            },
             {
                 // bit of a hack to ignore the *.js.map files included in cql-execution (from coffeescript)
                 test: /\.js.map$/,

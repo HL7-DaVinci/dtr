@@ -2,6 +2,7 @@
   "name": "dtr",
   "version": "0.0.1",
   "private": true,
+  "type": "module",
   "scripts": {
     "start": "npm-run-all --parallel startBackendDev buildFrontendDev",
     "startProd": "npm-run-all buildFrontendProd startBackendProd",

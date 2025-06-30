@@ -1,4 +1,5 @@
-const express = require('express');
+import express from "express";
+
 const router = express.Router();
 
 router.get('/smart-configuration', (req, res) => {
@@ -11,4 +12,4 @@ router.get('/smart-configuration', (req, res) => {
   res.send(smartConfiguration);
 });
 
-module.exports = router;
+export default router;

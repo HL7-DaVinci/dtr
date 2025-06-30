@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const startServer = require("./www");
+import startServer from "./www";
 
 const serverPort = 3005;
 const initialClient = "http://localhost:8080/test-ehr/r4::app-login";

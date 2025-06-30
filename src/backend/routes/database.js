@@ -1,6 +1,7 @@
-const express = require("express");
+import express from "express";
+import * as db from "../database/impl.js";
+
 const router = express.Router();
-const db = require("../database/impl");
 const CLIENT = "clients";
 const LOGS = "logs";
 
@@ -93,4 +94,4 @@ router.get("/api/logs", (req, res) => {
     }
 })
 
-module.exports = router;
+export default router;

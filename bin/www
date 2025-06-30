@@ -3,9 +3,15 @@
 /**
  * Module dependencies.
  */
-const startApp = require("../src/backend/app");
-const http = require("http");
-const debug = require("debug")("dtr:backend");
+import startApp from "../src/backend/app.js";
+import http from "http";
+import debug from "debug";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const debugFunc = debug("dtr:backend");
 
 /**
  * Get port from environment and store in Express.
@@ -141,9 +147,9 @@ function startServer(serverPort, initialClient) {
         const bind = typeof addr === "string"
             ? "pipe " + addr
             : "port " + addr.port;
-        debug("Listening on " + bind);
+        debugFunc("Listening on " + bind);
     }
 
 }
 
-module.exports = startServer;
+export default startServer;

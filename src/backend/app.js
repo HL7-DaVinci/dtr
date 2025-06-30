@@ -1,8 +1,13 @@
-const express = require("express");
-const dbRouter = require("./routes/database");
-const wellKnownRouter = require("./routes/wellknown");
-const metadataRouter = require("./routes/metadata");
-const bodyParser = require("body-parser");
+import express from "express";
+import dbRouter from "./routes/database.js";
+import wellKnownRouter from "./routes/wellknown.js";
+import metadataRouter from "./routes/metadata.js";
+import bodyParser from "body-parser";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 function startApp() {
     const app = express();
@@ -39,4 +44,4 @@ function startApp() {
     return app;
 }
 
-module.exports = startApp;
+export default startApp;

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const startServer = require("./www");
+import startServer from "./www";
 
 const serverPort = process.env.SERVER_PORT;
 const initialClient = process.env.INITIAL_CLIENT;
