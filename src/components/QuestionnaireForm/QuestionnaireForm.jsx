@@ -5,9 +5,10 @@ import SelectPopup from './SelectPopup';
 import shortid from "shortid";
 import _ from "lodash";
 import ConfigData from "../../config.json";
-import ReactDOM from 'react-dom'
+import { createRoot } from 'react-dom/client';
 import {createTask} from "../../util/taskCreation";
 import retrieveQuestions, { buildNextQuestionRequest } from "../../util/retrieveQuestions";
+import { Button, Box, Alert } from '@mui/material';
 
 // NOTE: need to append the right FHIR version to have valid profile URL
 var DTRQuestionnaireResponseURL = "http://hl7.org/fhir/us/davinci-dtr/StructureDefinition/dtr-questionnaireresponse-";
@@ -270,6 +271,12 @@ export default class QuestionnaireForm extends Component {
   processSavedQuestionnaireResponses(partialResponses, displayErrorOnNoneFound) {
     let noneFound = true;
 
+    console.log("Processing saved QuestionnaireResponses:", partialResponses);
+
+    // Reset popupOptions and partialForms to avoid duplicates
+    let newPopupOptions = [];
+    this.partialForms = {};
+
     if (partialResponses && (partialResponses.total > 0)) {
       const options = {
         weekday: 'long',
@@ -293,17 +300,17 @@ export default class QuestionnaireForm extends Component {
 
         if ( idMatch || questionnaireIdUrl.includes(this.props.qform.id)) {
           count = count + 1;
-          // add the option to the popupOptions
+          // add the option to the newPopupOptions array
           let date = new Date(bundleEntry.resource.authored);
           let option = date.toLocaleDateString(undefined, options) + " (" + bundleEntry.resource.status + ")";
-          this.setState({
-            popupOptions: [...this.state.popupOptions, option]
-          });
+          newPopupOptions.push(option);
           this.partialForms[option] = bundleEntry.resource;
         }
       });
-      console.log(this.state.popupOptions);
-      console.log(this.partialForms);
+      // Set popupOptions in state only once, after collecting all options
+      this.setState({
+        popupOptions: newPopupOptions
+      });
 
       //check if show popup
       const showPopup = !this.isAdaptiveForm() || this.isAdaptiveFormWithoutItem();
@@ -323,6 +330,7 @@ export default class QuestionnaireForm extends Component {
 
   loadAndMergeForms(newResponse) {
     console.log(JSON.stringify(this.props.qform));
+    console.log("newResponse:", newResponse);
     console.log(JSON.stringify(newResponse));
 
     let lform = LForms.Util.convertFHIRQuestionnaireToLForms(this.props.qform, this.props.fhirVersion);
@@ -340,61 +348,76 @@ export default class QuestionnaireForm extends Component {
       lform = LForms.Util.mergeFHIRDataIntoLForms("QuestionnaireResponse", newResponse, lform, this.props.fhirVersion);
     }
 
-    console.log(lform);
+    console.log("lform:", lform);
 
     // Custom rendering for media fields
     this.renderMediaFields(lform);
 
     LForms.Util.addFormToPage(lform, "formContainer");
-    const header = document.getElementsByClassName("lf-form-title")[0];
-    const el = document.createElement('div');
-    el.setAttribute("id", "button-container");
-    header.appendChild(el);
-    this.props.renderButtons(el);
-
-    // Create and append patient info
-    const patientInfoEl = document.createElement('div');
-    patientInfoEl.setAttribute("id", "patientInfo-container");
-    header.appendChild(patientInfoEl);
-    let patientId = this.getPatient().replace("Patient/", "");
-    let patientInfoElement = (display) => (<div className="patient-info-panel"><label>Patient: {display}</label></div>);
     
-    this.smart.request(`Patient/${patientId}`)
-      .then((result) => {
-        ReactDOM.render(patientInfoElement(`${result.name[0].given[0]} ${result.name[0].family}`), patientInfoEl);
-      })
-      .catch((error) => {
-        console.log("Failed to retrieve the patient information. Error is ", error);
-        ReactDOM.render(patientInfoElement("Unknown"), patientInfoEl);
-      });
+    // Remove any existing headerInfoBox to prevent duplicates
+    const header = document.getElementById("formHeader");
+    const existingHeaderInfoBox = document.getElementById("headerInfoBox");
+    if (existingHeaderInfoBox) {
+      header.removeChild(existingHeaderInfoBox);
+    }
+    const headerInfoBox = document.createElement('div');
+    headerInfoBox.setAttribute('id', 'headerInfoBox');
+    header.appendChild(headerInfoBox);
 
-    // Extract properties
+    let patientId = this.getPatient().replace("Patient/", "");
     let authored = newResponse.authored || "Unknown";
     let authorName = newResponse.author?.resolve()?.name || "Unknown";
     let sourceName = newResponse.source?.resolve()?.name || "Unknown";
 
-    // Create a container for the header info
-    const headerInfoEl = document.createElement('div');
-    headerInfoEl.setAttribute("id", "headerInfo-container");
-    header.appendChild(headerInfoEl);
-
-    const HeaderInfo = ({ questionnaireDisplay, title, authored, authorName, sourceName }) => (
-        <div className="header-info-panel">
-          <div>Authored: {authored}</div>
-          <div>Author Name: {authorName}</div>
-          <div>Source Name: {sourceName}</div>
-        </div>
+    const HeaderInfo = ({ patientDisplay, authored, authorName, sourceName, headerButtons }) => (
+      <Box sx={{ p: 1.5, bgcolor: 'background.paper', borderRadius: 1, border: 1, borderColor: 'grey.300', boxShadow: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+          <Box><strong>Patient:</strong> {patientDisplay}</Box>
+          <Box sx={{ ml: 2 }}>{headerButtons}</Box>
+        </Box>
+        <Box><strong>Authored:</strong> {authored}</Box>
+        <Box><strong>Author:</strong> {authorName}</Box>
+        <Box><strong>Source:</strong> {sourceName}</Box>
+      </Box>
     );
 
-    // Render the HeaderInfo component
-    ReactDOM.render(
-        <HeaderInfo
+    const rootKey = '_reactRootContainer_combinedHeaderInfo';
+    let root = headerInfoBox[rootKey];
+    if (!root) {
+      root = createRoot(headerInfoBox);
+      headerInfoBox[rootKey] = root;
+    }
+    // Fetch patient info async, then render
+    const headerButtons = this.props.renderButtons();
+    this.smart.request(`Patient/${patientId}`)
+      .then((result) => {
+        root.render(
+          <HeaderInfo
+            patientDisplay={
+              result && Array.isArray(result.name) && result.name.length > 0 &&
+              Array.isArray(result.name[0].given) && result.name[0].given.length > 0 && result.name[0].family
+                ? `${result.name[0].given[0]} ${result.name[0].family}`
+                : "Unknown"
+            }
             authored={authored}
             authorName={authorName}
             sourceName={sourceName}
-        />,
-        headerInfoEl
-    );
+            headerButtons={headerButtons}
+          />
+        );
+      })
+      .catch(() => {
+        root.render(
+          <HeaderInfo
+            patientDisplay={"Unknown"}
+            authored={authored}
+            authorName={authorName}
+            sourceName={sourceName}
+            headerButtons={headerButtons}
+          />
+        );
+      });
 
     this.props.filterFieldsFn(true);
   }
@@ -1538,46 +1561,46 @@ export default class QuestionnaireForm extends Component {
 
   getDisplayButtons() {
     if (!this.isAdaptiveForm()) {
-      return (<div className="submit-button-panel">
-        <button className="btn submit-button" onClick={this.loadPreviousForm.bind(this)}>
+      return (<Box className="submit-button-panel" sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mt: 2 }}>
+        <Button variant="outlined" onClick={this.loadPreviousForm.bind(this)}>
           Load Previous Draft
-        </button>
-        <button className="btn submit-button" onClick={this.sendQuestionnaireResponseToPayer.bind(this)}>
+        </Button>
+        <Button variant="contained" onClick={this.sendQuestionnaireResponseToPayer.bind(this)}>
           Send to Payer
-        </button>
-        <button className="btn submit-button" onClick={this.outputResponse.bind(this, "in-progress")}>
+        </Button>
+        <Button variant="contained" onClick={this.outputResponse.bind(this, "in-progress")}>
           Save Draft to EHR
-        </button>
-        <button className="btn submit-button" onClick={this.outputResponse.bind(this, "completed")}>
+        </Button>
+        <Button variant="contained" color="success" onClick={this.outputResponse.bind(this, "completed")}>
           Proceed To Prior Auth
-        </button>
-      </div>)
+        </Button>
+      </Box>)
     }
     else {
       if (this.props.adFormCompleted) {
         return (
-            <div className="submit-button-panel">
-              <button className="btn submit-button" onClick={this.sendQuestionnaireResponseToPayer.bind(this)}>
+            <Box className="submit-button-panel" sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mt: 2 }}>
+              <Button variant="contained" onClick={this.sendQuestionnaireResponseToPayer.bind(this)}>
                 Send to Payer
-              </button>
-              <button className="btn submit-button" onClick={this.outputResponse.bind(this, "completed")}>
+              </Button>
+              <Button variant="contained" color="success" onClick={this.outputResponse.bind(this, "completed")}>
                 Proceed To Prior Auth
-              </button>
-            </div>
+              </Button>
+            </Box>
         )
       }
       else {
         return (
-            <div className="submit-button-panel">
+            <Box className="submit-button-panel" sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mt: 2 }}>
               {this.isAdaptiveFormWithoutItem() ? (
-                  <button className="btn submit-button" onClick={this.loadPreviousForm.bind(this)}>
+                  <Button variant="outlined" onClick={this.loadPreviousForm.bind(this)}>
                     Load Previous Form
-                  </button>
+                  </Button>
               ) : null}
-              {this.isAdaptiveFormWithItem() ? (<button className="btn submit-button" onClick={this.outputResponse.bind(this, "in-progress")}>
+              {this.isAdaptiveFormWithItem() ? (<Button variant="outlined" onClick={this.outputResponse.bind(this, "in-progress")}>
                 Save To EHR
-              </button>) : null}
-            </div>
+              </Button>) : null}
+            </Box>
         )
       }
     }
@@ -1588,9 +1611,10 @@ export default class QuestionnaireForm extends Component {
     const showPopup = !isAdaptiveForm || this.isAdaptiveFormWithoutItem();
     return (
         <div>
+          <div id="formHeader"></div>
           <div id="formContainer">
           </div>
-          {!isAdaptiveForm && this.props.formFilled ? <div className="form-message-panel"><p>All fields have been filled. Continue or uncheck "Only Show Unfilled Fields" to review and modify the form.</p></div> : null}
+          {/* {!isAdaptiveForm && this.props.formFilled ? <Alert severity="info" sx={{ mb: 2 }}>All fields have been filled. Continue or uncheck "Only Show Unfilled Fields" to review and modify the form.</Alert> : null} */}
           {
             showPopup ? (
                 <SelectPopup
@@ -1604,13 +1628,13 @@ export default class QuestionnaireForm extends Component {
           }
           {
             isAdaptiveForm ? (
-                <div className="form-message-panel">
+                <Box className="form-message-panel" sx={{ mt: 2, p: 2, bgcolor: 'grey.100', borderRadius: 1 }}>
                   {this.isAdaptiveFormWithoutItem() && !this.props.adFormCompleted ? (<p>Click Next Question button to proceed.</p>) : null}
-                  {!this.props.adFormCompleted ? (<div> <button className="btn submit-button" onClick={this.loadNextQuestions}>
+                  {!this.props.adFormCompleted ? (<Box sx={{ mt: 1 }}> <Button variant="contained" onClick={this.loadNextQuestions}>
                     Next Question
-                  </button>
-                  </div>) : null}
-                </div>) : null
+                  </Button>
+                  </Box>) : null}
+                </Box>) : null
           }
           {
             !isAdaptiveForm ? (<div className="status-panel">

@@ -6,15 +6,11 @@
 }
 
 .usermessage .details {
+    min-width: 50vw;
     padding: 1em;
     background-color: white;
     color: #6c757d;
 }
-
-.detail {
-    color: #6c757d;
-}
-
 .detail-line {
     border: 0.4pt solid #efefef;
 }

@@ -5,7 +5,10 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.jsx";
 import UserMessage from "./components/UserMessage/UserMessage";
-import { Alert } from "react-bootstrap";
+import { Alert } from "@mui/material";
+import { ThemeProvider } from "@mui/material/styles";
+import { CssBaseline } from "@mui/material";
+import theme from "./theme";
 console.log("completed imports");
 // get the URL parameters received from the authorization server
 const state = urlUtils.getUrlParameter("state"); // session key
@@ -17,11 +20,14 @@ if (!state || !code) {
   const container = document.getElementById("root");
   const root = createRoot(container);
   root.render(
-      <Alert variant="info" className="usermessage">
-        <Alert.Heading>Launch Parameters Missing</Alert.Heading>
-        <p>This is a <Alert.Link href="https://hl7.org/fhir/smart-app-launch/index.html">SMART on FHIR</Alert.Link> application that requires the appropriate launch parameters.</p>
-        <p>An example launch can be completed through the <Alert.Link href="https://crd-request-generator.davinci.hl7.org">CRD Request Generator</Alert.Link>.</p>
-      </Alert>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Alert severity="info" sx={{ margin: 2 }}>
+          <h4>Launch Parameters Missing</h4>
+          <p>This is a <a href="https://hl7.org/fhir/smart-app-launch/index.html">SMART on FHIR</a> application that requires the appropriate launch parameters.</p>
+          <p>An example launch can be completed through the <a href="https://crd-request-generator.davinci.hl7.org">CRD Request Generator</a>.</p>
+        </Alert>
+      </ThemeProvider>
   );
 }
 
@@ -169,12 +175,15 @@ oauth2.ready()
     const container = document.getElementById("root");
     const root = createRoot(container);
     root.render(
-      <App
-        appContext={appContext}
-        standalone={standalone}
-        smart={smart}
-        patientId={patientId}
-      />
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <App
+          appContext={appContext}
+          standalone={standalone}
+          smart={smart}
+          patientId={patientId}
+        />
+      </ThemeProvider>
     );
     
     console.log(smart.state.tokenResponse);

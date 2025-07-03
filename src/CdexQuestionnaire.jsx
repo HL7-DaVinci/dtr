@@ -1,6 +1,18 @@
 import React, { Component } from "react";
 import ReactDOM from "react-dom";
 import QuestionnaireForm from './components/QuestionnaireForm/QuestionnaireForm';
+import { 
+  Button, 
+  Typography, 
+  Box, 
+  TextField, 
+  Grid,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Divider
+} from '@mui/material';
+import { ExpandMore } from '@mui/icons-material';
 
 
 export default class CdexQuestionnaire extends Component {
@@ -96,52 +108,83 @@ export default class CdexQuestionnaire extends Component {
 
   render() {
     return (
-      <div>
-        <h2>Questionnaire</h2>
-        <div className="mb-3 row">
-          <label for="questionnaireUrl" className="col-sm-2 col-form-label">Questionnaire source:</label>
-          <div className="col-sm-10">
-            <input type="text" id="questionnaireUrl" className="form-control-plaintext" value={this.props.questionnaireUrl} readOnly />
-          </div>
-        </div>
+      <Box sx={{ p: 2 }}>
+        <Typography variant="h4" component="h2" gutterBottom>
+          Questionnaire
+        </Typography>
+        <Grid container spacing={2} sx={{ mb: 3 }}>
+          <Grid item xs={12} sm={2}>
+            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+              Questionnaire source:
+            </Typography>
+          </Grid>
+          <Grid item xs={12} sm={10}>
+            <TextField
+              fullWidth
+              variant="standard"
+              value={this.props.questionnaireUrl}
+              InputProps={{ readOnly: true }}
+              sx={{ '& .MuiInput-input': { padding: 0 } }}
+            />
+          </Grid>
+        </Grid>
         <div id="questionnaireForm"></div>
-        <button className="btn btn-primary mt-3" onClick={this.saveResponse}>Save QuestionnaireResponse</button>
+        <Button 
+          variant="contained" 
+          sx={{ mt: 3 }}
+          onClick={this.saveResponse}
+        >
+          Save QuestionnaireResponse
+        </Button>
 
-        <hr className="border border-primary" />
+        <Divider sx={{ my: 4, borderColor: 'primary.main', borderWidth: 2 }} />
 
-        <h2>Task</h2>
-        <div className="mb-3 row">
-          <label for="taskUrl" className="col-sm-2 col-form-label">Task source:</label>
-          <div className="col-sm-10">
-            <input type="text" id="taskUrl" className="form-control-plaintext" value={`${this.props.client.state.serverUrl}/${this.props.fhirContext?.task}`} readOnly />
-          </div>
-        </div>
+        <Typography variant="h4" component="h2" gutterBottom>
+          Task
+        </Typography>
+        <Grid container spacing={2} sx={{ mb: 3 }}>
+          <Grid item xs={12} sm={2}>
+            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+              Task source:
+            </Typography>
+          </Grid>
+          <Grid item xs={12} sm={10}>
+            <TextField
+              fullWidth
+              variant="standard"
+              value={`${this.props.client.state.serverUrl}/${this.props.fhirContext?.task}`}
+              InputProps={{ readOnly: true }}
+              sx={{ '& .MuiInput-input': { padding: 0 } }}
+            />
+          </Grid>
+        </Grid>
 
-        <button className="btn btn-primary mb-3" onClick={this.taskCompleted}>Mark Task Completed</button>
+        <Button 
+          variant="contained" 
+          sx={{ mb: 3 }}
+          onClick={this.taskCompleted}
+        >
+          Mark Task Completed
+        </Button>
 
-        <div className="accordion">
-          <div className="accordion-item">
-            <h2 className="accordion-header" id="taskHeader">
-              <button className="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#taskCollapse" aria-expanded="true" aria-controls="taskCollapse">
-                Task
-                  ID: {this.state.task?.id}, Status: {this.state.task?.status}, 
-                  QuestionnaireResponse: { 
-                    this.state.task?.output?.find(
-                      (o) => o.type.coding.find(
-                        (c) => c.system === 'http://hl7.org/fhir/uv/sdc/CodeSystem/temp' && c.code === "questionnaire-response")
-                      )?.valueReference?.reference ?? 'none'
-                  }
-              </button>
-            </h2>
-            <div id="taskCollapse" className="accordion-collapse collapse show" aria-labelledby="taskHeader" data-bs-parent="#accordionTask">
-              <div className="accordion-body">
-                <pre>{JSON.stringify(this.state.task, null, 2)}</pre>
-              </div>
-            </div>
-          </div>
-        </div>
+        <Accordion defaultExpanded>
+          <AccordionSummary expandIcon={<ExpandMore />}>
+            <Typography variant="h6">
+              Task - ID: {this.state.task?.id}, Status: {this.state.task?.status}, 
+              QuestionnaireResponse: { 
+                this.state.task?.output?.find(
+                  (o) => o.type.coding.find(
+                    (c) => c.system === 'http://hl7.org/fhir/uv/sdc/CodeSystem/temp' && c.code === "questionnaire-response")
+                  )?.valueReference?.reference ?? 'none'
+              }
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <pre>{JSON.stringify(this.state.task, null, 2)}</pre>
+          </AccordionDetails>
+        </Accordion>
 
-      </div>
+      </Box>
     );
   }
 

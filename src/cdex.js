@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { oauth2 } from "fhirclient";
 
 import CdexLaunchPage from './CdexLaunchPage.jsx';
@@ -7,12 +7,15 @@ import CdexQuestionnaire from './CdexQuestionnaire.jsx';
 import UserMessage from './components/UserMessage/UserMessage.jsx';
 import urlUtils from './util/url';
 
+const container = document.getElementById("cdex");
+const root = createRoot(container);
+
 const state = urlUtils.getUrlParameter("state");
 
 // no state parameter means this isn't the result of a successful launch so we'll show the launch helper page
 if (!state) {
   console.log('no state parameter found so rendering launch help page');
-  ReactDOM.render( <CdexLaunchPage/>, document.getElementById("cdex") );
+  root.render( <CdexLaunchPage/> );
 } 
 
 // otherwise, we've launched and can fetch everything to render the questionnaire (hopefully)
@@ -32,7 +35,7 @@ async function showQuestionnaire(client) {
   if (!sessionStorage[state]) {
     const message = `No session storage found for state: ${state}`;
     console.error(message);
-    ReactDOM.render( <UserMessage message={message} variant="danger" />, document.getElementById("cdex") );
+    root.render( <UserMessage message={message} variant="danger" /> );
     return;
   }
 
@@ -41,14 +44,14 @@ async function showQuestionnaire(client) {
   } catch (error) {
     const message = `Failed to parse session storage: ${error}`;
     console.error(message);
-    ReactDOM.render( <UserMessage message={message} variant="danger" />, document.getElementById("cdex") );
+    root.render( <UserMessage message={message} variant="danger" /> );
     return;
   }
 
   if (!params.tokenResponse?.fhirContext) {
     const message = `No fhirContext property found in tokenResponse`;
     console.error(message);
-    ReactDOM.render( <UserMessage message={message} variant="danger" />, document.getElementById("cdex") );
+    root.render( <UserMessage message={message} variant="danger" /> );
     return;
   }
 
@@ -58,14 +61,14 @@ async function showQuestionnaire(client) {
   } catch (error) {
     const message = `Failed to parse fhirContext: ${error}`;
     console.error(message);
-    ReactDOM.render( <UserMessage message={message} variant="danger" />, document.getElementById("cdex") );
+    root.render( <UserMessage message={message} variant="danger" /> );
     return;
   }
 
   if (!fhirContext.task) {
     const message = `No task found in fhirContext in the token response`;
     console.error(message);
-    ReactDOM.render( <UserMessage message={message} variant="danger" />, document.getElementById("cdex") );
+    root.render( <UserMessage message={message} variant="danger" /> );
     return;
   }
 
@@ -76,7 +79,7 @@ async function showQuestionnaire(client) {
   } catch (error) {
     const message = `Failed to fetch task: ${error}`;
     console.error(message);
-    ReactDOM.render( <UserMessage message={message} variant="danger" />, document.getElementById("cdex") );
+    root.render( <UserMessage message={message} variant="danger" /> );
     return;
   }
 
@@ -85,7 +88,7 @@ async function showQuestionnaire(client) {
   if (!task.code || (task.code.coding || []).findIndex((c) => c.code === "data-request-questionnaire") < 0){
     const message = `Task does not have the expected "data-request-questionnaire" code`;
     console.error(message);
-    ReactDOM.render( <UserMessage message={message} variant="danger" />, document.getElementById("cdex") );
+    root.render( <UserMessage message={message} variant="danger" /> );
     return;
   }
 
@@ -96,7 +99,7 @@ async function showQuestionnaire(client) {
   if (questionnaireIndex < 0) {
     const message = `Task does not have a Questionnaire input`;
     console.error(message);
-    ReactDOM.render( <UserMessage message={message} variant="danger" />, document.getElementById("cdex") );
+    root.render( <UserMessage message={message} variant="danger" /> );
     return;
   }
 
@@ -104,7 +107,7 @@ async function showQuestionnaire(client) {
   if (!input.valueCanonical) {
     const message = `Questionnaire input does not have a valueCanonical property`;
     console.error(message);
-    ReactDOM.render( <UserMessage message={message} variant="danger" />, document.getElementById("cdex") );
+    root.render( <UserMessage message={message} variant="danger" /> );
     return;
   }
 
@@ -116,19 +119,18 @@ async function showQuestionnaire(client) {
   } catch (error) {
     const message = `Failed to fetch questionnaire: ${error}`;
     console.error(message);
-    ReactDOM.render( <UserMessage message={message} variant="danger" />, document.getElementById("cdex") );
+    root.render( <UserMessage message={message} variant="danger" /> );
     return;
   }
 
-  ReactDOM.render( 
+  root.render( 
     <CdexQuestionnaire
       client={client}
       fhirContext={fhirContext}
       questionnaireUrl={input.valueCanonical}
       questionnaire={questionnaire}
       task={task}
-    />,
-    document.getElementById("cdex") 
+    />
   );
 
 }

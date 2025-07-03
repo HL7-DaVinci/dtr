@@ -1,6 +1,18 @@
 import React, { Component } from "react";
 import "./RegisterPage.css";
 import {postToClients, deleteClient} from "./util/util";
+import { 
+  Box, 
+  TextField, 
+  Button, 
+  Typography, 
+  Checkbox, 
+  FormControlLabel,
+  Grid,
+  Paper,
+  IconButton
+} from '@mui/material';
+import { Delete } from '@mui/icons-material';
 
 class RegisterPage extends Component {
   constructor(props) {
@@ -45,28 +57,93 @@ class RegisterPage extends Component {
 
   render() {
     return(
-        <div>
-            <div className="left">
-                <p>Client Id</p>
-                <input className="client-id" value={this.state.clientId} onChange={(e)=>{this.setState({clientId:e.target.value})}}></input>
+        <Box sx={{ p: 3 }}>
+            <Grid container spacing={4}>
+                <Grid item xs={12} md={6}>
+                    <Paper sx={{ p: 3 }}>
+                        <Typography variant="h6" gutterBottom>
+                            Client Registration
+                        </Typography>
+                        
+                        <TextField
+                            fullWidth
+                            label="Client Id"
+                            value={this.state.clientId}
+                            onChange={(e) => {this.setState({clientId: e.target.value})}}
+                            margin="normal"
+                        />
 
-                <p>Fhir Server (iss)</p>
-                <input className="client-id" value={this.state.fhirUrl} onChange={(e)=>{this.setState({fhirUrl:e.target.value})}} disabled = {this.state.toggle}></input>
+                        <TextField
+                            fullWidth
+                            label="Fhir Server (iss)"
+                            value={this.state.fhirUrl}
+                            onChange={(e) => {this.setState({fhirUrl: e.target.value})}}
+                            disabled={this.state.toggle}
+                            margin="normal"
+                        />
 
-                <p>Last Accessed Fhir Server:</p>
-                <p>{localStorage.getItem("lastAccessedServiceUri") || "None"}</p>
-                <br></br>
-                <input className="bool-checkbox" type="checkbox" onClick={()=>{this.setState({toggle: !this.state.toggle})}}></input>
-                <span>Use this client ID by default for all FHIR Servers</span>
-                <button className="btn submit-btn" onClick={this.submit} >Submit</button>
-            </div>
-            <div className="sep">
-                <p>Current Client Ids</p>
-                {this.state.clients.map((e)=>{return <div key={e.id}><p><span className="bold">{e.name}</span>: {e.client} <span className="delete" onClick={()=>{this.delete(e)}}>x</span></p> </div>})}
-            </div>
-        </div>
-
-
+                        <Typography variant="body2" sx={{ mt: 2, mb: 1 }}>
+                            Last Accessed Fhir Server:
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            {localStorage.getItem("lastAccessedServiceUri") || "None"}
+                        </Typography>
+                        
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    checked={this.state.toggle}
+                                    onChange={() => {this.setState({toggle: !this.state.toggle})}}
+                                />
+                            }
+                            label="Use this client ID by default for all FHIR Servers"
+                            sx={{ mt: 2, mb: 3 }}
+                        />
+                        
+                        <Button 
+                            variant="contained" 
+                            onClick={this.submit}
+                            fullWidth
+                        >
+                            Submit
+                        </Button>
+                    </Paper>
+                </Grid>
+                
+                <Grid item xs={12} md={6}>
+                    <Paper sx={{ p: 3 }}>
+                        <Typography variant="h6" gutterBottom>
+                            Current Client Ids
+                        </Typography>
+                        {this.state.clients.map((e) => {
+                            return (
+                                <Box key={e.id} sx={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'space-between',
+                                    p: 1,
+                                    border: 1,
+                                    borderColor: 'grey.300',
+                                    borderRadius: 1,
+                                    mb: 1
+                                }}>
+                                    <Typography variant="body2">
+                                        <strong>{e.name}</strong>: {e.client}
+                                    </Typography>
+                                    <IconButton 
+                                        size="small" 
+                                        color="error"
+                                        onClick={() => {this.delete(e)}}
+                                    >
+                                        <Delete />
+                                    </IconButton>
+                                </Box>
+                            )
+                        })}
+                    </Paper>
+                </Grid>
+            </Grid>
+        </Box>
     )
   }
 }

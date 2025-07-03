@@ -12,7 +12,7 @@ function executeElm(smart, fhirVersion, request, executionInputs, consoleLog) {
     consoleLog("need to fetch resources","infoClass");
     console.log("We need to fetch these resources:", neededResourcesFromLibrary);
     buildPopulatedResourceBundle(smart, neededResourcesFromLibrary, fhirVersion, request, consoleLog)
-    .then(function(resourceBundle) {
+    .then(async function(resourceBundle) {
       console.log("Fetched resources are in this bundle:", resourceBundle);
       
       if (!resourceBundle || typeof resourceBundle !== 'object') {
@@ -22,7 +22,8 @@ function executeElm(smart, fhirVersion, request, executionInputs, consoleLog) {
       }
       
       patientSource.loadBundles([resourceBundle]);
-      const elmResults = executeElmAgainstPatientSource(executionInputs, patientSource);
+      const elmResults = await executeElmAgainstPatientSource(executionInputs, patientSource);
+      console.log("elmResults:", elmResults);
       const results = {
         libraryName: executionInputs.elm.library.identifier.id,
         bundle: resourceBundle,
@@ -60,7 +61,7 @@ function findDifference(array1, array2) {
   console.log("--- NeededResources Difference: ", temp);
 }
 
-function executeElmAgainstPatientSource(executionInputs, patientSource) {
+async function executeElmAgainstPatientSource(executionInputs, patientSource) {
   // executionInputs.elmDependencies = [ fhirhelpersElm ]
   let repository = undefined;
   if(executionInputs.elmDependencies) {
@@ -75,7 +76,8 @@ function executeElmAgainstPatientSource(executionInputs, patientSource) {
   }
     const codeService = new cql.CodeService(executionInputs.valueSetDB);
   const executor = new cql.Executor(lib, codeService, executionInputs.parameters);
-  const results = executor.exec(patientSource);
+  const results = await executor.exec(patientSource);
+  console.log("CQL execution results:", results);
   
   if (!results) {
     console.error("CQL execution returned no results");

@@ -1,7 +1,7 @@
-import React, { Component, useState } from "react";
+import { Component } from "react";
 import './UserMessage.css';
-import Alert from 'react-bootstrap/Alert';
-import Button from 'react-bootstrap/Button';
+import { Alert, Button, Typography } from '@mui/material';
+import { ExpandMore, ExpandLess } from '@mui/icons-material';
 import _ from "lodash"
 
 /** a general purpose mechanism to display messages (e.g., errors, warnings)
@@ -14,7 +14,7 @@ import _ from "lodash"
                     details={this.state.errors[0]['details']} />
  *
  *    Parameters:
- *      variant - one of https://react-bootstrap.github.io/components/alerts/#examples
+ *      variant - one of 'error', 'warning', 'info', 'success' (MUI Alert severities)
  *                (e.g., success, info, warning, danger )
  *      title - optional title for message
  *      message - a paragraph of messages
@@ -49,7 +49,13 @@ export default class UserMessage extends Component {
           <div className="details">
             <pre className="detail">{detailStr}</pre>
             <hr className="detail-line"/>
-            <Button onClick={() => this.toggleDetails()} variant="secondary" size="sm">
+            <Button 
+              onClick={() => this.toggleDetails()} 
+              variant="outlined" 
+              size="small"
+              startIcon={<ExpandLess />}
+              sx={{ mt: 1 }}
+            >
               Hide Details
             </Button>
           </div>
@@ -58,7 +64,13 @@ export default class UserMessage extends Component {
       else {
         return (
           <div>
-            <Button onClick={() =>this.toggleDetails()} variant="secondary" size="sm">
+            <Button 
+              onClick={() =>this.toggleDetails()} 
+              variant="outlined" 
+              size="small"
+              startIcon={<ExpandMore />}
+              sx={{ mt: 1 }}
+            >
               Show Details
             </Button>
           </div>
@@ -72,9 +84,13 @@ export default class UserMessage extends Component {
 
   render() {
     return (
-      <Alert variant={this.state.props.variant} className="usermessage">
-        <Alert.Heading>{this.state.props.title}</Alert.Heading>
-        <p className="message">{this.state.props.message}</p>
+      <Alert severity={this.state.props.variant} className="usermessage" sx={{ mb: 2 }}>
+        <Typography variant="h6" component="div" sx={{ fontWeight: 'bold', mb: 1 }}>
+          {this.state.props.title}
+        </Typography>
+        <Typography variant="body1" className="message" sx={{ mb: 1 }}>
+          {this.state.props.message}
+        </Typography>
         { this.renderDetails() }
       </Alert>
     )

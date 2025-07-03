@@ -7,6 +7,15 @@ import { createSign } from "crypto";
 import base64 from "base64url";
 import shortid from "shortid";
 import axios from "axios";
+import Button from "@mui/material/Button";
+import Grid from "@mui/material/Grid";
+import { 
+  TextField, 
+  FormControlLabel, 
+  Checkbox,
+  Typography,
+  Box
+} from "@mui/material";
 
 // Note: code to enable/disable DME Orders
 var dMEOrdersEnabled = false;
@@ -20,7 +29,10 @@ export default class PriorAuth extends Component {
       subscribeMsg: "",
       showRestHookForm: false,
       showLink: false,
-      priorAuthBase: window.location.hostname === "localhost" ? "http://localhost:9015/fhir" : "https://prior-auth.davinci.hl7.org/fhir",
+      priorAuthBase:
+        window.location.hostname === "localhost"
+          ? "http://localhost:9015/fhir"
+          : "https://prior-auth.davinci.hl7.org/fhir",
       isSubmitted: false,
       priorAuthId: null,
       patientId: null,
@@ -739,9 +751,9 @@ export default class PriorAuth extends Component {
         ? "Select Type"
         : this.state.subscriptionType;
     return (
-      <div className="row">
+      <Grid container spacing={2}>
         {this.state.isSubmitted ? (
-          <div className="right col col-md-6">
+          <Grid xs={12} md={6} className="right">
             <div>
               <h4 className="inline">Prior Authorization: </h4>
               <p className="inline">{claimResponse.id}</p>
@@ -759,13 +771,14 @@ export default class PriorAuth extends Component {
               <p className="inline">{claimResponse.disposition}</p>
             </div>
             <div>{this.renderResponseItems(claimResponse)}</div>
-            <button
+            <Button
               type="button"
-              className="btn btn-primary"
+              variant="contained"
+              color="primary"
               onClick={() => this.getLatestResponse()}
             >
               Check Claim Status ($inquire)
-            </button>
+            </Button>
             {/* <button
               type="button"
               className="btn btn-success"
@@ -842,55 +855,58 @@ export default class PriorAuth extends Component {
               Subscribe
             </button>
             <p>{this.state.subscribeMsg}</p> */}
-          </div>
+          </Grid>
         ) : (
-          <div className="right col col-md-6">
-            <h2>Submit Prior Auth</h2>
-            <form>
-              <div className="row">
-                <div className="col">
-                  <label>Select PriorAuth Endpoint:</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="priorauthEndpoint"
-                    defaultValue={this.state.priorAuthBase}
+          <Grid item xs={12} md={6} className="right">
+            <Typography variant="h4" component="h2" gutterBottom>
+              Submit Prior Auth
+            </Typography>
+            <Box component="form">
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Select PriorAuth Endpoint"
+                    value={this.state.priorAuthBase}
                     onChange={(e) =>
                       this.setState({ priorAuthBase: e.target.value })
                     }
+                    margin="normal"
                   />
-                  <br />
-                  <input
-                    type="checkbox"
-                    id="use_oauth"
-                    value="oauth"
-                    onChange={this.setOauth.bind(this)}
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        onChange={this.setOauth.bind(this)}
+                      />
+                    }
+                    label="Use OAuth"
+                    sx={{ mt: 2 }}
                   />
-                  <label htmlFor="use_oauth">Use OAuth</label>
-                </div>
-              </div>
-              <div className="row">
-                <div className="col">
-                  <button
+                </Grid>
+              </Grid>
+              <Grid container spacing={2} sx={{ mt: 2 }}>
+                <Grid item xs={12}>
+                  <Button
                     type="button"
-                    className="btn btn-primary"
+                    variant="contained"
+                    color="primary"
                     onClick={this.submitClaim.bind(this)}
                   >
                     Submit
-                  </button>
-                </div>
-              </div>
-            </form>
-          </div>
+                  </Button>
+                </Grid>
+              </Grid>
+            </Box>
+          </Grid>
         )}
-        <div className="raw-claim-response col col-md-6">
+        <Grid item xs={12} md={6} className="raw-claim-response">
           {this.state.isSubmitted ? (
             <pre>{JSON.stringify(claimResponse, undefined, 2)}</pre>
           ) : (
             <pre>{JSON.stringify(this.props.claimBundle, undefined, 2)}</pre>
           )}
-        </div>
-      </div>
+        </Grid>
+      </Grid>
     );
   }
 }

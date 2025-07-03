@@ -1,6 +1,31 @@
 .App {
   margin: 1rem;
   font-family: Arial, Helvetica, sans-serif;
+  /* font-size: 16px;
+  line-height: 1.6;
+}
+
+body {
+  font-size: 16px !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  line-height: 1.4;
+}
+
+p, div, span {
+  font-size: inherit;
+  line-height: inherit;
+}
+
+input, textarea, select, button {
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+label {
+  font-size: 16px;
+  font-weight: 500; */
 }
 
 .form-container {
@@ -9,9 +34,7 @@
 
 .task-button {
     float: right;
-    z-index: 2;
-    color: white;
-    margin-right:10px;
+    margin-right: 1.0em;
 }
 
 .task-input { 
