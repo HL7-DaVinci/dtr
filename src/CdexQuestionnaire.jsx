@@ -113,17 +113,21 @@ export default class CdexQuestionnaire extends Component {
           Questionnaire
         </Typography>
         <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={12} sm={2}>
+          <Grid size={2}>
             <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
               Questionnaire source:
             </Typography>
           </Grid>
-          <Grid item xs={12} sm={10}>
+          <Grid size={10}>
             <TextField
               fullWidth
               variant="standard"
               value={this.props.questionnaireUrl}
-              InputProps={{ readOnly: true }}
+              slotProps={{
+                input: {
+                  readOnly: true
+                }
+              }}
               sx={{ '& .MuiInput-input': { padding: 0 } }}
             />
           </Grid>
@@ -143,17 +147,21 @@ export default class CdexQuestionnaire extends Component {
           Task
         </Typography>
         <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={12} sm={2}>
+          <Grid size={2}>
             <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
               Task source:
             </Typography>
           </Grid>
-          <Grid item xs={12} sm={10}>
+          <Grid size={10}>
             <TextField
               fullWidth
               variant="standard"
               value={`${this.props.client.state.serverUrl}/${this.props.fhirContext?.task}`}
-              InputProps={{ readOnly: true }}
+              slotProps={{
+                input: {
+                  readOnly: true
+                }
+              }}
               sx={{ '& .MuiInput-input': { padding: 0 } }}
             />
           </Grid>

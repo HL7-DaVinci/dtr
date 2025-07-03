@@ -1,10 +1,8 @@
-import {client, oauth2} from "fhirclient";
+import {oauth2} from "fhirclient";
 import urlUtils from "./util/url";
-import {postToLogs, updateLog} from "./util/util";
-import React from "react";
+import {updateLog} from "./util/util";
 import { createRoot } from "react-dom/client";
 import App from "./App.jsx";
-import UserMessage from "./components/UserMessage/UserMessage";
 import { Alert } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 import { CssBaseline } from "@mui/material";
@@ -16,25 +14,17 @@ const code = urlUtils.getUrlParameter("code"); // authorization code
 
 // Check if state or code parameters are missing
 if (!state || !code) {
-  console.log('Missing state or code parameters, rendering launch help page');
-  const container = document.getElementById("root");
-  const root = createRoot(container);
-  root.render(
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Alert severity="info" sx={{ margin: 2 }}>
-          <h4>Launch Parameters Missing</h4>
-          <p>This is a <a href="https://hl7.org/fhir/smart-app-launch/index.html">SMART on FHIR</a> application that requires the appropriate launch parameters.</p>
-          <p>An example launch can be completed through the <a href="https://crd-request-generator.davinci.hl7.org">CRD Request Generator</a>.</p>
-        </Alert>
-      </ThemeProvider>
-  );
+  renderLaunchHelpPage();
 }
+
 
 // load the app parameters stored in the session
 // const params = JSON.parse(sessionStorage[state]); // load app session
 // console.log('params:', params);
-const log = JSON.parse(sessionStorage.getItem("currentLog"));
+let log = JSON.parse(sessionStorage.getItem("currentLog"));
+if (!log) {
+  log = {}
+}
 // const tokenUri = params.tokenUri;
 // const clientId = params.clientId;
 // const secret = params.secret;
@@ -43,10 +33,11 @@ const log = JSON.parse(sessionStorage.getItem("currentLog"));
 // const redirectUri = params.redirectUri;
 log.status = "redirected";
 const standalone = sessionStorage.getItem("launchContextId") ? false : true;
-console.log("STANDALONE");
-console.log(standalone);
+console.log("Standalone:", standalone);
 updateLog(log);
 
+
+log.status = "Authorizing";
 // Use SMART client to handle the authorization code exchange
 oauth2.ready()
   .then((smart) => {
@@ -201,6 +192,36 @@ oauth2.ready()
     updateLog(log);
   });
 
-log.status = "Authorizing";
 
+
+function renderLaunchHelpPage(error) {
+
+  if (error) {
+    console.log("Error:", error);
+  }
+  else {
+    console.log('Missing state or code parameters, rendering launch help page');
+  }
+
+  const container = document.getElementById("root");
+  const root = createRoot(container);
+  root.render(
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+
+        (error ? (
+          <Alert severity="error" sx={{ margin: 2 }}>
+            <h4>Error</h4>
+            <p>{error}</p>
+          </Alert>
+        ) : null)
+
+        <Alert severity="info" sx={{ margin: 2 }}>
+          <h4>Launch Parameters Missing</h4>
+          <p>This is a <a href="https://hl7.org/fhir/smart-app-launch/index.html">SMART on FHIR</a> application that requires the appropriate launch parameters.</p>
+          <p>An example launch can be completed through the <a href="https://crd-request-generator.davinci.hl7.org">CRD Request Generator</a>.</p>
+        </Alert>
+      </ThemeProvider>
+  );
+}
 

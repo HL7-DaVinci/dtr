@@ -5,6 +5,7 @@ import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import DialogTitle from '@mui/material/DialogTitle';
 import Dialog from '@mui/material/Dialog';
+import { ListItemButton } from "@mui/material";
 
 function SimpleDialog(props) {
   const { onClose, selectedValue, open, title, options, finalOption } = props;
@@ -22,14 +23,14 @@ function SimpleDialog(props) {
         <DialogTitle id="simple-dialog-title">{title}</DialogTitle>
         <List>
         {options.map((option) => (
-            <ListItem button onClick={() => handleListItemClick(option)} key={option}>
-            <ListItemText primary={option} />
-            </ListItem>
+            <ListItemButton onClick={() => handleListItemClick(option)} key={option}>
+              <ListItemText primary={option} />
+            </ListItemButton>
         ))}
 
-        <ListItem autoFocus button onClick={() => handleListItemClick('New')}>
+        <ListItemButton autoFocus onClick={() => handleListItemClick('New')}>
             <ListItemText primary={finalOption} />
-        </ListItem>
+        </ListItemButton>
         </List>
     </Dialog>
     );

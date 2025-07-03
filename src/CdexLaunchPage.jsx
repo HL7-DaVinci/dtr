@@ -1,7 +1,34 @@
-import React, { Component } from "react";
+import { Component } from "react";
 import { getClients, getExample } from "./util/util";
 import shortid from "shortid";
-import UserMessage from "./components/UserMessage/UserMessage";
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Container,
+  Grid,
+  Card,
+  CardContent,
+  InputAdornment,
+  Alert,
+  List,
+  ListItem,
+  Divider,
+  Paper
+} from '@mui/material';
+import { styled } from '@mui/material/styles';
+
+const StyledPre = styled('pre')(({ theme }) => ({
+  backgroundColor: theme.palette.grey[100],
+  border: `1px solid ${theme.palette.grey[300]}`,
+  borderRadius: theme.shape.borderRadius,
+  padding: theme.spacing(2),
+  fontFamily: 'monospace',
+  fontSize: '0.875rem',
+  overflow: 'auto',
+  whiteSpace: 'pre-wrap'
+}));
 
 export default class CdexLaunchPage extends Component {
 
@@ -56,17 +83,25 @@ export default class CdexLaunchPage extends Component {
 
   
   setFhirUrl(newUrl) {
+    console.log('setting FHIR URL:', newUrl);
     this.setState({fhirUrl: newUrl});
     localStorage.setItem("lastAccessedServiceUri", newUrl);
     if (!this.state.launchIdUrl || this.state.launchIdUrl.length === 0) {
       this.setState({launchIdUrl: newUrl + "/_services/smart/Launch"});
     }
     if (!this.state.questionnaireUrl || this.state.questionnaireUrl.length === 0) {
-      this.setQuestionnaireUrl(this.state.fhirUrl + "/Questionnaire/cdex-questionnaire-example1");
+      this.setQuestionnaireUrl(newUrl + "/Questionnaire/cdex-questionnaire-example1", newUrl);
     }
   }
 
-  setQuestionnaireUrl(newUrl) {
+  setQuestionnaireUrl(newUrl, newBaseUrl) {
+    const fhirUrl = newBaseUrl || this.state.fhirUrl;
+
+    if (!/^https?:\/\//.test(newUrl)) {
+      newUrl = fhirUrl + '/' + newUrl.replace(/^\//, '');
+      console.log('setting questionnaire URL with FHIR base:', newUrl);
+    }
+
     this.setState({questionnaireUrl: newUrl});
 
     try {
@@ -275,103 +310,237 @@ export default class CdexLaunchPage extends Component {
 
   render() {
     return(
-      <div>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Typography variant="h3">CDex Questionnaire as Task Input</Typography>
 
-        <p>
+        <Typography variant="body1" sx={{ mb: 3 }}>
           This form will guide you in the process of initiating a DTR launch following 
           the <a href="https://build.fhir.org/ig/HL7/davinci-ecdx/task-based-approach.html#using-da-vinci-dtr-to-complete-the-questionnaire" target="_blank">
           CDex Questionnaire as Task Input</a> flow.
-        </p>
+        </Typography>
 
-        <h2>FHIR Server</h2>
-        <p>This is the FHIR server that will store the Task and QuestionnaireResponse resources.</p>
-        <div className="mb-3">
-          <label htmlFor="fhirUrl" className="form-label">Data Source Base FHIR URL</label>
-          <input type="text" id="fhirUrl" className="form-control" value={this.state.fhirUrl} onChange={(e) => {this.setFhirUrl(e.target.value)}} />
-        </div>
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Typography variant="h5" component="h2" gutterBottom>
+              FHIR Server
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              This is the FHIR server that will store the Task and QuestionnaireResponse resources.
+            </Typography>
+            <TextField
+              fullWidth
+              label="Data Source Base FHIR URL"
+              value={this.state.fhirUrl}
+              onChange={(e) => {this.setFhirUrl(e.target.value)}}
+              variant="outlined"
+            />
+          </CardContent>
+        </Card>
 
-        <h2>Questionnaire</h2>
-        <p>Full URL for the Questionnaire to use as the Task input. (<em>Task.input.type.coding.valueCanonical</em> property)</p>
-        <div className="mb-3">
-          <label htmlFor="questionnaireUrl" className="form-label">Questionnaire URL</label>
-          <input type="text" id="questionnaireUrl" className="form-control" value={this.state.questionnaireUrl} onChange={(e) => {this.setQuestionnaireUrl(e.target.value)}} />
-        </div>
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Typography variant="h5" component="h2" gutterBottom>
+              Questionnaire
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Full URL for the Questionnaire to use as the Task input. (<em>Task.input.type.coding.valueCanonical</em> property)
+            </Typography>
+            <TextField
+              fullWidth
+              label="Questionnaire URL"
+              value={this.state.questionnaireUrl}
+              onChange={(e) => {this.setQuestionnaireUrl(e.target.value)}}
+              variant="outlined"
+            />
+          </CardContent>
+        </Card>
 
-        <h2>Task</h2>
-        <p>Use an existing task ID on the FHIR server or create a new Task, save it to the server, and use that as the task ID for the launch.</p>
-        <div className="mb-3">
-          <label htmlFor="taskId" className="form-label">Task ID</label>
-          <div className="input-group">
-            <span className="input-group-text">{this.state.fhirUrl}/Task/</span>
-            <input type="text" id="taskId" className="form-control" value={this.state.taskId} onChange={this.taskIdChanged} />
-            <button className="btn btn-primary" onClick={this.fetchTask}>Load Task</button>
-          </div>
-          <pre hidden={ !this.state.taskResourceError || this.state.taskResourceError.length < 1 } className="bg-body-tertiary border rounded-3">{ JSON.stringify(this.state.taskResourceError, null, 2) }</pre>
-        </div>
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Typography variant="h5" component="h2" gutterBottom>
+              Task
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Use an existing task ID on the FHIR server or create a new Task, save it to the server, and use that as the task ID for the launch.
+            </Typography>
+            
+            <Box sx={{ mb: 3 }}>
+              <TextField
+                fullWidth
+                label="Task ID"
+                value={this.state.taskId}
+                onChange={this.taskIdChanged}
+                slotProps={{
+                  input: {
+                    startAdornment: <InputAdornment position="start">{this.state.fhirUrl}/Task/</InputAdornment>,
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <Button variant="contained" onClick={this.fetchTask}>
+                          Load Task
+                        </Button>
+                      </InputAdornment>
+                    )
+                  }
+                }}
+                variant="outlined"
+              />
+              {this.state.taskResourceError && this.state.taskResourceError.length > 0 && (
+                <StyledPre>
+                  {JSON.stringify(this.state.taskResourceError, null, 2)}
+                </StyledPre>
+              )}
+            </Box>
 
-        <div className="mb-3">
-          <label htmlFor="taskResource" className="form-label">Task FHIR Resource</label>
-          <textarea id="taskResource" className="form-control" rows="10" value={this.state.taskResource} onChange={(e) => {this.setTaskResource(e.target.value)}}></textarea>
-          <div className="d-flex justify-content-between mt-1">
-            <button className="btn btn-primary" onClick={this.fetchExampleTask}>Load Example Task</button>
-            <button className="btn btn-primary" onClick={this.saveTask}>Save Task to FHIR Server</button>
-          </div>
-          <pre hidden={ !this.state.saveTaskError || this.state.saveTaskError.length < 1 } className="bg-body-tertiary border rounded-3">{ JSON.stringify(this.state.saveTaskError, null, 2) }</pre>
-        </div>
+            <Box sx={{ mb: 3 }}>
+              <TextField
+                fullWidth
+                label="Task FHIR Resource"
+                value={this.state.taskResource}
+                onChange={(e) => {this.setTaskResource(e.target.value)}}
+                multiline
+                rows={10}
+                variant="outlined"
+              />
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
+                <Button variant="contained" onClick={this.fetchExampleTask}>
+                  Load Example Task
+                </Button>
+                <Button variant="contained" onClick={this.saveTask}>
+                  Save Task to FHIR Server
+                </Button>
+              </Box>
+              {this.state.saveTaskError && this.state.saveTaskError.length > 0 && (
+                <StyledPre>
+                  {JSON.stringify(this.state.saveTaskError, null, 2)}
+                </StyledPre>
+              )}
+            </Box>
+          </CardContent>
+        </Card>
 
-        <hr className="border border-5 border-primary" />
+        <Divider sx={{ my: 4 }} />
 
-        <h2>Check Launch Prerequisites</h2>
-        <p>Check that the resources exist before retrieving a launch ID.</p>
-        <div className="mb-3 row">
-          <div className="col-2">
-            <button className="btn btn-primary" onClick={this.checkPrereqs}>Check Prerequisites</button>
-          </div>
-          <div className="col-10">
-            <ul class="list-group">
-              {this.state.prereqChecks.map((check) => {
-                return <li className={
-                  "list-group-item list-group-item-" + (check.status === 'Not Found' || check.status.startsWith('Error:') ? 'danger' : check.status === 'Found' ? 'success' : check.status === 'Pending' ? 'info' : 'warning')
-                } key={check.id}>
-                    <h5>{check.label}</h5>
-                    <small>{check.status}</small>
-                  </li>
-              })}
-            </ul>
-          </div>
-        </div>
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Typography variant="h5" component="h2" gutterBottom>
+              Check Launch Prerequisites
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Check that the resources exist before retrieving a launch ID.
+            </Typography>
+            <Grid container spacing={2}>
+              <Grid size={3}>
+                <Button 
+                  variant="contained" 
+                  onClick={this.checkPrereqs}
+                  fullWidth
+                >
+                  Check Prerequisites
+                </Button>
+              </Grid>
+              <Grid size={9}>
+                <Box sx={{ width: '100%' }}>
+                  <List sx={{ width: '100%', p: 0 }}>
+                    {this.state.prereqChecks.map((check) => {
+                      const getColor = (status) => {
+                        if (status === 'Not Found' || status.startsWith('Error:')) return 'error';
+                        if (status === 'Found') return 'success';
+                        if (status === 'Pending') return 'info';
+                        return 'warning';
+                      };
+                      
+                      return (
+                        <ListItem key={check.id} sx={{ px: 0, py: 1 }}>
+                          <Alert severity={getColor(check.status)} sx={{ width: '100%' }}>
+                            <Typography variant="h6" component="div">
+                              {check.label}
+                            </Typography>
+                            <Typography variant="body2">
+                              {check.status}
+                            </Typography>
+                          </Alert>
+                        </ListItem>
+                      );
+                    })}
+                  </List>
+                </Box>
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
 
-        <hr className="border border-5 border-primary" />
+        <Divider sx={{ my: 4 }} />
 
-        <h2>DTR Launch</h2>
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Typography variant="h5" component="h2" gutterBottom>
+              DTR Launch
+            </Typography>
 
-        <div className="mb-3">
-          <label htmlFor="launchUrl" className="form-label">Launch URL</label>
-          <input type="text" id="launchUrl" className="form-control" value={this.state.launchUrl} onChange={this.launchUrlChanged} />
-        </div>
+            <Box sx={{ mb: 3 }}>
+              <TextField
+                fullWidth
+                label="Launch URL"
+                value={this.state.launchUrl}
+                onChange={this.launchUrlChanged}
+                variant="outlined"
+              />
+            </Box>
 
-        <div className="mb-3 row">
-          <div className="col-6">
-            <label htmlFor="launchId" className="form-label">Launch ID</label>
-            <input type="text" id="launchId" className="form-control" value={this.state.launchId} onChange={this.launchIdChanged} />
-          </div>
+            <Grid container spacing={2} sx={{ mb: 3 }}>
+              <Grid size={6}>
+                <TextField
+                  fullWidth
+                  label="Launch ID"
+                  value={this.state.launchId}
+                  onChange={this.launchIdChanged}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid size={6}>
+                <TextField
+                  fullWidth
+                  label="Get Launch ID from Service"
+                  value={this.state.launchIdUrl}
+                  onChange={this.launchIdUrlChanged}
+                  slotProps={{
+                    input: {
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <Button variant="contained" onClick={this.fetchLaunchId}>
+                            Get Launch ID
+                          </Button>
+                        </InputAdornment>
+                      )
+                    }
+                  }}
+                  variant="outlined"
+                />
+                {this.state.fetchLaunchIdResult && this.state.fetchLaunchIdResult.length > 0 && (
+                  <StyledPre>
+                    {JSON.stringify(this.state.fetchLaunchIdResult, null, 2)}
+                  </StyledPre>
+                )}
+              </Grid>
+            </Grid>
 
-          <div className="mb-3 col-6">
-            <label htmlFor="launchId" className="form-label">Get Launch ID from Service</label>
-            <div className="input-group mb-1">
-              <input type="text" id="launchId" className="form-control" value={this.state.launchIdUrl} onChange={this.launchIdUrlChanged} />
-              <button className="btn btn-primary" type="button" onClick={this.fetchLaunchId}>Get Launch ID</button>
-            </div>
-            <pre hidden={ !this.state.fetchLaunchIdResult || this.state.fetchLaunchIdResult.length < 1 } className="bg-body-tertiary border rounded-3">{ JSON.stringify(this.state.fetchLaunchIdResult, null, 2) }</pre>
-          </div>
-        </div>
-
-        <div>
-          <pre>Launch URL: {`${this.state.launchUrl}?iss=${this.state.fhirUrl}&launch=${this.state.launchId}` }</pre>
-        </div>
-        <button className="btn btn-primary my-3" onClick={this.launch}>Launch DTR</button>
-
-      </div>
+            <Paper elevation={1} sx={{ p: 2, mb: 3, backgroundColor: 'grey.50' }}>
+              <Typography variant="body2" component="pre" sx={{ fontFamily: 'monospace', margin: 0 }}>
+                Launch URL: {`${this.state.launchUrl}?iss=${this.state.fhirUrl}&launch=${this.state.launchId}`}
+              </Typography>
+            </Paper>
+            
+            <Button 
+              variant="contained" 
+              size="large" 
+              onClick={this.launch}
+              sx={{ py: 2 }}
+            >
+              Launch DTR
+            </Button>
+          </CardContent>
+        </Card>
+      </Container>
     )
   }
 

@@ -753,7 +753,7 @@ export default class PriorAuth extends Component {
     return (
       <Grid container spacing={2}>
         {this.state.isSubmitted ? (
-          <Grid xs={12} md={6} className="right">
+          <Grid size={6} className="right">
             <div>
               <h4 className="inline">Prior Authorization: </h4>
               <p className="inline">{claimResponse.id}</p>
@@ -857,13 +857,13 @@ export default class PriorAuth extends Component {
             <p>{this.state.subscribeMsg}</p> */}
           </Grid>
         ) : (
-          <Grid item xs={12} md={6} className="right">
+          <Grid size={6} className="right">
             <Typography variant="h4" component="h2" gutterBottom>
               Submit Prior Auth
             </Typography>
             <Box component="form">
               <Grid container spacing={2}>
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <TextField
                     fullWidth
                     label="Select PriorAuth Endpoint"
@@ -885,7 +885,7 @@ export default class PriorAuth extends Component {
                 </Grid>
               </Grid>
               <Grid container spacing={2} sx={{ mt: 2 }}>
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <Button
                     type="button"
                     variant="contained"
@@ -899,7 +899,7 @@ export default class PriorAuth extends Component {
             </Box>
           </Grid>
         )}
-        <Grid item xs={12} md={6} className="raw-claim-response">
+        <Grid size={6} className="raw-claim-response">
           {this.state.isSubmitted ? (
             <pre>{JSON.stringify(claimResponse, undefined, 2)}</pre>
           ) : (

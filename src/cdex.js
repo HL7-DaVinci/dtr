@@ -1,6 +1,9 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { oauth2 } from "fhirclient";
+import { ThemeProvider } from '@mui/material/styles';
+import { CssBaseline } from '@mui/material';
+import theme from './theme';
 
 import CdexLaunchPage from './CdexLaunchPage.jsx';
 import CdexQuestionnaire from './CdexQuestionnaire.jsx';
@@ -15,7 +18,12 @@ const state = urlUtils.getUrlParameter("state");
 // no state parameter means this isn't the result of a successful launch so we'll show the launch helper page
 if (!state) {
   console.log('no state parameter found so rendering launch help page');
-  root.render( <CdexLaunchPage/> );
+  root.render(
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <CdexLaunchPage/>
+    </ThemeProvider>
+  );
 } 
 
 // otherwise, we've launched and can fetch everything to render the questionnaire (hopefully)
@@ -44,14 +52,24 @@ async function showQuestionnaire(client) {
   } catch (error) {
     const message = `Failed to parse session storage: ${error}`;
     console.error(message);
-    root.render( <UserMessage message={message} variant="danger" /> );
+    root.render(
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <UserMessage message={message} variant="danger" />
+      </ThemeProvider>
+    );
     return;
   }
 
   if (!params.tokenResponse?.fhirContext) {
     const message = `No fhirContext property found in tokenResponse`;
     console.error(message);
-    root.render( <UserMessage message={message} variant="danger" /> );
+    root.render(
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <UserMessage message={message} variant="danger" />
+      </ThemeProvider>
+    );
     return;
   }
 
@@ -61,14 +79,24 @@ async function showQuestionnaire(client) {
   } catch (error) {
     const message = `Failed to parse fhirContext: ${error}`;
     console.error(message);
-    root.render( <UserMessage message={message} variant="danger" /> );
+    root.render(
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <UserMessage message={message} variant="danger" />
+      </ThemeProvider>
+    );
     return;
   }
 
   if (!fhirContext.task) {
     const message = `No task found in fhirContext in the token response`;
     console.error(message);
-    root.render( <UserMessage message={message} variant="danger" /> );
+    root.render(
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <UserMessage message={message} variant="danger" />
+      </ThemeProvider>
+    );
     return;
   }
 
@@ -79,7 +107,12 @@ async function showQuestionnaire(client) {
   } catch (error) {
     const message = `Failed to fetch task: ${error}`;
     console.error(message);
-    root.render( <UserMessage message={message} variant="danger" /> );
+    root.render(
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <UserMessage message={message} variant="danger" />
+      </ThemeProvider>
+    );
     return;
   }
 
@@ -99,7 +132,12 @@ async function showQuestionnaire(client) {
   if (questionnaireIndex < 0) {
     const message = `Task does not have a Questionnaire input`;
     console.error(message);
-    root.render( <UserMessage message={message} variant="danger" /> );
+    root.render(
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <UserMessage message={message} variant="danger" />
+      </ThemeProvider>
+    );
     return;
   }
 
@@ -107,7 +145,12 @@ async function showQuestionnaire(client) {
   if (!input.valueCanonical) {
     const message = `Questionnaire input does not have a valueCanonical property`;
     console.error(message);
-    root.render( <UserMessage message={message} variant="danger" /> );
+    root.render(
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <UserMessage message={message} variant="danger" />
+      </ThemeProvider>
+    );
     return;
   }
 
@@ -119,18 +162,26 @@ async function showQuestionnaire(client) {
   } catch (error) {
     const message = `Failed to fetch questionnaire: ${error}`;
     console.error(message);
-    root.render( <UserMessage message={message} variant="danger" /> );
+    root.render(
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <UserMessage message={message} variant="danger" />
+      </ThemeProvider>
+    );
     return;
   }
 
   root.render( 
-    <CdexQuestionnaire
-      client={client}
-      fhirContext={fhirContext}
-      questionnaireUrl={input.valueCanonical}
-      questionnaire={questionnaire}
-      task={task}
-    />
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <CdexQuestionnaire
+        client={client}
+        fhirContext={fhirContext}
+        questionnaireUrl={input.valueCanonical}
+        questionnaire={questionnaire}
+        task={task}
+      />
+    </ThemeProvider>
   );
 
 }
