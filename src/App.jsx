@@ -1,18 +1,14 @@
-import React, { Component } from "react";
-import ReactDOM from 'react-dom'
+import { Component } from "react";
 import "./App.css";
 import cqlfhir from "cql-exec-fhir";
 import executeElm from "./elmExecutor/executeElm";
-import {fetchArtifacts, fetchArtifactsOperation, fetchFromQuestionnaireResponse, searchByOrder} from "./util/fetchArtifacts";
+import {fetchArtifactsOperation, fetchFromQuestionnaireResponse, searchByOrder} from "./util/fetchArtifacts";
 import fetchFhirVersion from "./util/fetchFhirVersion";
-import { buildFhirUrl } from "./util/util";
 import PriorAuth from "./components/PriorAuth/PriorAuth";
 import QuestionnaireForm from "./components/QuestionnaireForm/QuestionnaireForm";
 import Testing from "./components/ConsoleBox/Testing";
 import UserMessage from "./components/UserMessage/UserMessage";
-import TaskPopup from "./components/Popup/TaskPopup";
 import PatientSelect from "./components/PatientSelect/PatientSelect";
-import { createRoot } from "react-dom/client";
 
 // uncomment for testing UserMessage
 // let sampleError = {
@@ -356,7 +352,7 @@ export default class App extends Component {
             'executed cql, result:' + JSON.stringify(cqlResults),
             'infoClass'
           );
-          console.log('executed cql, result:');
+          console.log('executed cql, result:', cqlResults);
 
           // Collect all library results into a single bundle
           let allLibrariesResults = {};

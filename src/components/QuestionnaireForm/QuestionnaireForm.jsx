@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import { Component } from "react";
 import "./QuestionnaireForm.css";
 import { findValueByPrefix, searchQuestionnaire } from "../../util/util.js";
 import SelectPopup from './SelectPopup';
@@ -8,7 +8,9 @@ import ConfigData from "../../config.json";
 import { createRoot } from 'react-dom/client';
 import {createTask} from "../../util/taskCreation";
 import retrieveQuestions, { buildNextQuestionRequest } from "../../util/retrieveQuestions";
-import { Button, Box, Alert } from '@mui/material';
+import { Button, Box } from '@mui/material';
+import QuestionnaireResponseJsonDialog from './QuestionnaireResponseJsonDialog';
+import { DTR_INFORMATION_ORIGIN, processInformationOrigin } from "../../util/qrUtils.js";
 
 // NOTE: need to append the right FHIR version to have valid profile URL
 var DTRQuestionnaireResponseURL = "http://hl7.org/fhir/us/davinci-dtr/StructureDefinition/dtr-questionnaireresponse-";
@@ -33,7 +35,9 @@ export default class QuestionnaireForm extends Component {
       popupOptions: [],
       popupFinalOption: "Cancel",
       formFilled: true,
-      formValidationErrors: []
+      formValidationErrors: [],
+      showJsonDialog: false,
+      newQuestionnaireResponse: null,
     };
 
     this.outputResponse = this.outputResponse.bind(this);
@@ -58,6 +62,8 @@ export default class QuestionnaireForm extends Component {
     this.isAdaptiveFormWithoutItem = this.isAdaptiveFormWithoutItem.bind(this);
     this.isAdaptiveFormWithItem = this.isAdaptiveFormWithItem.bind(this);
     this.loadPreviousForm = this.loadPreviousForm.bind(this);
+    this.handleViewJsonDialog = this.handleViewJsonDialog.bind(this);
+    this.handleCloseJsonDialog = this.handleCloseJsonDialog.bind(this);
   }
 
   componentWillMount() {
@@ -330,7 +336,6 @@ export default class QuestionnaireForm extends Component {
 
   loadAndMergeForms(newResponse) {
     console.log(JSON.stringify(this.props.qform));
-    console.log("newResponse:", newResponse);
     console.log(JSON.stringify(newResponse));
 
     let lform = LForms.Util.convertFHIRQuestionnaireToLForms(this.props.qform, this.props.fhirVersion);
@@ -675,6 +680,7 @@ export default class QuestionnaireForm extends Component {
   }
 
   prepopulate(items, response_items, saved_response) {
+    console.log("Prepopulating items: ", items, "saved_response: ", saved_response, "response_items: ", response_items);
     items.map(item => {
       let response_item = {
         linkId: item.linkId,
@@ -711,27 +717,55 @@ export default class QuestionnaireForm extends Component {
           let prepopulationResult = this.getLibraryPrepopulationResult(item, this.props.cqlPrepopulationResults);
 
           if (prepopulationResult != null && !saved_response) {
+            // information origin extension to indicate this was auto populated
+            const informationOriginExtension = [
+              {
+                url: DTR_INFORMATION_ORIGIN,
+                extension: [
+                  {
+                    url: "source",
+                    valueCode: "auto"
+                  }
+                ]
+              }
+            ];
+
             switch (item.type) {
               case 'boolean':
-                response_item.answer.push({ valueBoolean: prepopulationResult });
+                response_item.answer.push({ 
+                  valueBoolean: prepopulationResult,
+                  extension: informationOriginExtension
+                });
                 break;
 
               case 'integer':
-                response_item.answer.push({ valueInteger: prepopulationResult });
+                response_item.answer.push({ 
+                  valueInteger: prepopulationResult,
+                  extension: informationOriginExtension
+                });
                 break;
 
               case 'decimal':
-                response_item.answer.push({ valueDecimal: prepopulationResult });
+                response_item.answer.push({ 
+                  valueDecimal: prepopulationResult,
+                  extension: informationOriginExtension
+                });
                 break;
 
               case 'date':
                 // LHC form could not correctly parse Date object.
                 // Have to convert Date object to string.
-                response_item.answer.push({ valueDate: prepopulationResult.toString() });
+                response_item.answer.push({ 
+                  valueDate: prepopulationResult.toString(),
+                  extension: informationOriginExtension
+                });
                 break;
 
               case 'choice':
-                response_item.answer.push({ valueCoding: this.getDisplayCoding(prepopulationResult, item) });
+                response_item.answer.push({ 
+                  valueCoding: this.getDisplayCoding(prepopulationResult, item),
+                  extension: informationOriginExtension
+                });
                 break;
 
               case 'open-choice':
@@ -755,16 +789,25 @@ export default class QuestionnaireForm extends Component {
                     item.option.push({ valueCoding: displayCoding })
                   }
 
-                  response_item.answer.push({ valueCoding: displayCoding });
+                  response_item.answer.push({ 
+                    valueCoding: displayCoding,
+                    extension: informationOriginExtension
+                  });
                 });
                 break;
 
               case 'quantity':
-                response_item.answer.push({ valueQuantity: prepopulationResult });
+                response_item.answer.push({ 
+                  valueQuantity: prepopulationResult,
+                  extension: informationOriginExtension
+                });
                 break;
 
               default:
-                response_item.answer.push({ valueString: prepopulationResult });
+                response_item.answer.push({ 
+                  valueString: prepopulationResult,
+                  extension: informationOriginExtension
+                });
             }
           }
         });
@@ -865,12 +908,16 @@ export default class QuestionnaireForm extends Component {
 
   storeQuestionnaireResponseToEhr(questionnaireReponse, showPopup) {
     // send the QuestionnaireResponse to the EHR FHIR server
-    var questionnaireUrl = sessionStorage["serviceUri"] + "/QuestionnaireResponse";
-    console.log("Storing QuestionnaireResponse to: " + questionnaireUrl);
-    
+    let questionnaireUrl = sessionStorage["serviceUri"] + "/QuestionnaireResponse";
+    let method = "POST";
+
+    if (questionnaireReponse.id) {
+      questionnaireUrl += "/" + questionnaireReponse.id;
+      method = "PUT";
+    }
     this.smart.request({
       url: questionnaireUrl,
-      method: "POST",
+      method: method,
       headers: {
         "Content-Type": "application/fhir+json"
       },
@@ -1084,6 +1131,7 @@ export default class QuestionnaireForm extends Component {
 
   getQuestionnaireResponse(status) {
     var qr = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', this.fhirVersion, "#formContainer");
+    qr = processInformationOrigin(this.state.savedResponse, qr);
     //console.log(qr);
     qr.status = status;
     qr.author = {
@@ -1104,7 +1152,7 @@ export default class QuestionnaireForm extends Component {
     // add context extension
     qr.extension = [];
     if(request !== undefined) {
-      const contextExtensionUrl = "http://hl7.org/fhir/us/davinci-dtr/StructureDefinition/context";
+      const contextExtensionUrl = "http://hl7.org/fhir/us/davinci-dtr/StructureDefinition/qr-context";
       qr.extension.push({
         url: contextExtensionUrl,
         valueReference: {
@@ -1598,7 +1646,7 @@ export default class QuestionnaireForm extends Component {
                   </Button>
               ) : null}
               {this.isAdaptiveFormWithItem() ? (<Button variant="outlined" onClick={this.outputResponse.bind(this, "in-progress")}>
-                Save To EHR
+                Save Draft to EHR
               </Button>) : null}
             </Box>
         )
@@ -1606,43 +1654,65 @@ export default class QuestionnaireForm extends Component {
     }
   }
 
+  handleViewJsonDialog() {
+    // Use the current QuestionnaireResponse (in-progress or completed)
+    const qr = this.getQuestionnaireResponse(this.state.savedResponse ? this.state.savedResponse.status : "in-progress");
+    this.setState({
+      showJsonDialog: true,
+      newQuestionnaireResponse: qr
+    });
+  }
+
+  handleCloseJsonDialog() {
+    this.setState({ showJsonDialog: false });
+  }
+
   render() {
     const isAdaptiveForm = this.isAdaptiveForm();
     const showPopup = !isAdaptiveForm || this.isAdaptiveFormWithoutItem();
     return (
+      <div>
+        <div id="formHeader"></div>
+        <div id="formContainer"></div>
+        {/* {!isAdaptiveForm && this.props.formFilled ? <Alert severity="info" sx={{ mb: 2 }}>All fields have been filled. Continue or uncheck "Only Show Unfilled Fields" to review and modify the form.</Alert> : null} */}
+        {
+          showPopup ? (
+              <SelectPopup
+                  title={this.state.popupTitle}
+                  options={this.state.popupOptions}
+                  finalOption={this.state.popupFinalOption}
+                  selectedCallback={this.popupCallback.bind(this)}
+                  setClick={click => this.clickChild = click}
+              />
+          ) : null
+        }
+        {
+          isAdaptiveForm ? (
+              <Box className="form-message-panel" sx={{ mt: 2, p: 2, bgcolor: 'grey.100', borderRadius: 1 }}>
+                {this.isAdaptiveFormWithoutItem() && !this.props.adFormCompleted ? (<p>Click Next Question button to proceed.</p>) : null}
+                {!this.props.adFormCompleted ? (<Box sx={{ mt: 1 }}> <Button variant="contained" onClick={this.loadNextQuestions}>
+                  Next Question
+                </Button>
+                </Box>) : null}
+              </Box>) : null
+        }
+        {
+          !isAdaptiveForm ? (<div className="status-panel">
+            Form Loaded: {this.state.formLoaded}
+          </div>) : null
+        }
         <div>
-          <div id="formHeader"></div>
-          <div id="formContainer">
-          </div>
-          {/* {!isAdaptiveForm && this.props.formFilled ? <Alert severity="info" sx={{ mb: 2 }}>All fields have been filled. Continue or uncheck "Only Show Unfilled Fields" to review and modify the form.</Alert> : null} */}
-          {
-            showPopup ? (
-                <SelectPopup
-                    title={this.state.popupTitle}
-                    options={this.state.popupOptions}
-                    finalOption={this.state.popupFinalOption}
-                    selectedCallback={this.popupCallback.bind(this)}
-                    setClick={click => this.clickChild = click}
-                />
-            ) : null
-          }
-          {
-            isAdaptiveForm ? (
-                <Box className="form-message-panel" sx={{ mt: 2, p: 2, bgcolor: 'grey.100', borderRadius: 1 }}>
-                  {this.isAdaptiveFormWithoutItem() && !this.props.adFormCompleted ? (<p>Click Next Question button to proceed.</p>) : null}
-                  {!this.props.adFormCompleted ? (<Box sx={{ mt: 1 }}> <Button variant="contained" onClick={this.loadNextQuestions}>
-                    Next Question
-                  </Button>
-                  </Box>) : null}
-                </Box>) : null
-          }
-          {
-            !isAdaptiveForm ? (<div className="status-panel">
-              Form Loaded: {this.state.formLoaded}
-            </div>) : null
-          }
-          {this.getDisplayButtons()}
-        </div>)
+          <Button variant="outlined" onClick={this.handleViewJsonDialog}>
+            View QuestionnaireResponse JSON
+          </Button>
+        </div>
+        <QuestionnaireResponseJsonDialog
+          open={this.state.showJsonDialog}
+          onClose={this.handleCloseJsonDialog}
+          questionnaireResponse={this.state.newQuestionnaireResponse}
+        />
+        {this.getDisplayButtons()}
+      </div>)
         ;
   }
 }
