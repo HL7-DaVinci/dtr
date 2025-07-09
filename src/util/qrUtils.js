@@ -53,6 +53,14 @@ export function processInformationOrigin(originalQr, newQr) {
 
   /**
    * Recursively processes items in the QuestionnaireResponse
+   * Compares answers based on content, not array order - this allows for
+   * proper detection of changes even when answer arrays are reordered.
+   * 
+   * Information Origin Logic:
+   * - auto: Answer was auto-populated and remains unchanged
+   * - manual: Answer is completely new (no auto-populated answers existed originally)
+   * - override: Answer replaces or modifies a previously auto-populated answer
+   * 
    * @param {Array} newItems - items from the new QuestionnaireResponse
    * @param {Array} originalItems - items from the original QuestionnaireResponse (may be null/undefined)
    */
@@ -69,36 +77,68 @@ export function processInformationOrigin(originalQr, newQr) {
 
       // Process answers for this item
       if (newItem.answer && Array.isArray(newItem.answer)) {
+        // First, check if there were any auto-populated answers in the original
+        const originalAutoAnswers = originalItem?.answer?.filter(answer => 
+          hasInformationOriginExtension(answer, 'auto')
+        ) || [];
+
         newItem.answer.forEach((newAnswer) => {
-          // Check if there's a corresponding answer in the original item
+          // Find a corresponding answer in the original item based on content, not order
           const originalAnswer = originalItem?.answer?.find((answer) =>
-            answersAreEqual(newAnswer, answer)
+            answersHaveSameValue(newAnswer, answer)
           );
 
           if (originalAnswer) {
-            // Check if original answer had "auto" extension and value is different
-            const hasAutoExtension = hasInformationOriginExtension(
-              originalAnswer,
-              'auto'
-            );
-            const valueChanged = !answersHaveSameValue(
-              newAnswer,
-              originalAnswer
-            );
+            // Answer exists with same content - preserve its original extension
+            const hasAutoExtension = hasInformationOriginExtension(originalAnswer, 'auto');
+            const hasManualExtension = hasInformationOriginExtension(originalAnswer, 'manual');
+            const hasOverrideExtension = hasInformationOriginExtension(originalAnswer, 'override');
 
-            if (hasAutoExtension && valueChanged) {
-              // Value was auto-populated but changed - mark as override
-              newAnswer.extension = originOverrideExtension;
-            } else if (hasAutoExtension && !valueChanged) {
-              // Value was auto-populated and unchanged - keep auto extension
+            if (hasAutoExtension) {
               newAnswer.extension = originAutoExtension;
+            } else if (hasManualExtension) {
+              newAnswer.extension = originManualExtension;
+            } else if (hasOverrideExtension) {
+              newAnswer.extension = originOverrideExtension;
             }
-            // If original didn't have auto extension, leave new answer as is
+            // If no extension, leave as is
           } else {
-            // New answer doesn't exist in original - mark as manual
-            newAnswer.extension = originManualExtension;
+            // New answer doesn't exist in original based on content
+            // Check if this might be an override of an auto-populated answer
+            if (originalAutoAnswers.length > 0) {
+              // There were auto-populated answers originally, and this is a new answer
+              // This is likely an override
+              newAnswer.extension = originOverrideExtension;
+            } else {
+              // No auto-populated answers originally, this is truly manual
+              newAnswer.extension = originManualExtension;
+            }
           }
         });
+
+        // Additional override detection: if auto answers were removed entirely
+        if (originalAutoAnswers.length > 0 && newItem.answer.length > 0) {
+          const autoAnswersStillExist = originalAutoAnswers.some(originalAutoAnswer =>
+            newItem.answer.some(newAnswer => answersHaveSameValue(newAnswer, originalAutoAnswer))
+          );
+          
+          if (!autoAnswersStillExist) {
+            // All auto-populated answers were removed/changed - mark all new answers as override
+            newItem.answer.forEach(newAnswer => {
+              newAnswer.extension = originOverrideExtension;
+            });
+            console.log(`All auto-populated answers were removed/changed for ${newItem.linkId}, marking all new answers as override`);
+          }
+        }
+      } else if (!newItem.answer || newItem.answer.length === 0) {
+        // No answers in new item - check if there were auto-populated answers that got cleared
+        const originalAutoAnswers = originalItem?.answer?.filter(answer => 
+          hasInformationOriginExtension(answer, 'auto')
+        ) || [];
+        
+        if (originalAutoAnswers.length > 0) {
+          console.log(`Auto-populated answers were cleared for ${newItem.linkId}, this represents an override action`);
+        }
       }
 
       // Recursively process nested items
@@ -128,29 +168,6 @@ export function processInformationOrigin(originalQr, newQr) {
         (subExt) => subExt.url === 'source' && subExt.valueCode === sourceValue
       );
     });
-  }
-
-  /**
-   * Compares two answers to see if they represent the same answer choice
-   * @param {Object} answer1 - first answer to compare
-   * @param {Object} answer2 - second answer to compare
-   * @returns {Boolean} true if the answers are for the same question choice
-   */
-  function answersAreEqual(answer1, answer2) {
-    // Only consider value fields (valueString, valueCoding, etc.) for comparison
-    const getValueKeys = (answer) => {
-      return Object.keys(answer).filter((key) => key.startsWith('value'));
-    };
-
-    const keys1 = getValueKeys(answer1);
-    const keys2 = getValueKeys(answer2);
-
-    if (keys1.length !== keys2.length) {
-      return false;
-    }
-
-    // Check if they have the same value keys (valueString, valueCoding, etc.)
-    return keys1.every((key) => keys2.includes(key));
   }
 
   /**

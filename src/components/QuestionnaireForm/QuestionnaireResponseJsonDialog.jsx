@@ -17,7 +17,7 @@ const QuestionnaireResponseJsonDialog = ({ open, onClose, questionnaireResponse,
               height="75vh"
               language="json"
               original={JSON.stringify(originalQuestionnaireResponse, null, 2)}
-              value={JSON.stringify(questionnaireResponse, null, 2)}
+              modified={JSON.stringify(questionnaireResponse, null, 2)}
               options={{ readOnly: true, minimap: { enabled: false } }}
             />
           ) : (

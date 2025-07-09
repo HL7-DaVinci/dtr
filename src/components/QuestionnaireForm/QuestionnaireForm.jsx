@@ -28,7 +28,8 @@ export default class QuestionnaireForm extends Component {
       sectionLinks: {},
       fullView: true,
       turnOffValues: [],
-      savedResponse: null,
+      originalResponse: null,
+      currentResponse: null,
       formLoaded: "New",
       popupTitle: "Would you like to continue an in-process questionnaire?",
       popupOptions: [],
@@ -79,7 +80,8 @@ export default class QuestionnaireForm extends Component {
       this.prepopulate(items, response.item, true);
       const mergedResponse = this.mergeResponseForSameLinkId(response);
       this.setState({
-        savedResponse: mergedResponse
+        originalResponse: mergedResponse,
+        currentResponse: _.cloneDeep(mergedResponse)
       })
     } else {
       this.loadPreviousForm(false);
@@ -96,20 +98,24 @@ export default class QuestionnaireForm extends Component {
       this.prepopulate(items, newResponse.item, false);
       let mergedResponse = this.mergeResponseForSameLinkId(newResponse);
       this.setState({
-        savedResponse: mergedResponse
+        originalResponse: mergedResponse,
+        currentResponse: _.cloneDeep(mergedResponse)
       })
       localStorage.setItem("lastSavedResponse", JSON.stringify(mergedResponse));
     }
   }
 
   componentDidMount() {
-    this.loadAndMergeForms(this.state.savedResponse);
+    this.loadAndMergeForms(this.state.currentResponse);
     const formErrors = LForms.Util.checkValidity();
     this.setState({
       formValidationErrors: formErrors == null ? [] : formErrors
     });
 
     document.addEventListener('change', event => {
+      // Update current response when form data changes
+      this.updateCurrentResponseFromForm();
+      
       if (this.props.filterChecked && event.target.id != "filterCheckbox" && event.target.id != "attestationCheckbox") {
         const checkIfFilter = (currentErrors, newErrors, targetElementName) => {
           if (currentErrors.length < newErrors.length)
@@ -157,6 +163,12 @@ export default class QuestionnaireForm extends Component {
     } else {
       mergedResponse = this.mergeResponses(this.mergeResponseForSameLinkId(newResponse), JSON.parse(localStorage.getItem("lastSavedResponse")));
     }
+
+    // Update both original and current responses
+    this.setState({
+      originalResponse: mergedResponse,
+      currentResponse: _.cloneDeep(mergedResponse)
+    });
 
     this.loadAndMergeForms(mergedResponse);
     this.props.updateReloadQuestionnaire(false);
@@ -376,16 +388,22 @@ export default class QuestionnaireForm extends Component {
   // Update header information in state
   updateHeaderInfo(newResponse) {
     console.log("Updating header info with newResponse:", newResponse);
-    let authored = newResponse?.authored || this.state.newQuestionnaireResponse?.authored || this.state.savedResponse?.authored || "Unknown";
-    this.setState({headerAuthored: authored});
+    let authored = newResponse?.authored || this.state.newQuestionnaireResponse?.authored || this.state.currentResponse?.authored || "Unknown";
+    let authoredDate = new Date(authored);
+    if (!isNaN(authoredDate)) {
+      authoredDate = authoredDate.toLocaleString();
+    } else {
+      authoredDate = "Unknown";
+    }
+    this.setState({headerAuthored: authoredDate});
 
     // Async fetching for resources that need resolved
     this.smart.request(this.getPatient())
       .then((result) => {
-        this.setState({headerPatient: (getName(result) || "Unknown") + " " + new Date().toLocaleTimeString()});
+        this.setState({headerPatient: getName(result) || "Unknown"});
       })
       .catch(() => {
-        this.setState({headerPatient: "Unknown", headerSourceName: "Unknown"});
+        this.setState({headerPatient: "Unknown"});
       });
 
     this.smart.request(this.getPractitioner())
@@ -396,7 +414,7 @@ export default class QuestionnaireForm extends Component {
         this.setState({headerAuthorName: "Unknown"});
       });
 
-    let source = newResponse?.source || this.state.newQuestionnaireResponse?.source || this.state.savedResponse?.source;
+    let source = newResponse?.source || this.state.newQuestionnaireResponse?.source || this.state.currentResponse?.source;
     if (source) {
       this.smart.request(source)
         .then((result) => {
@@ -737,8 +755,22 @@ export default class QuestionnaireForm extends Component {
               case 'date':
                 // LHC form could not correctly parse Date object.
                 // Have to convert Date object to string.
+                let dateValue;
+                if (prepopulationResult instanceof Date) {
+                  dateValue = prepopulationResult.toISOString().split('T')[0];
+                } 
+                else {
+                  // Try to parse as date
+                  const parsedDate = new Date(prepopulationResult);
+                  if (!isNaN(parsedDate)) {
+                    dateValue = parsedDate.toISOString().split('T')[0];
+                  } else {
+                    dateValue = prepopulationResult.toString();
+                  }
+                }
+                // console.log("Prepopulating date: ", prepopulationResult, prepopulationResult.toString(), "dateValue:", dateValue);
                 response_item.answer.push({ 
-                  valueDate: prepopulationResult.toString(),
+                  valueDate: dateValue,
                   extension: informationOriginExtension
                 });
                 break;
@@ -905,8 +937,10 @@ export default class QuestionnaireForm extends Component {
       },
       body: JSON.stringify(questionnaireReponse)
     }).then((result) => {
+      // Update both the original and current responses with the saved result
       this.setState({
-        savedResponse: result
+        originalResponse: result,
+        currentResponse: _.cloneDeep(result)
       });
       if (showPopup) {
         this.popupClear("Partially completed form (QuestionnaireResponse) saved to EHR", "OK", true);
@@ -1116,11 +1150,12 @@ export default class QuestionnaireForm extends Component {
 
   getQuestionnaireResponse(status) {
     var qr = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', this.fhirVersion, "#formContainer");
-    console.log("getQuestionnaireResponse this.state.savedResponse?.id: ", this.state.savedResponse?.id);
-    if (this.state.savedResponse && this.state.savedResponse.id) {
-      qr.id = this.state.savedResponse.id;
+    console.log("getQuestionnaireResponse this.state.currentResponse?.id: ", this.state.currentResponse?.id);
+    if (this.state.currentResponse && this.state.currentResponse.id) {
+      qr.id = this.state.currentResponse.id;
     }
-    qr = processInformationOrigin(this.state.savedResponse, qr);
+    // Use the proper two-response model: compare original (baseline) to current form data
+    qr = processInformationOrigin(this.state.originalResponse, qr);
     //console.log(qr);
     qr.status = status;
     qr.author = {
@@ -1518,33 +1553,20 @@ export default class QuestionnaireForm extends Component {
     if (this.partialForms[returnValue]) {
       // load the selected form
       let partialResponse = this.partialForms[returnValue];
-      let saved_response = false;
 
       console.log("partialResponse:", partialResponse);
 
       if(partialResponse.contained && partialResponse.contained[0].resourceType === "Questionnaire") {
         this.props.updateQuestionnaire(partialResponse.contained[0]);
       } 
-      // else {
-      //   // If not using saved QuestionnaireResponse, create a new one
-      //   let newResponse = {
-      //     resourceType: 'QuestionnaireResponse',
-      //     item: []
-      //   }
-
-      //   const items = this.props.qform.item;
-      //   this.prepopulate(items, newResponse.item, saved_response)
-
-      //   this.updateSavedResponseWithPrepopulation(newResponse, partialResponse);
-
-      //   // force it to reload the form
-      //   this.loadAndMergeForms(partialResponse);
-      // }
       
       this.loadAndMergeForms(partialResponse);
       localStorage.setItem("lastSavedResponse", JSON.stringify(partialResponse));
+      
+      // Set this loaded response as both the original (baseline) and current response
       this.setState({
-        savedResponse: partialResponse
+        originalResponse: partialResponse,
+        currentResponse: _.cloneDeep(partialResponse)
       });
 
     } else {
@@ -1655,7 +1677,7 @@ export default class QuestionnaireForm extends Component {
 
   handleViewJsonDialog() {
     // Use the current QuestionnaireResponse (in-progress or completed)
-    const qr = this.getQuestionnaireResponse(this.state.savedResponse ? this.state.savedResponse.status : "in-progress");
+    const qr = this.getQuestionnaireResponse(this.state.currentResponse ? this.state.currentResponse.status : "in-progress");
     this.setState({
       showJsonDialog: true,
       newQuestionnaireResponse: qr
@@ -1664,6 +1686,28 @@ export default class QuestionnaireForm extends Component {
 
   handleCloseJsonDialog() {
     this.setState({ showJsonDialog: false });
+  }
+
+  // Method to update the current response when form data changes
+  updateCurrentResponseFromForm() {
+    if (document.getElementById('formContainer')) {
+      try {
+        const formData = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', this.fhirVersion, "#formContainer");
+        if (formData && this.state.currentResponse) {
+          // Preserve the ID and other metadata from the current response
+          formData.id = this.state.currentResponse.id;
+          formData.questionnaire = this.state.currentResponse.questionnaire;
+          formData.subject = this.state.currentResponse.subject;
+          formData.author = this.state.currentResponse.author;
+          
+          this.setState({
+            currentResponse: formData
+          });
+        }
+      } catch (error) {
+        console.warn("Could not update current response from form:", error);
+      }
+    }
   }
 
   render() {
