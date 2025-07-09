@@ -14,8 +14,10 @@ import {
   FormControlLabel, 
   Checkbox,
   Typography,
-  Box
+  Box,
+  Paper
 } from "@mui/material";
+import { Editor } from "@monaco-editor/react";
 
 // Note: code to enable/disable DME Orders
 var dMEOrdersEnabled = false;
@@ -753,7 +755,7 @@ export default class PriorAuth extends Component {
     return (
       <Grid container spacing={2}>
         {this.state.isSubmitted ? (
-          <Grid size={6} className="right">
+          <Grid size={4} className="right">
             <div>
               <h4 className="inline">Prior Authorization: </h4>
               <p className="inline">{claimResponse.id}</p>
@@ -857,7 +859,7 @@ export default class PriorAuth extends Component {
             <p>{this.state.subscribeMsg}</p> */}
           </Grid>
         ) : (
-          <Grid size={6} className="right">
+          <Grid size={4} className="right">
             <Typography variant="h4" component="h2" gutterBottom>
               Submit Prior Auth
             </Typography>
@@ -899,12 +901,14 @@ export default class PriorAuth extends Component {
             </Box>
           </Grid>
         )}
-        <Grid size={6} className="raw-claim-response">
-          {this.state.isSubmitted ? (
-            <pre>{JSON.stringify(claimResponse, undefined, 2)}</pre>
-          ) : (
-            <pre>{JSON.stringify(this.props.claimBundle, undefined, 2)}</pre>
-          )}
+        <Grid size={8}>
+          <Paper sx={{ p: 1 }} >
+            <Editor
+              height="90vh"
+              defaultLanguage="json"
+              value={JSON.stringify(this.state.isSubmitted ? claimResponse : this.props.claimBundle, undefined, 2)}
+            />
+          </Paper>
         </Grid>
       </Grid>
     );

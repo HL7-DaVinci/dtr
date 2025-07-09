@@ -175,6 +175,21 @@ function searchQuestionnaire(questionnaire, attestation) {
     return result;
 }
 
+
+function getName(resource) {
+  if (!resource) {
+    return null;
+  }
+  return resource &&
+    Array.isArray(resource.name) &&
+    resource.name.length > 0 &&
+    Array.isArray(resource.name[0].given) &&
+    resource.name[0].given.length > 0 &&
+    resource.name[0].family
+    ? `${resource.name[0].given[0]} ${resource.name[0].family}`
+    : null;
+}
+
 export {
     isRequestReference,
     findValueByPrefix,
@@ -186,5 +201,6 @@ export {
     getClients,
     getExample,
     searchQuestionnaire,
-    buildFhirUrl
+    buildFhirUrl,
+    getName
 };

@@ -1,11 +1,10 @@
 import { Component } from "react";
 import "./QuestionnaireForm.css";
-import { findValueByPrefix, searchQuestionnaire } from "../../util/util.js";
+import { findValueByPrefix, getName, searchQuestionnaire } from "../../util/util.js";
 import SelectPopup from './SelectPopup';
 import shortid from "shortid";
 import _ from "lodash";
 import ConfigData from "../../config.json";
-import { createRoot } from 'react-dom/client';
 import {createTask} from "../../util/taskCreation";
 import retrieveQuestions, { buildNextQuestionRequest } from "../../util/retrieveQuestions";
 import { Button, Box } from '@mui/material';
@@ -38,6 +37,10 @@ export default class QuestionnaireForm extends Component {
       formValidationErrors: [],
       showJsonDialog: false,
       newQuestionnaireResponse: null,
+      headerPatient: "Unknown",
+      headerAuthored: "Unknown",
+      headerAuthorName: "Unknown",
+      headerSourceName: "Unknown"
     };
 
     this.outputResponse = this.outputResponse.bind(this);
@@ -353,6 +356,10 @@ export default class QuestionnaireForm extends Component {
       lform = LForms.Util.mergeFHIRDataIntoLForms("QuestionnaireResponse", newResponse, lform, this.props.fhirVersion);
     }
 
+    this.setState({
+      newQuestionnaireResponse: newResponse
+    });
+
     console.log("lform:", lform);
 
     // Custom rendering for media fields
@@ -360,72 +367,47 @@ export default class QuestionnaireForm extends Component {
 
     LForms.Util.addFormToPage(lform, "formContainer");
     
-    // Remove any existing headerInfoBox to prevent duplicates
-    const header = document.getElementById("formHeader");
-    const existingHeaderInfoBox = document.getElementById("headerInfoBox");
-    if (existingHeaderInfoBox) {
-      header.removeChild(existingHeaderInfoBox);
-    }
-    const headerInfoBox = document.createElement('div');
-    headerInfoBox.setAttribute('id', 'headerInfoBox');
-    header.appendChild(headerInfoBox);
-
-    let patientId = this.getPatient().replace("Patient/", "");
-    let authored = newResponse.authored || "Unknown";
-    let authorName = newResponse.author?.resolve()?.name || "Unknown";
-    let sourceName = newResponse.source?.resolve()?.name || "Unknown";
-
-    const HeaderInfo = ({ patientDisplay, authored, authorName, sourceName, headerButtons }) => (
-      <Box sx={{ p: 1.5, bgcolor: 'background.paper', borderRadius: 1, border: 1, borderColor: 'grey.300', boxShadow: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
-        <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-          <Box><strong>Patient:</strong> {patientDisplay}</Box>
-          <Box sx={{ ml: 2 }}>{headerButtons}</Box>
-        </Box>
-        <Box><strong>Authored:</strong> {authored}</Box>
-        <Box><strong>Author:</strong> {authorName}</Box>
-        <Box><strong>Source:</strong> {sourceName}</Box>
-      </Box>
-    );
-
-    const rootKey = '_reactRootContainer_combinedHeaderInfo';
-    let root = headerInfoBox[rootKey];
-    if (!root) {
-      root = createRoot(headerInfoBox);
-      headerInfoBox[rootKey] = root;
-    }
-    // Fetch patient info async, then render
-    const headerButtons = this.props.renderButtons();
-    this.smart.request(`Patient/${patientId}`)
-      .then((result) => {
-        root.render(
-          <HeaderInfo
-            patientDisplay={
-              result && Array.isArray(result.name) && result.name.length > 0 &&
-              Array.isArray(result.name[0].given) && result.name[0].given.length > 0 && result.name[0].family
-                ? `${result.name[0].given[0]} ${result.name[0].family}`
-                : "Unknown"
-            }
-            authored={authored}
-            authorName={authorName}
-            sourceName={sourceName}
-            headerButtons={headerButtons}
-          />
-        );
-      })
-      .catch(() => {
-        root.render(
-          <HeaderInfo
-            patientDisplay={"Unknown"}
-            authored={authored}
-            authorName={authorName}
-            sourceName={sourceName}
-            headerButtons={headerButtons}
-          />
-        );
-      });
+    // Update header info
+    this.updateHeaderInfo(newResponse);
 
     this.props.filterFieldsFn(true);
   }
+
+  // Update header information in state
+  updateHeaderInfo(newResponse) {
+    console.log("Updating header info with newResponse:", newResponse);
+    let authored = newResponse?.authored || this.state.newQuestionnaireResponse?.authored || this.state.savedResponse?.authored || "Unknown";
+    this.setState({headerAuthored: authored});
+
+    // Async fetching for resources that need resolved
+    this.smart.request(this.getPatient())
+      .then((result) => {
+        this.setState({headerPatient: (getName(result) || "Unknown") + " " + new Date().toLocaleTimeString()});
+      })
+      .catch(() => {
+        this.setState({headerPatient: "Unknown", headerSourceName: "Unknown"});
+      });
+
+    this.smart.request(this.getPractitioner())
+      .then((result) => {
+        this.setState({headerAuthorName: getName(result) || "Unknown"});
+      })
+      .catch(() => {
+        this.setState({headerAuthorName: "Unknown"});
+      });
+
+    let source = newResponse?.source || this.state.newQuestionnaireResponse?.source || this.state.savedResponse?.source;
+    if (source) {
+      this.smart.request(source)
+        .then((result) => {
+          this.setState({headerSourceName: getName(result) || "Unknown"});
+        })
+        .catch(() => {
+          this.setState({headerSourceName: "Unknown"});
+        });
+    }
+  }
+
 
   // Function to handle custom rendering of media fields
   renderMediaFields(lform) {
@@ -923,6 +905,9 @@ export default class QuestionnaireForm extends Component {
       },
       body: JSON.stringify(questionnaireReponse)
     }).then((result) => {
+      this.setState({
+        savedResponse: result
+      });
       if (showPopup) {
         this.popupClear("Partially completed form (QuestionnaireResponse) saved to EHR", "OK", true);
         this.popupLaunch();
@@ -1131,6 +1116,10 @@ export default class QuestionnaireForm extends Component {
 
   getQuestionnaireResponse(status) {
     var qr = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', this.fhirVersion, "#formContainer");
+    console.log("getQuestionnaireResponse this.state.savedResponse?.id: ", this.state.savedResponse?.id);
+    if (this.state.savedResponse && this.state.savedResponse.id) {
+      qr.id = this.state.savedResponse.id;
+    }
     qr = processInformationOrigin(this.state.savedResponse, qr);
     //console.log(qr);
     qr.status = status;
@@ -1531,26 +1520,33 @@ export default class QuestionnaireForm extends Component {
       let partialResponse = this.partialForms[returnValue];
       let saved_response = false;
 
-      console.log(partialResponse);
+      console.log("partialResponse:", partialResponse);
 
       if(partialResponse.contained && partialResponse.contained[0].resourceType === "Questionnaire") {
-        localStorage.setItem("lastSavedResponse", JSON.stringify(partialResponse));
         this.props.updateQuestionnaire(partialResponse.contained[0]);
-      } else {
-        // If not using saved QuestionnaireResponse, create a new one
-        let newResponse = {
-          resourceType: 'QuestionnaireResponse',
-          item: []
-        }
+      } 
+      // else {
+      //   // If not using saved QuestionnaireResponse, create a new one
+      //   let newResponse = {
+      //     resourceType: 'QuestionnaireResponse',
+      //     item: []
+      //   }
 
-        const items = this.props.qform.item;
-        this.prepopulate(items, newResponse.item, saved_response)
+      //   const items = this.props.qform.item;
+      //   this.prepopulate(items, newResponse.item, saved_response)
 
-        this.updateSavedResponseWithPrepopulation(newResponse, partialResponse);
+      //   this.updateSavedResponseWithPrepopulation(newResponse, partialResponse);
 
-        // force it to reload the form
-        this.loadAndMergeForms(partialResponse);
-      }
+      //   // force it to reload the form
+      //   this.loadAndMergeForms(partialResponse);
+      // }
+      
+      this.loadAndMergeForms(partialResponse);
+      localStorage.setItem("lastSavedResponse", JSON.stringify(partialResponse));
+      this.setState({
+        savedResponse: partialResponse
+      });
+
     } else {
       console.log("No form loaded.");
     }
@@ -1610,6 +1606,9 @@ export default class QuestionnaireForm extends Component {
   getDisplayButtons() {
     if (!this.isAdaptiveForm()) {
       return (<Box className="submit-button-panel" sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mt: 2 }}>
+        <Button variant="outlined" onClick={this.handleViewJsonDialog}>
+          View Response JSON
+        </Button>
         <Button variant="outlined" onClick={this.loadPreviousForm.bind(this)}>
           Load Previous Draft
         </Button>
@@ -1673,6 +1672,14 @@ export default class QuestionnaireForm extends Component {
     return (
       <div>
         <div id="formHeader"></div>
+        <Box sx={{ p: 1.5, bgcolor: 'background.paper', borderRadius: 1, border: 1, borderColor: 'grey.300', boxShadow: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+            <Box><strong>Patient:</strong> {this.state.headerPatient}</Box>
+          </Box>
+          <Box><strong>Authored:</strong> {this.state.headerAuthored}</Box>
+          <Box><strong>Author:</strong> {this.state.headerAuthorName}</Box>
+          <Box><strong>Source:</strong> {this.state.headerSourceName}</Box>
+        </Box>
         <div id="formContainer"></div>
         {/* {!isAdaptiveForm && this.props.formFilled ? <Alert severity="info" sx={{ mb: 2 }}>All fields have been filled. Continue or uncheck "Only Show Unfilled Fields" to review and modify the form.</Alert> : null} */}
         {
@@ -1701,17 +1708,13 @@ export default class QuestionnaireForm extends Component {
             Form Loaded: {this.state.formLoaded}
           </div>) : null
         }
-        <div>
-          <Button variant="outlined" onClick={this.handleViewJsonDialog}>
-            View QuestionnaireResponse JSON
-          </Button>
-        </div>
+        {this.getDisplayButtons()}
+
         <QuestionnaireResponseJsonDialog
           open={this.state.showJsonDialog}
           onClose={this.handleCloseJsonDialog}
           questionnaireResponse={this.state.newQuestionnaireResponse}
         />
-        {this.getDisplayButtons()}
       </div>)
         ;
   }
