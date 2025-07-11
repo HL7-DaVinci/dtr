@@ -7,7 +7,7 @@ import _ from "lodash";
 import ConfigData from "../../config.json";
 import {createTask} from "../../util/taskCreation";
 import retrieveQuestions, { buildNextQuestionRequest } from "../../util/retrieveQuestions";
-import { Button, Box } from '@mui/material';
+import { Button, Box, Grid } from '@mui/material';
 import QuestionnaireResponseJsonDialog from './QuestionnaireResponseJsonDialog';
 import { DTR_INFORMATION_ORIGIN, processInformationOrigin } from "../../util/qrUtils.js";
 
@@ -245,17 +245,11 @@ export default class QuestionnaireForm extends Component {
       return; 
     }
 
-    const currentQuestionnaireResponse = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', this.fhirVersion, "#formContainer");;
+    // const currentQuestionnaireResponse = window.LForms.Util.getFormFHIRData('QuestionnaireResponse', this.fhirVersion, "#formContainer");;
     //const mergedResponse = this.mergeResponseForSameLinkId(questionnaireResponse);
     retrieveQuestions(url, questionnaireResponse, this.smart)
       .then(result => {
-        if (!result.ok) {
-          console.log("Result: ", result);
-          throw new Error(`${result.status} - ${result.statusText}`);
-        }
-        return result.json();
-      })
-      .then(result => {
+        console.log("retrieveQuestions result: ", result);
         try {
           if (!result) {
             throw new Error("No response from server");
@@ -350,10 +344,17 @@ export default class QuestionnaireForm extends Component {
   }
 
   loadAndMergeForms(newResponse) {
-    console.log(JSON.stringify(this.props.qform));
-    console.log(JSON.stringify(newResponse));
+    console.log("[loadAndMergeForms] qform:", JSON.stringify(this.props.qform));
+    console.log("[loadAndMergeForms] newResponse:", JSON.stringify(newResponse));
 
     let lform = LForms.Util.convertFHIRQuestionnaireToLForms(this.props.qform, this.props.fhirVersion);
+
+    if (!lform) {
+      console.error("[loadAndMergeForms] Failed to convert FHIR Questionnaire to LForms. qform:", this.props.qform);
+      this.popupClear("Error: Unable to load form. Questionnaire is invalid.", "OK", true);
+      this.popupLaunch();
+      return;
+    }
 
     lform.templateOptions = {
       showFormHeader: false,
@@ -365,7 +366,14 @@ export default class QuestionnaireForm extends Component {
 
     if (newResponse) {
       newResponse = this.mergeResponseForSameLinkId(newResponse);
-      lform = LForms.Util.mergeFHIRDataIntoLForms("QuestionnaireResponse", newResponse, lform, this.props.fhirVersion);
+      try {
+        lform = LForms.Util.mergeFHIRDataIntoLForms("QuestionnaireResponse", newResponse, lform, this.props.fhirVersion);
+      } catch (err) {
+        console.error("[loadAndMergeForms] Error merging QuestionnaireResponse into LForms:", err, newResponse, lform);
+        this.popupClear("Error merging QuestionnaireResponse into form.  Check console for details.", "OK", true);
+        this.popupLaunch();
+        return;
+      }
     }
 
     this.setState({
@@ -1298,11 +1306,12 @@ export default class QuestionnaireForm extends Component {
         createTask(JSON.parse(this.appContext.task), this.props.smart);
       }
       this.popupClear("Partially completed form (QuestionnaireResponse) saved to EHR", "OK", true);
-      if(showPopup) {
-        this.popupLaunch();
-      } else {
-        alert("Partially completed form (QuestionnaireResponse) saved to EHR");
-      }
+      this.popupLaunch();
+      // if(showPopup) {
+      //   this.popupLaunch();
+      // } else {
+      //   alert("Partially completed form (QuestionnaireResponse) saved to EHR");
+      // }
       return;
     }
 
@@ -1627,10 +1636,7 @@ export default class QuestionnaireForm extends Component {
 
   getDisplayButtons() {
     if (!this.isAdaptiveForm()) {
-      return (<Box className="submit-button-panel" sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mt: 2 }}>
-        <Button variant="outlined" onClick={this.handleViewJsonDialog}>
-          View Response JSON
-        </Button>
+      return (<>
         <Button variant="outlined" onClick={this.loadPreviousForm.bind(this)}>
           Load Previous Draft
         </Button>
@@ -1643,24 +1649,24 @@ export default class QuestionnaireForm extends Component {
         <Button variant="contained" color="success" onClick={this.outputResponse.bind(this, "completed")}>
           Proceed To Prior Auth
         </Button>
-      </Box>)
+      </>)
     }
     else {
       if (this.props.adFormCompleted) {
         return (
-            <Box className="submit-button-panel" sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mt: 2 }}>
+            <>
               <Button variant="contained" onClick={this.sendQuestionnaireResponseToPayer.bind(this)}>
                 Send to Payer
               </Button>
               <Button variant="contained" color="success" onClick={this.outputResponse.bind(this, "completed")}>
                 Proceed To Prior Auth
               </Button>
-            </Box>
+            </>
         )
       }
       else {
         return (
-            <Box className="submit-button-panel" sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mt: 2 }}>
+            <>
               {this.isAdaptiveFormWithoutItem() ? (
                   <Button variant="outlined" onClick={this.loadPreviousForm.bind(this)}>
                     Load Previous Form
@@ -1669,7 +1675,7 @@ export default class QuestionnaireForm extends Component {
               {this.isAdaptiveFormWithItem() ? (<Button variant="outlined" onClick={this.outputResponse.bind(this, "in-progress")}>
                 Save Draft to EHR
               </Button>) : null}
-            </Box>
+            </>
         )
       }
     }
@@ -1715,50 +1721,65 @@ export default class QuestionnaireForm extends Component {
     const showPopup = !isAdaptiveForm || this.isAdaptiveFormWithoutItem();
     return (
       <div>
-        <div id="formHeader"></div>
-        <Box sx={{ p: 1.5, bgcolor: 'background.paper', borderRadius: 1, border: 1, borderColor: 'grey.300', boxShadow: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
-          <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-            <Box><strong>Patient:</strong> {this.state.headerPatient}</Box>
-          </Box>
-          <Box><strong>Authored:</strong> {this.state.headerAuthored}</Box>
-          <Box><strong>Author:</strong> {this.state.headerAuthorName}</Box>
-          <Box><strong>Source:</strong> {this.state.headerSourceName}</Box>
-        </Box>
+        <div id="formHeader">
+          <Grid container spacing={2} sx={{ p: 1.5, bgcolor: 'background.paper', borderRadius: 1, border: 1, borderColor: 'grey.300', boxShadow: 1 }}>
+            <Grid size={6}>
+              <Box><strong>Patient:</strong> {this.state.headerPatient}</Box>
+              <Box><strong>Authored:</strong> {this.state.headerAuthored}</Box>
+            </Grid>
+            <Grid size={6}>
+              <Box><strong>Author:</strong> {this.state.headerAuthorName}</Box>
+              <Box><strong>Source:</strong> {this.state.headerSourceName}</Box>
+            </Grid>
+          </Grid>
+        </div>
         <div id="formContainer"></div>
-        {/* {!isAdaptiveForm && this.props.formFilled ? <Alert severity="info" sx={{ mb: 2 }}>All fields have been filled. Continue or uncheck "Only Show Unfilled Fields" to review and modify the form.</Alert> : null} */}
-        {
-          showPopup ? (
-              <SelectPopup
-                  title={this.state.popupTitle}
-                  options={this.state.popupOptions}
-                  finalOption={this.state.popupFinalOption}
-                  selectedCallback={this.popupCallback.bind(this)}
-                  setClick={click => this.clickChild = click}
-              />
-          ) : null
-        }
-        {
-          isAdaptiveForm ? (
-              <Box className="form-message-panel" sx={{ mt: 2, p: 2, bgcolor: 'grey.100', borderRadius: 1 }}>
-                {this.isAdaptiveFormWithoutItem() && !this.props.adFormCompleted ? (<p>Click Next Question button to proceed.</p>) : null}
-                {!this.props.adFormCompleted ? (<Box sx={{ mt: 1 }}> <Button variant="contained" onClick={this.loadNextQuestions}>
-                  Next Question
-                </Button>
-                </Box>) : null}
-              </Box>) : null
-        }
-        {
-          !isAdaptiveForm ? (<div className="status-panel">
-            Form Loaded: {this.state.formLoaded}
-          </div>) : null
-        }
-        {this.getDisplayButtons()}
+        <div id="formFooter">
+          <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, mt: 2, mb: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
+              {/* {!isAdaptiveForm && this.props.formFilled ? <Alert severity="info" sx={{ mb: 2 }}>All fields have been filled. Continue or uncheck "Only Show Unfilled Fields" to review and modify the form.</Alert> : null} */}
+              {
+                isAdaptiveForm ? (
+                  <>
+                    {/* {this.isAdaptiveFormWithoutItem() && !this.props.adFormCompleted ? (<p>Click Next Question button to proceed.</p>) : null} */}
+                    {!this.props.adFormCompleted ? (
+                      <Button variant="contained" onClick={this.loadNextQuestions}>
+                        Next Question
+                      </Button>
+                    ) : null}
+                  </>
+                ) : null
+              }
+              {
+                !isAdaptiveForm ? (
+                  <>
+                    Form Loaded: {this.state.formLoaded}
+                  </>
+                ) : null
+              }
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
+              <Button variant="outlined" onClick={this.handleViewJsonDialog}>
+                View Response JSON
+              </Button>
+              {this.getDisplayButtons()}
+            </Box>
+          </Box>
+        </div>
 
-        <QuestionnaireResponseJsonDialog
-          open={this.state.showJsonDialog}
-          onClose={this.handleCloseJsonDialog}
-          questionnaireResponse={this.state.newQuestionnaireResponse}
-        />
+        {/* Dialogs */}
+        <SelectPopup
+              title={this.state.popupTitle}
+              options={this.state.popupOptions}
+              finalOption={this.state.popupFinalOption}
+              selectedCallback={this.popupCallback.bind(this)}
+              setClick={click => this.clickChild = click}
+          />
+          <QuestionnaireResponseJsonDialog
+            open={this.state.showJsonDialog}
+            onClose={this.handleCloseJsonDialog}
+            questionnaireResponse={this.state.newQuestionnaireResponse}
+          />
       </div>)
         ;
   }
