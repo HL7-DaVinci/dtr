@@ -1,4 +1,7 @@
 # DTR SMART on FHIR App
+
+[![Build Status](https://ci.hl7.org/api/badges/HL7-DaVinci/dtr/status.svg)](https://ci.hl7.org/HL7-DaVinci/dtr)
+
 This subproject contains a SMART on FHIR app, which provides a standardized way to interact with FHIR servers. This Reference Impementation (RI) supports the **[Documents Templates and Rules (DTR) IG](http://build.fhir.org/ig/HL7/davinci-dtr/)** which specifies how payer rules can be executed in a provider context to ensure that documentation requirements are met. This RI and IG are companions to the **[Coverage Requirements Discovery (CRD) IG](https://build.fhir.org/ig/HL7/davinci-crd/)** and **[Coverage Requirements Discovery (CRD) RI](https://github.com/HL7-DaVinci/CRD)**.
 
 A live demo is hosted by [HL7 FHIR Foundry](https://foundry.hl7.org/products/88bb19cb-7a2a-4cfd-984a-a788f0cc53d5), where you may also download curated configurations to run yourself.
